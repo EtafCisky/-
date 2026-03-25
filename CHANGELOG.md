@@ -1,5 +1,18 @@
 # 更新日志
 
+## [3.3.12] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+炼丹处理器参数顺序修复（再次修复）
+
+- 修复 `AlchemyHandler.handle_craft_pill()` 方法参数顺序
+- `@require_player` 装饰器在 `event` 之后立即插入 `player` 参数
+- 正确的参数顺序：`self, event, player, recipe_id`
+- 修复了使用"炼丹"命令时出现 "int() argument must be a string... not 'Player'" 错误
+
+---
+
 ## [3.3.11] - 2026-03-26 (Bug 修复版)
 
 ### 🐛 Bug 修复

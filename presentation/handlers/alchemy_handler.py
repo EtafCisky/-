@@ -56,16 +56,16 @@ class AlchemyHandler:
     async def handle_craft_pill(
         self, 
         event: AstrMessageEvent,
-        recipe_id: str,
-        player
+        player,
+        recipe_id: str = ""
     ) -> AsyncGenerator[str, None]:
         """
         处理炼丹命令
         
         Args:
             event: 消息事件
-            recipe_id: 配方ID
             player: 玩家对象（由装饰器注入）
+            recipe_id: 配方ID
             
         Yields:
             响应消息
