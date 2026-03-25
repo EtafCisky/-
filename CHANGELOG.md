@@ -1,5 +1,31 @@
 # 更新日志
 
+## [3.1.14] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+装备服务空装备处理修复
+
+- 修复 `EquipmentService.get_equipped_items()` 对空装备的处理逻辑
+- 当玩家没有装备时，返回空的 `EquippedItems` 对象而不是抛出异常
+- 先检查玩家是否存在，再获取装备信息
+- 修复了玩家没有装备时使用"我的装备"命令没有反应的问题
+
+---
+
+## [3.1.13] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+装备处理器返回值修复
+
+- 修复 `EquipmentHandler` 所有方法的 `yield` 语句
+- 所有返回消息必须使用 `event.plain_result()` 包装
+- 修复了使用装备相关命令后没有反应的问题
+- 影响的方法：`handle_show_equipment()`, `handle_equip_item()`, `handle_unequip_item()`
+
+---
+
 ## [3.1.12] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

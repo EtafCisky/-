@@ -48,9 +48,16 @@ class EquipmentService:
         Raises:
             BusinessException: 玩家不存在
         """
+        # 先检查玩家是否存在
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            raise BusinessException("玩家不存在")
+        
+        # 获取装备信息，如果没有则返回空装备
         equipped_items = self.equipment_repo.get_equipped_items(user_id)
         if equipped_items is None:
-            raise BusinessException("玩家不存在")
+            # 返回空装备对象
+            equipped_items = EquippedItems()
         
         return equipped_items
     

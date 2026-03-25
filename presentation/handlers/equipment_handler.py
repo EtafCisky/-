@@ -41,12 +41,12 @@ class EquipmentHandler:
             # 格式化输出
             message = self.equipment_service.format_equipped_items(equipped_items)
             
-            yield message
+            yield event.plain_result(message)
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"查看装备失败：{str(e)}"
+            yield event.plain_result(f"查看装备失败：{str(e)}")
     
     @require_player
     async def handle_equip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
@@ -62,7 +62,7 @@ class EquipmentHandler:
             # 解析命令参数
             parts = message_text.strip().split(maxsplit=1)
             if len(parts) < 2:
-                yield "请指定要装备的物品名称\n格式：装备 <物品名称>"
+                yield event.plain_result("请指定要装备的物品名称\n格式：装备 <物品名称>")
                 return
             
             item_name = parts[1].strip()
@@ -81,12 +81,12 @@ class EquipmentHandler:
             if stats:
                 message_parts.append(f"\n属性加成：{stats}")
             
-            yield "\n".join(message_parts)
+            yield event.plain_result("\n".join(message_parts))
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"装备失败：{str(e)}"
+            yield event.plain_result(f"装备失败：{str(e)}")
     
     @require_player
     async def handle_unequip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
@@ -107,7 +107,7 @@ class EquipmentHandler:
             # 解析命令参数
             parts = message_text.strip().split(maxsplit=1)
             if len(parts) < 2:
-                yield "请指定要卸下的装备\n格式：卸下 <物品名称> 或 卸下 <槽位>"
+                yield event.plain_result("请指定要卸下的装备\n格式：卸下 <物品名称> 或 卸下 <槽位>")
                 return
             
             param = parts[1].strip()
@@ -127,9 +127,9 @@ class EquipmentHandler:
                 # 按名称卸下
                 equipment = self.equipment_service.unequip_item(user_id, item_name=param)
             
-            yield f"成功卸下【{equipment.name}】并放入储物戒"
+            yield event.plain_result(f"成功卸下【{equipment.name}】并放入储物戒")
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"卸下装备失败：{str(e)}"
+            yield event.plain_result(f"卸下装备失败：{str(e)}")
