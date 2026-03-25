@@ -16,14 +16,16 @@ from ..decorators import require_player
 class ShopHandler:
     """商店命令处理器"""
     
-    def __init__(self, shop_service: ShopService):
+    def __init__(self, shop_service: ShopService, player_service):
         """
         初始化商店命令处理器
         
         Args:
             shop_service: 商店服务
+            player_service: 玩家服务
         """
         self.shop_service = shop_service
+        self.player_service = player_service
     
     async def handle_pill_pavilion(
         self, 

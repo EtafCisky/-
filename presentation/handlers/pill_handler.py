@@ -14,14 +14,16 @@ from ..decorators import require_player
 class PillHandler:
     """丹药处理器"""
     
-    def __init__(self, pill_service: PillService):
+    def __init__(self, pill_service: PillService, player_service):
         """
         初始化丹药处理器
         
         Args:
             pill_service: 丹药服务
+            player_service: 玩家服务
         """
         self.pill_service = pill_service
+        self.player_service = player_service
     
     @require_player
     async def handle_show_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:

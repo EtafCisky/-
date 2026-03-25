@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.17"
+    "3.1.4"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -122,32 +122,40 @@ class XiuxianV3Plugin(Star):
             spirit_root_gen
         )
         self.cultivation_handler = CultivationHandler(
-            self.container.cultivation_service()
+            self.container.cultivation_service(),
+            self.container.player_service()
         )
         self.breakthrough_handler = BreakthroughHandler(
-            self.container.breakthrough_service()
+            self.container.breakthrough_service(),
+            self.container.player_service()
         )
         self.combat_handler = CombatHandler(
-            self.container.combat_service()
+            self.container.combat_service(),
+            self.container.player_service()
         )
         self.storage_ring_handler = StorageRingHandler(
             self.container.storage_ring_service(),
             self.container.player_service()
         )
         self.equipment_handler = EquipmentHandler(
-            self.container.equipment_service()
+            self.container.equipment_service(),
+            self.container.player_service()
         )
         self.pill_handler = PillHandler(
-            self.container.pill_service()
+            self.container.pill_service(),
+            self.container.player_service()
         )
         self.alchemy_handler = AlchemyHandler(
-            self.container.alchemy_service()
+            self.container.alchemy_service(),
+            self.container.player_service()
         )
         self.shop_handler = ShopHandler(
-            self.container.shop_service()
+            self.container.shop_service(),
+            self.container.player_service()
         )
         self.sect_handler = SectHandler(
-            self.container.sect_service()
+            self.container.sect_service(),
+            self.container.player_service()
         )
         self.adventure_handler = AdventureHandler(
             self.container.adventure_service()

@@ -15,14 +15,16 @@ from ..decorators import require_player
 class SectHandler:
     """宗门命令处理器"""
     
-    def __init__(self, sect_service: SectService):
+    def __init__(self, sect_service: SectService, player_service):
         """
         初始化宗门命令处理器
         
         Args:
             sect_service: 宗门服务
+            player_service: 玩家服务
         """
         self.sect_service = sect_service
+        self.player_service = player_service
     
     @require_player
     async def handle_create_sect(

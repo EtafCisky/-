@@ -15,14 +15,16 @@ from ..decorators import require_player
 class AlchemyHandler:
     """炼丹命令处理器"""
     
-    def __init__(self, alchemy_service: AlchemyService):
+    def __init__(self, alchemy_service: AlchemyService, player_service):
         """
         初始化炼丹命令处理器
         
         Args:
             alchemy_service: 炼丹服务
+            player_service: 玩家服务
         """
         self.alchemy_service = alchemy_service
+        self.player_service = player_service
     
     @require_player
     async def handle_show_recipes(

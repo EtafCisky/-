@@ -9,8 +9,9 @@ from ..decorators import require_player
 class CultivationHandler:
     """修炼命令处理器"""
     
-    def __init__(self, cultivation_service: CultivationService):
+    def __init__(self, cultivation_service: CultivationService, player_service):
         self.cultivation_service = cultivation_service
+        self.player_service = player_service
     
     @require_player
     async def handle_start_cultivation(self, event: AstrMessageEvent, player):

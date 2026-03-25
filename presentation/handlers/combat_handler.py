@@ -11,8 +11,9 @@ from ..decorators import require_player
 class CombatHandler:
     """战斗命令处理器"""
     
-    def __init__(self, combat_service: CombatService):
+    def __init__(self, combat_service: CombatService, player_service):
         self.combat_service = combat_service
+        self.player_service = player_service
     
     async def _get_target_id(self, event: AstrMessageEvent, arg: str) -> str:
         """

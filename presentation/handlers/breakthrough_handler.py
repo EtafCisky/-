@@ -10,8 +10,9 @@ from ..decorators import require_player
 class BreakthroughHandler:
     """突破命令处理器"""
     
-    def __init__(self, breakthrough_service: BreakthroughService):
+    def __init__(self, breakthrough_service: BreakthroughService, player_service):
         self.breakthrough_service = breakthrough_service
+        self.player_service = player_service
     
     @require_player
     async def handle_breakthrough_info(self, event: AstrMessageEvent, player):

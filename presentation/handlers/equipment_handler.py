@@ -14,14 +14,16 @@ from ..decorators import require_player
 class EquipmentHandler:
     """装备处理器"""
     
-    def __init__(self, equipment_service: EquipmentService):
+    def __init__(self, equipment_service: EquipmentService, player_service):
         """
         初始化装备处理器
         
         Args:
             equipment_service: 装备服务
+            player_service: 玩家服务
         """
         self.equipment_service = equipment_service
+        self.player_service = player_service
     
     @require_player
     async def handle_show_equipment(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
