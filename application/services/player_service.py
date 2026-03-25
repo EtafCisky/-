@@ -46,28 +46,39 @@ class PlayerService:
         Raises:
             PlayerAlreadyExistsException: 玩家已存在
         """
-        # 检查是否已存在
-        if self.player_repo.exists(user_id):
-            raise PlayerAlreadyExistsException(user_id)
-        
-        # 生成灵根
-        spirit_root = self.spirit_root_generator.generate_random_root()
-        
-        # 获取初始灵石配置
-        initial_gold = self.config_manager.settings.values.initial_gold
-        
-        # 创建玩家
-        player = PlayerFactory.create_new_player(
-            user_id=user_id,
-            cultivation_type=cultivation_type,
-            spirit_root=spirit_root,
-            initial_gold=initial_gold
-        )
-        
-        # 保存
-        self.player_repo.save(player)
-        
-        return player
+        try:
+            # 检查是否已存在
+            if self.player_repo.exists(user_id):
+                raise PlayerAlreadyExistsException(user_id)
+            
+            # 生成灵根
+            spirit_root = self.spirit_root_generator.generate_random_root()
+            
+            # 获取初始灵石配置
+            initial_gold = self.config_manager.settings.values.initial_gold
+            
+            # 创建玩家
+            player = PlayerFactory.create_new_player(
+                user_id=user_id,
+                cultivation_type=cultivation_type,
+                spirit_root=spirit_root,
+                initial_gold=initial_gold
+            )
+            
+            # 保存
+            self.player_repo.save(player)
+            
+            # 提交事务
+            self.player_repo.session.commit()
+            
+            return player
+        except Exception as e:
+            # 回滚事务
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            # 关闭会话
+            self.player_repo.session.close()
     
     def get_player(self, user_id: str) -> Optional[Player]:
         """
@@ -106,7 +117,14 @@ class PlayerService:
         Args:
             player: 玩家对象
         """
-        self.player_repo.save(player)
+        try:
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def check_in(self, player: Player) -> int:
         """
@@ -121,33 +139,40 @@ class PlayerService:
         Raises:
             ValueError: 今日已签到
         """
-        # 获取今天的日期
-        today = datetime.now().strftime("%Y-%m-%d")
-        
-        # 检查是否已签到
-        if player.last_check_in_date == today:
-            raise ValueError("今日已经签到过了")
-        
-        # 获取签到奖励范围
-        settings = self.config_manager.settings.values
-        gold_min = settings.check_in_gold_min
-        gold_max = settings.check_in_gold_max
-        
-        # 确保最小值不大于最大值
-        if gold_min > gold_max:
-            gold_min, gold_max = gold_max, gold_min
-        
-        # 生成随机奖励
-        reward_gold = random.randint(gold_min, gold_max)
-        
-        # 更新玩家数据
-        player.add_gold(reward_gold)
-        player.last_check_in_date = today
-        
-        # 保存
-        self.player_repo.save(player)
-        
-        return reward_gold
+        try:
+            # 获取今天的日期
+            today = datetime.now().strftime("%Y-%m-%d")
+            
+            # 检查是否已签到
+            if player.last_check_in_date == today:
+                raise ValueError("今日已经签到过了")
+            
+            # 获取签到奖励范围
+            settings = self.config_manager.settings.values
+            gold_min = settings.check_in_gold_min
+            gold_max = settings.check_in_gold_max
+            
+            # 确保最小值不大于最大值
+            if gold_min > gold_max:
+                gold_min, gold_max = gold_max, gold_min
+            
+            # 生成随机奖励
+            reward_gold = random.randint(gold_min, gold_max)
+            
+            # 更新玩家数据
+            player.add_gold(reward_gold)
+            player.last_check_in_date = today
+            
+            # 保存
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+            
+            return reward_gold
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def change_nickname(self, player: Player, new_nickname: str) -> None:
         """
@@ -160,26 +185,33 @@ class PlayerService:
         Raises:
             InvalidParameterException: 道号无效
         """
-        # 验证道号
-        new_nickname = new_nickname.strip()
-        
-        if not new_nickname:
-            raise InvalidParameterException("道号", "道号不能为空")
-        
-        if len(new_nickname) > 12:
-            raise InvalidParameterException("道号", "道号长度不能超过12个字符")
-        
-        # 检查是否与其他玩家重复
-        existing = self.player_repo.get_by_nickname(new_nickname)
-        if existing and existing.user_id != player.user_id:
-            raise InvalidParameterException("道号", "该道号已被其他道友使用")
-        
-        # 更新道号
-        player.nickname = new_nickname
-        player.user_name = new_nickname
-        
-        # 保存
-        self.player_repo.save(player)
+        try:
+            # 验证道号
+            new_nickname = new_nickname.strip()
+            
+            if not new_nickname:
+                raise InvalidParameterException("道号", "道号不能为空")
+            
+            if len(new_nickname) > 12:
+                raise InvalidParameterException("道号", "道号长度不能超过12个字符")
+            
+            # 检查是否与其他玩家重复
+            existing = self.player_repo.get_by_nickname(new_nickname)
+            if existing and existing.user_id != player.user_id:
+                raise InvalidParameterException("道号", "该道号已被其他道友使用")
+            
+            # 更新道号
+            player.nickname = new_nickname
+            player.user_name = new_nickname
+            
+            # 保存
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def delete_player(self, user_id: str) -> None:
         """
@@ -188,7 +220,14 @@ class PlayerService:
         Args:
             user_id: 用户ID
         """
-        self.player_repo.delete(user_id)
+        try:
+            self.player_repo.delete(user_id)
+            self.player_repo.session.commit()
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def get_level_name(self, player: Player) -> str:
         """

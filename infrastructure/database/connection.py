@@ -54,7 +54,10 @@ class DatabaseConnection:
                 db_url,
                 echo=self.echo,
                 pool_pre_ping=True,  # 连接池预检查
-                connect_args={"check_same_thread": False}  # SQLite 多线程支持
+                connect_args={
+                    "check_same_thread": False,  # SQLite 多线程支持
+                    "timeout": 30  # 30秒超时，避免长时间锁定
+                }
             )
             
             # 启用 SQLite 外键约束
