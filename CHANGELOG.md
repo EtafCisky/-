@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.1.11] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+数据库锁定问题修复（闭关系统）
+
+- 简化 `CultivationService.start_cultivation()` 的事务管理逻辑
+- 简化 `CultivationService.end_cultivation()` 的事务管理逻辑
+- 移除不必要的新会话创建，直接使用现有的 `player_repo` 会话
+- 在 `save()` 后显式调用 `commit()` 和 `rollback()`（异常时）
+- 修复了"闭关失败：(sqlite3.OperationalError) database is locked"错误
+- 确保闭关状态和修为变更正确保存到数据库
+
+---
+
 ## [3.1.10] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

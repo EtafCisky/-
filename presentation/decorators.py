@@ -22,13 +22,6 @@ def require_player(func: Callable):
         # 从服务层获取玩家
         player = self.player_service.get_player(user_id)
         
-        # 关闭读取玩家时使用的会话
-        try:
-            if hasattr(self.player_service, 'player_repo') and hasattr(self.player_service.player_repo, 'session'):
-                self.player_service.player_repo.session.close()
-        except Exception:
-            pass  # 忽略关闭错误
-        
         if not player:
             yield event.plain_result(
                 "❌ 你还未踏入修仙之路！\n"
