@@ -133,6 +133,70 @@ class PlayerRepository(BaseRepository[Player]):
         results = self.session.execute(stmt).scalars().all()
         return [self._to_domain(r) for r in results]
     
+    def get_player(self, user_id: str) -> Optional[Player]:
+        """
+        获取玩家（get_by_id 的别名，用于兼容性）
+        
+        Args:
+            user_id: 用户ID
+            
+        Returns:
+            玩家对象，不存在则返回None
+        """
+        return self.get_by_id(user_id)
+    
+    def add_gold(self, user_id: str, amount: int) -> None:
+        """
+        增加/减少玩家灵石（便捷方法）
+        
+        Args:
+            user_id: 用户ID
+            amount: 灵石数量（正数为增加，负数为减少）
+        """
+        player = self.get_by_id(user_id)
+        if not player:
+            raise ValueError(f"玩家不存在: {user_id}")
+        
+        if amount > 0:
+            player.add_gold(amount)
+        else:
+            player.consume_gold(-amount)
+        
+        self.save(player)
+        self.session.commit()
+        self.session.close()
+    
+    def add_experience(self, user_id: str, exp: int) -> None:
+        """
+        增加玩家修为（便捷方法）
+        
+        Args:
+            user_id: 用户ID
+            exp: 修为数量
+        """
+        player = self.get_by_id(user_id)
+        if not player:
+            raise ValueError(f"玩家不存在: {user_id}")
+        
+        player.add_experience(exp)
+        self.save(player)
+        self.session.commit()
+        self.session.close()
+    
+    def get_player_state(self, user_id: str):
+        """
+        获取玩家状态（便捷方法，用于兼容性）
+        
+        Args:
+            user_id: 用户ID
+            
+        Returns:
+            玩家状态对象
+        """
+        # TODO: 实现 PlayerStateTable 查询
+        # 暂时返回 None
+        return None
+    
     def _to_domain(self, table_obj: PlayerTable) -> Player:
         """将数据库对象转换为领域对象"""
         import json

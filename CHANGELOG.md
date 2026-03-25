@@ -1,5 +1,21 @@
 # 更新日志
 
+## [3.1.7] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**PlayerRepository 方法缺失修复**
+
+- 添加 `get_player(user_id)` 方法作为 `get_by_id()` 的别名，用于兼容性
+- 添加 `add_gold(user_id, amount)` 便捷方法，直接增加/减少玩家灵石
+- 添加 `add_experience(user_id, exp)` 便捷方法，直接增加玩家修为
+- 添加 `get_player_state(user_id)` 占位方法（待实现）
+- 这些方法内部自动处理事务提交和会话关闭
+- 修复了使用银行命令时出现 "'PlayerRepository' object has no attribute 'get_player'" 错误的问题
+- 修复了多个服务（银行、秘境、洞天福地、灵田、Boss、双修、传承、排行榜）调用不存在方法的问题
+
+---
+
 ## [3.1.6] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复
