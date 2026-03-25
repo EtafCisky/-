@@ -12,22 +12,31 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.15"
+    "3.0.16"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
     
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config=None):
         super().__init__(context)
         
         # 获取插件数据目录
         self.data_dir = StarTools.get_data_dir("astrbot_plugin_monixiuxianv3")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
-        # 获取 AstrBot 配置（不传默认值，如果没有配置则返回 None）
-        astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3")
+        # 获取 AstrBot 配置
+        # 优先使用传入的 config 参数（AstrBot 4.x 方式）
+        # 如果没有，则尝试从 context 获取（备用方式）
+        if config is not None:
+            astrbot_config = config
+            logger.info(f"【修仙V3】从 config 参数获取配置: {type(config)}")
+        else:
+            astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3")
+            logger.info(f"【修仙V3】从 context 获取配置: {type(astrbot_config)}")
+        
         if astrbot_config is None:
             astrbot_config = {}
+            logger.warning("【修仙V3】未获取到配置，使用空字典")
         
         # 初始化配置文件
         self._initialize_config_files()
