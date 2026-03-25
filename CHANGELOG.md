@@ -1,5 +1,18 @@
 # 更新日志
 
+## [3.0.8] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**缺失异常类修复（续）**
+
+- 添加 `GameException` 类到 `core/exceptions.py`
+- `GameException` 作为 `XiuxianException` 的子类，用于游戏逻辑错误
+- 修复多个服务和处理器中的导入错误
+- 确保所有异常类型都已定义
+
+---
+
 ## [3.0.7] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复

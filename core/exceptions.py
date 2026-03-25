@@ -14,6 +14,12 @@ class BusinessException(XiuxianException):
     pass
 
 
+# GameException 作为 XiuxianException 的别名，用于游戏逻辑异常
+class GameException(XiuxianException):
+    """游戏异常 - 用于游戏逻辑错误"""
+    pass
+
+
 class PlayerNotFoundException(XiuxianException):
     """玩家不存在异常"""
     def __init__(self, user_id: str):
