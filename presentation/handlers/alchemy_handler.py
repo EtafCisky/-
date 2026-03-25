@@ -29,13 +29,15 @@ class AlchemyHandler:
     @require_player
     async def handle_show_recipes(
         self, 
-        event: AstrMessageEvent
+        event: AstrMessageEvent,
+        player
     ) -> AsyncGenerator[str, None]:
         """
         处理查看丹药配方命令
         
         Args:
             event: 消息事件
+            player: 玩家对象（由装饰器注入）
             
         Yields:
             响应消息
@@ -54,7 +56,8 @@ class AlchemyHandler:
     async def handle_craft_pill(
         self, 
         event: AstrMessageEvent,
-        recipe_id: str = None
+        recipe_id: str,
+        player
     ) -> AsyncGenerator[str, None]:
         """
         处理炼丹命令
@@ -62,6 +65,7 @@ class AlchemyHandler:
         Args:
             event: 消息事件
             recipe_id: 配方ID
+            player: 玩家对象（由装饰器注入）
             
         Yields:
             响应消息

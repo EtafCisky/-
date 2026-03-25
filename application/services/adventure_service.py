@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Tuple
 from ...core.config import ConfigManager
 from ...core.exceptions import GameException
 from ...domain.models.adventure import AdventureRoute, AdventureEvent, AdventureResult
+from ...domain.enums import PlayerState
 from ...infrastructure.repositories.player_repo import PlayerRepository
 from ...infrastructure.repositories.storage_ring_repo import StorageRingRepository
 
@@ -83,7 +84,7 @@ class AdventureService:
             raise GameException("你还未踏入修仙之路")
         
         # 检查状态
-        if player.state != "idle":
+        if player.state != PlayerState.IDLE:
             raise GameException("你当前无法开始历练")
         
         # 查找路线（通过别名索引）
@@ -114,7 +115,7 @@ class AdventureService:
         
         self.player_repo.update_player_state(
             user_id,
-            state="adventure",
+            state=PlayerState.ADVENTURING,
             extra_data=json.dumps(extra_data)
         )
         
@@ -144,7 +145,7 @@ class AdventureService:
         if not player:
             raise GameException("你还未踏入修仙之路")
         
-        if player.state != "adventure":
+        if player.state != PlayerState.ADVENTURING:
             raise GameException("你当前没有进行历练")
         
         # 解析状态数据
@@ -174,7 +175,7 @@ class AdventureService:
         if not player:
             raise GameException("你还未踏入修仙之路")
         
-        if player.state != "adventure":
+        if player.state != PlayerState.ADVENTURING:
             raise GameException("你当前没有进行历练")
         
         # 解析状态数据
@@ -216,7 +217,7 @@ class AdventureService:
             )
         
         # 重置状态
-        self.player_repo.update_player_state(user_id, state="idle", extra_data=None)
+        self.player_repo.update_player_state(user_id, state=PlayerState.IDLE, extra_data=None)
         
         return result
     
