@@ -1,5 +1,27 @@
 # 更新日志
 
+## [3.0.10] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**抽象类实例化错误修复**
+
+- 修复 `EquipmentRepository` 未实现 `BaseRepository` 抽象方法的问题
+- 实现 `get_by_id()`, `save()`, `delete()`, `exists()` 四个抽象方法
+- `save()` 和 `delete()` 抛出 `NotImplementedError`（装备数据为只读配置）
+- `get_by_id()` 委托给 `get_equipment_by_id()`
+- `exists()` 检查装备是否存在
+
+**配置文件路径问题修复**
+
+- 添加 `_initialize_config_files()` 方法自动复制配置文件
+- 插件首次加载时将配置文件从源目录复制到数据目录
+- 支持配置文件列表：level_config.json, body_level_config.json, items.json, weapons.json, pills.json, storage_rings.json, adventure_config.json, bounty_templates.json, alchemy_recipes.json
+- 避免"历练配置文件不存在"等配置加载错误
+- 确保插件在 AstrBot 环境中正常加载
+
+---
+
 ## [3.0.9] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复

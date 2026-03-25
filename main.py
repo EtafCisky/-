@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.9"
+    "3.0.10"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -29,6 +29,9 @@ class XiuxianV3Plugin(Star):
         if astrbot_config is None:
             astrbot_config = {}
         
+        # 初始化配置文件
+        self._initialize_config_files()
+        
         # 初始化配置管理器
         config_dir = self.data_dir / "config"
         self.config_manager = ConfigManager(config_dir=config_dir, astrbot_config=astrbot_config)
@@ -38,6 +41,43 @@ class XiuxianV3Plugin(Star):
         
         # 初始化所有 handlers
         self._setup_handlers()
+    
+    def _initialize_config_files(self):
+        """初始化配置文件（从插件目录复制到数据目录）"""
+        import shutil
+        from pathlib import Path
+        
+        # 源配置目录（插件安装目录）
+        source_config_dir = Path(__file__).parent / "config"
+        # 目标配置目录（数据目录）
+        target_config_dir = self.data_dir / "config"
+        target_config_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 需要复制的配置文件列表
+        config_files = [
+            "level_config.json",
+            "body_level_config.json",
+            "items.json",
+            "weapons.json",
+            "pills.json",
+            "storage_rings.json",
+            "adventure_config.json",
+            "bounty_templates.json",
+            "alchemy_recipes.json"
+        ]
+        
+        # 复制配置文件（如果目标文件不存在）
+        for config_file in config_files:
+            source_file = source_config_dir / config_file
+            target_file = target_config_dir / config_file
+            
+            if source_file.exists() and not target_file.exists():
+                try:
+                    shutil.copy2(source_file, target_file)
+                    logger.info(f"【修仙V3】已复制配置文件: {config_file}")
+                except Exception as e:
+                    logger.error(f"【修仙V3】复制配置文件 {config_file} 失败: {e}")
+
     
     def _setup_handlers(self):
         """初始化所有命令处理器"""
