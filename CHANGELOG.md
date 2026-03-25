@@ -1,5 +1,18 @@
 # 更新日志
 
+## [3.1.16] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+ConfigManager 缺失 get_config 方法修复
+
+- 添加 `ConfigManager.get_config()` 通用配置获取方法
+- 支持通过配置名称获取对应的配置（pills, weapons, items, alchemy_recipes 等）
+- 自动映射到具体的配置获取方法或直接加载 JSON 文件
+- 修复了使用商店命令（丹阁、器阁等）时出现 "'ConfigManager' object has no attribute 'get_config'" 错误
+
+---
+
 ## [3.1.15] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复
