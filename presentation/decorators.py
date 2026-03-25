@@ -4,8 +4,6 @@ from typing import Callable
 
 from astrbot.api.event import AstrMessageEvent
 
-from ..core.exceptions import PlayerNotFoundException
-
 
 def require_player(func: Callable):
     """

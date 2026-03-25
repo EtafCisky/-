@@ -1,5 +1,4 @@
 """修仙插件 V3 - 主入口"""
-from pathlib import Path
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, StarTools, register
 from astrbot.api import logger
@@ -7,14 +6,13 @@ from astrbot.api import logger
 from .core.container import Container
 from .core.constants import Commands
 from .core.config import ConfigManager
-from .infrastructure.database.connection import DatabaseConnection
 
 
 @register(
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.0"
+    "3.0.1"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -30,18 +28,17 @@ class XiuxianV3Plugin(Star):
         astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3", {})
         
         # 初始化配置管理器
-        config_dir = self.data_dir.parent.parent / "config"
+        config_dir = self.data_dir / "config"
         self.config_manager = ConfigManager(config_dir=config_dir, astrbot_config=astrbot_config)
         
         # 初始化依赖注入容器
         self.container = Container(data_dir=self.data_dir)
         
-        # 数据库连接（使用配置中的数据库文件名）
-        db_filename = self.config_manager.settings.files.database_file
-        db_path = self.data_dir / db_filename
-        self.db_connection = DatabaseConnection(str(db_path), echo=False)
-        
-        # 初始化 handlers
+        # 初始化所有 handlers
+        self._setup_handlers()
+    
+    def _setup_handlers(self):
+        """初始化所有命令处理器"""
         from .utils.spirit_root_generator import SpiritRootGenerator
         from .presentation.handlers.player_handler import PlayerHandler
         from .presentation.handlers.help_handler import HelpHandler
@@ -139,22 +136,18 @@ class XiuxianV3Plugin(Star):
     async def initialize(self):
         """插件启动"""
         try:
-            # 初始化数据库
-            self.db_connection.initialize()
+            # 初始化数据库（使用容器中的数据库连接）
+            db = self.container.database()
+            db.initialize()
             logger.info("【修仙V3】数据库初始化完成")
             
             # 初始化秘境数据
             self._initialize_rifts()
-            logger.info("【修仙V3】秘境数据初始化完成")
-            
-            # 初始化 handlers（将在后续实现）
-            # self.player_handler = PlayerHandler(...)
-            # self.cultivation_handler = CultivationHandler(...)
             
             logger.info("【修仙V3】插件已启动")
         except Exception as e:
-            logger.error(f"【修仙V3】插件启动失败: {e}")
-            raise
+            logger.error(f"【修仙V3】插件启动失败: {e}", exc_info=True)
+            raise  # 关键初始化失败应该中断启动
     
     def _initialize_rifts(self):
         """初始化秘境数据"""
@@ -166,6 +159,7 @@ class XiuxianV3Plugin(Star):
             # 检查是否已有秘境数据
             existing_rifts = rift_repo.get_all_rifts()
             if existing_rifts:
+                logger.info("【修仙V3】秘境数据已存在，跳过初始化")
                 return  # 已有数据，跳过初始化
             
             # 创建初始秘境
@@ -212,8 +206,9 @@ class XiuxianV3Plugin(Star):
             logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
             
         except Exception as e:
-            logger.warning(f"【修仙V3】初始化秘境数据失败: {e}")
-            # 不抛出异常，允许插件继续启动
+            logger.error(f"【修仙V3】初始化秘境数据失败: {e}", exc_info=True)
+            # 秘境初始化失败不应阻止插件启动，但需要记录详细错误
+            logger.warning("【修仙V3】秘境功能可能无法正常使用，请检查日志")
     
     # ===== 玩家系统命令 =====
     
@@ -814,10 +809,7 @@ class XiuxianV3Plugin(Star):
     async def terminate(self):
         """插件关闭"""
         try:
-            # 关闭数据库连接
-            self.db_connection.close()
-            
-            # 清理容器资源
+            # 清理容器资源（包括关闭数据库连接）
             self.container.cleanup()
             
             logger.info("【修仙V3】插件已关闭")
