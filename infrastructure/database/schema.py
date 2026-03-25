@@ -202,8 +202,8 @@ class LoanTable(Base):
     status = Column(Integer, nullable=False, default=1, comment='状态：1=进行中，2=已还清，3=已逾期')
     
     __table_args__ = (
-        Index('idx_user_status', 'user_id', 'status'),
-        Index('idx_due', 'due_at'),
+        Index('idx_loan_user_status', 'user_id', 'status'),
+        Index('idx_loan_due', 'due_at'),
     )
 
 
@@ -306,8 +306,8 @@ class BountyTaskTable(Base):
     status = Column(Integer, nullable=False, default=1, comment='状态：1=进行中，2=已完成，0=已取消，3=已过期')
     
     __table_args__ = (
-        Index('idx_user_status', 'user_id', 'status'),
-        Index('idx_expire', 'expire_time'),
+        Index('idx_bounty_user_status', 'user_id', 'status'),
+        Index('idx_bounty_expire', 'expire_time'),
     )
 
 
@@ -326,7 +326,7 @@ class RiftTable(Base):
     description = Column(Text, nullable=True, comment='描述')
     
     __table_args__ = (
-        Index('idx_level', 'rift_level'),
+        Index('idx_rift_level', 'rift_level'),
     )
 
 

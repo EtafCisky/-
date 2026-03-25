@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.0.11] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**数据库索引名称冲突修复**
+
+- 修复多个表使用相同索引名称导致的数据库初始化错误
+- 重命名 `LoanTable` 的索引：`idx_user_status` → `idx_loan_user_status`, `idx_due` → `idx_loan_due`
+- 重命名 `BountyTaskTable` 的索引：`idx_user_status` → `idx_bounty_user_status`, `idx_expire` → `idx_bounty_expire`
+- 重命名 `RiftTable` 的索引：`idx_level` → `idx_rift_level`
+- 确保所有数据库索引名称全局唯一
+- 修复 "index idx_level already exists" 错误
+
+---
+
 ## [3.0.10] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复
