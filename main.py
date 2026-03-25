@@ -195,11 +195,6 @@ class XiuxianV3Plugin(Star):
     async def initialize(self):
         """插件启动"""
         try:
-            # 应用数据库迁移
-            from .infrastructure.database.migrations import MigrationManager
-            migration_manager = MigrationManager(str(self.data_dir / "xiuxian.db"))
-            migration_manager.apply_migrations()
-            
             # 初始化数据库（使用容器中的数据库连接）
             db = self.container.database()
             db.initialize()

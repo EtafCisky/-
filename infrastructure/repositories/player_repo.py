@@ -207,8 +207,7 @@ class PlayerRepository(BaseRepository[Player]):
             sect_id=str(player.sect_id) if player.sect_id else None,
             sect_position=str(player.sect_position) if player.sect_position else None,
             created_at=player.created_at,
-            updated_at=player.updated_at,
-            cultivation_start_time=player.cultivation_start_time
+            updated_at=player.updated_at
         )
     
     def _update_from_domain(self, table_obj: PlayerTable, player: Player) -> None:
@@ -238,4 +237,3 @@ class PlayerRepository(BaseRepository[Player]):
         table_obj.sect_id = str(player.sect_id) if player.sect_id else None
         table_obj.sect_position = str(player.sect_position) if player.sect_position else None
         table_obj.updated_at = player.updated_at
-        table_obj.cultivation_start_time = player.cultivation_start_time
