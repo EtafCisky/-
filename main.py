@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.2.16"
+    "3.2.17"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -390,6 +390,12 @@ class XiuxianV3Plugin(Star):
     async def cmd_change_nickname(self, event: AstrMessageEvent, new_nickname: str = ""):
         """改道号"""
         async for result in self.player_handler.handle_change_nickname(event, new_nickname):
+            yield result
+    
+    @filter.command(Commands.CHANGE_NAME)
+    async def cmd_change_name(self, event: AstrMessageEvent, new_name: str = ""):
+        """改名"""
+        async for result in self.player_handler.handle_change_name(event, new_name):
             yield result
     
     @filter.command(Commands.REBIRTH)

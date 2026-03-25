@@ -7,6 +7,7 @@ class Commands:
     PLAYER_INFO = "我的信息"
     CHECK_IN = "签到"
     CHANGE_NICKNAME = "改道号"
+    CHANGE_NAME = "改名"
     REBIRTH = "弃道重修"
     HELP = "帮助"
     

@@ -193,6 +193,42 @@ class PlayerHandler:
             yield event.plain_result(f"❌ {e.message}")
         except Exception as e:
             yield event.plain_result(f"❌ 修改道号失败：{str(e)}")
+    
+    @require_player
+    async def handle_change_name(
+        self,
+        event: AstrMessageEvent,
+        player,
+        new_name: str = ""
+    ):
+        """
+        处理改名命令
+        
+        Args:
+            event: 消息事件
+            player: 玩家对象（由装饰器注入）
+            new_name: 新名字
+        """
+        if not new_name or new_name.strip() == "":
+            yield event.plain_result(
+                "❌ 请提供新名字\n"
+                "💡 使用方法：改名 新的名字"
+            )
+            return
+        
+        try:
+            # 修改名字
+            self.player_service.change_name(player, new_name)
+            
+            # 格式化输出
+            message = f"✅ 改名成功！\n你的新名字是：{new_name}"
+            
+            yield event.plain_result(message)
+            
+        except InvalidParameterException as e:
+            yield event.plain_result(f"❌ {e.message}")
+        except Exception as e:
+            yield event.plain_result(f"❌ 改名失败：{str(e)}")
 
     async def handle_rebirth(
         self,

@@ -31,7 +31,8 @@ class PlayerService:
     def create_player(
         self,
         user_id: str,
-        cultivation_type: CultivationType
+        cultivation_type: CultivationType,
+        user_name: Optional[str] = None
     ) -> Player:
         """
         创建玩家
@@ -39,6 +40,7 @@ class PlayerService:
         Args:
             user_id: 用户ID
             cultivation_type: 修炼类型
+            user_name: 用户名（QQ昵称），如果提供则使用，否则使用默认格式
             
         Returns:
             创建的玩家对象
@@ -62,7 +64,8 @@ class PlayerService:
                 user_id=user_id,
                 cultivation_type=cultivation_type,
                 spirit_root=spirit_root,
-                initial_gold=initial_gold
+                initial_gold=initial_gold,
+                user_name=user_name
             )
             
             # 保存
@@ -203,6 +206,39 @@ class PlayerService:
             # 更新道号
             player.nickname = new_nickname
             player.user_name = new_nickname
+            
+            # 保存
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
+    
+    def change_name(self, player: Player, new_name: str) -> None:
+        """
+        修改道友名字（nickname）
+        
+        Args:
+            player: 玩家对象
+            new_name: 新名字
+            
+        Raises:
+            InvalidParameterException: 名字无效
+        """
+        try:
+            # 验证名字
+            new_name = new_name.strip()
+            
+            if not new_name:
+                raise InvalidParameterException("名字", "名字不能为空")
+            
+            if len(new_name) > 12:
+                raise InvalidParameterException("名字", "名字长度不能超过12个字符")
+            
+            # 更新名字
+            player.nickname = new_name
             
             # 保存
             self.player_repo.save(player)
