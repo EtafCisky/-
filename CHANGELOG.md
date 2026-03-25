@@ -1,5 +1,18 @@
 # 更新日志
 
+## [3.2.13] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+Boss服务方法调用错误修复
+
+- 修复 `BossService.challenge_boss()` 调用不存在的 `update_player_combat_stats()` 方法
+- 改为使用 `player_repo.save()` 方法更新玩家 HP/MP
+- 修复了使用"世界Boss"和"挑战Boss"命令时没有反应的问题
+- 确保 Boss 战斗结果正确保存到数据库
+
+---
+
 ## [3.2.12] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

@@ -241,8 +241,12 @@ class BossService:
         for item_name, count in items_gained:
             self.storage_ring_repo.add_item(user_id, item_name, count)
         
-        # 更新玩家HP/MP
-        self.player_repo.update_player_combat_stats(user_id, player_hp, player_mp, player_atk)
+        # 更新玩家HP/MP（注意：这里简化处理，实际应该更新玩家对象）
+        # 由于 PlayerRepository 没有 update_player_combat_stats 方法
+        # 我们需要获取玩家对象，更新属性，然后保存
+        player.hp = player_hp
+        player.mp = player_mp
+        self.player_repo.save(player)
         
         return BossBattleResult(
             success=boss_defeated,
