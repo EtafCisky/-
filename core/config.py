@@ -124,6 +124,9 @@ class ConfigManager:
             # 从 AstrBot 配置中读取
             settings_data = {}
             
+            # 调试日志：显示接收到的配置
+            logger.info(f"【修仙V3】加载配置，AstrBot配置内容: {self._astrbot_config}")
+            
             # 访问控制
             if "ACCESS_CONTROL" in self._astrbot_config:
                 ac = self._astrbot_config["ACCESS_CONTROL"]
@@ -136,8 +139,10 @@ class ConfigManager:
             # 核心数值
             if "VALUES" in self._astrbot_config:
                 v = self._astrbot_config["VALUES"]
+                initial_gold = v.get("INITIAL_GOLD", 100)
+                logger.info(f"【修仙V3】从配置读取初始灵石: {initial_gold}")
                 settings_data["values"] = {
-                    "initial_gold": v.get("INITIAL_GOLD", 100),
+                    "initial_gold": initial_gold,
                     "base_exp_per_minute": v.get("BASE_EXP_PER_MINUTE", 100),
                     "check_in_gold_min": v.get("CHECK_IN_GOLD_MIN", 50),
                     "check_in_gold_max": v.get("CHECK_IN_GOLD_MAX", 500),
@@ -150,6 +155,8 @@ class ConfigManager:
                     "shop_discount_max": v.get("SHOP_DISCOUNT_MAX", 1.2),
                     "shop_stock_divisor": v.get("SHOP_STOCK_DIVISOR", 100)
                 }
+            else:
+                logger.warning("【修仙V3】配置中未找到 VALUES 部分，使用默认值")
             
             # 灵根速度
             if "SPIRIT_ROOT_SPEEDS" in self._astrbot_config:
@@ -196,7 +203,9 @@ class ConfigManager:
                     "database_file": f.get("DATABASE_FILE", "astrbot_plugin_monixiuxianv3.db")
                 }
             
-            return Settings(**settings_data)
+            result = Settings(**settings_data)
+            logger.info(f"【修仙V3】配置加载完成，初始灵石设置为: {result.values.initial_gold}")
+            return result
         except Exception as e:
             # 配置加载失败应该记录详细错误
             logger.error(f"【修仙V3】加载配置失败: {e}", exc_info=True)

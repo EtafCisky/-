@@ -243,7 +243,9 @@ class PlayerService:
         level_data = self.config_manager.get_level_data(player.cultivation_type.value)
         
         if 0 <= player.level_index < len(level_data):
-            return level_data[player.level_index]["level_name"]
+            level_info = level_data[player.level_index]
+            # 尝试多个可能的键名
+            return level_info.get("name") or level_info.get("level_name", "未知境界")
         return "未知境界"
     
     def get_required_exp(self, player: Player) -> int:
@@ -260,5 +262,7 @@ class PlayerService:
         level_data = self.config_manager.get_level_data(player.cultivation_type.value)
         
         if player.level_index + 1 < len(level_data):
-            return level_data[player.level_index + 1].get("exp_needed", 0)
+            next_level = level_data[player.level_index + 1]
+            # 尝试多个可能的键名
+            return next_level.get("required_exp") or next_level.get("exp_needed", 0)
         return 0
