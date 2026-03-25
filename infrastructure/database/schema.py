@@ -27,6 +27,7 @@ class PlayerTable(Base):
     
     # 状态
     state = Column(String(16), nullable=False, default='idle', comment='状态')
+    cultivation_start_time = Column(Integer, nullable=False, default=0, comment='闭关开始时间')
     
     # 属性
     hp = Column(Integer, nullable=False, default=100, comment='当前气血')

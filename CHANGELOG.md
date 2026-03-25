@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.1.5] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**数据库字段缺失修复**
+
+- 修复 `PlayerTable` 缺少 `cultivation_start_time` 字段导致的 AttributeError
+- 在数据库表结构中添加 `cultivation_start_time` 列（闭关开始时间）
+- 在 `_to_table()` 方法中添加字段映射
+- 在 `_update_from_domain()` 方法中添加字段更新
+- 修复了使用"我的信息"命令时出现 "'PlayerTable' object has no attribute 'cultivation_start_time'" 错误的问题
+- 确保闭关系统可以正常记录和计算闭关时长
+
+---
+
 ## [3.1.4] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

@@ -191,6 +191,7 @@ class PlayerRepository(BaseRepository[Player]):
             experience=player.experience,
             gold=player.gold,
             state=player.state.value,
+            cultivation_start_time=player.cultivation_start_time,
             hp=player.blood_qi,
             max_hp=player.max_blood_qi,
             mp=player.spiritual_qi,
@@ -221,6 +222,7 @@ class PlayerRepository(BaseRepository[Player]):
         table_obj.experience = player.experience
         table_obj.gold = player.gold
         table_obj.state = player.state.value
+        table_obj.cultivation_start_time = player.cultivation_start_time
         table_obj.hp = player.blood_qi
         table_obj.max_hp = player.max_blood_qi
         table_obj.mp = player.spiritual_qi
