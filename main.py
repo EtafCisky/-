@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.1.18"
+    "3.2.6"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -38,8 +38,8 @@ class XiuxianV3Plugin(Star):
             astrbot_config = {}
             logger.warning("【修仙V3】未获取到配置，使用空字典")
         
-        # 初始化配置文件
-        self._initialize_config_files()
+        # 初始化配置文件（返回是否需要清空商店数据）
+        self.need_clear_shop = self._initialize_config_files()
         
         # 初始化配置管理器
         config_dir = self.data_dir / "config"
@@ -75,17 +75,45 @@ class XiuxianV3Plugin(Star):
             "alchemy_recipes.json"
         ]
         
-        # 复制配置文件（如果目标文件不存在）
+        # v3.2.6 版本：强制更新 pills.json 和 items.json（修复空商店问题）
+        force_update_files = ["pills.json", "items.json"]
+        version_marker = target_config_dir / ".config_version_3.2.6"
+        
+        # 检查是否需要强制更新
+        need_force_update = not version_marker.exists()
+        
+        # 复制配置文件
         for config_file in config_files:
             source_file = source_config_dir / config_file
             target_file = target_config_dir / config_file
             
-            if source_file.exists() and not target_file.exists():
+            # 判断是否需要复制
+            should_copy = False
+            if not target_file.exists():
+                # 目标文件不存在，必须复制
+                should_copy = True
+            elif need_force_update and config_file in force_update_files:
+                # 需要强制更新的文件
+                should_copy = True
+                logger.info(f"【修仙V3】强制更新配置文件: {config_file}")
+            
+            if should_copy and source_file.exists():
                 try:
                     shutil.copy2(source_file, target_file)
                     logger.info(f"【修仙V3】已复制配置文件: {config_file}")
                 except Exception as e:
                     logger.error(f"【修仙V3】复制配置文件 {config_file} 失败: {e}")
+        
+        # 创建版本标记文件
+        if need_force_update:
+            try:
+                version_marker.touch()
+                logger.info("【修仙V3】配置文件更新完成，已标记版本 3.2.6")
+            except Exception as e:
+                logger.error(f"【修仙V3】创建版本标记失败: {e}")
+        
+        # 返回是否需要清空商店数据
+        return need_force_update
 
     
     def _setup_handlers(self):
@@ -201,6 +229,10 @@ class XiuxianV3Plugin(Star):
             db.initialize()
             logger.info("【修仙V3】数据库初始化完成")
             
+            # 如果需要清空商店数据（版本更新时）
+            if self.need_clear_shop:
+                self._clear_shop_data()
+            
             # 初始化秘境数据
             self._initialize_rifts()
             
@@ -208,6 +240,29 @@ class XiuxianV3Plugin(Star):
         except Exception as e:
             logger.error(f"【修仙V3】插件启动失败: {e}", exc_info=True)
             raise  # 关键初始化失败应该中断启动
+    
+    def _clear_shop_data(self):
+        """清空商店数据库记录（用于强制刷新商店）"""
+        try:
+            from .infrastructure.database.schema import ShopTable
+            
+            # 获取数据库会话
+            db = self.container.database()
+            session = db.get_session()
+            
+            try:
+                # 删除所有商店记录
+                session.query(ShopTable).delete()
+                session.commit()
+                logger.info("【修仙V3】商店数据已清空，下次访问将重新生成商品")
+            except Exception as e:
+                session.rollback()
+                logger.error(f"【修仙V3】清空商店数据失败: {e}")
+                raise
+            finally:
+                session.close()
+        except Exception as e:
+            logger.warning(f"【修仙V3】无法清空商店数据: {e}")
     
     def _initialize_rifts(self):
         """初始化秘境数据"""
