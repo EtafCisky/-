@@ -34,18 +34,25 @@ class CultivationService:
         Raises:
             InvalidStateException: 当前状态无法闭关
         """
-        # 检查状态
-        if not player.can_cultivate():
-            raise InvalidStateException(
-                player.state.value,
-                PlayerState.IDLE.value
-            )
-        
-        # 开始闭关
-        player.start_cultivation()
-        
-        # 保存
-        self.player_repo.save(player)
+        try:
+            # 检查状态
+            if not player.can_cultivate():
+                raise InvalidStateException(
+                    player.state.value,
+                    PlayerState.IDLE.value
+                )
+            
+            # 开始闭关
+            player.start_cultivation()
+            
+            # 保存并提交
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def end_cultivation(self, player: Player) -> CultivationResult:
         """
@@ -61,40 +68,47 @@ class CultivationService:
             InvalidStateException: 当前未闭关
             ValueError: 闭关时间不足
         """
-        # 检查状态
-        if player.state != PlayerState.CULTIVATING:
-            raise InvalidStateException(
-                player.state.value,
-                PlayerState.CULTIVATING.value
+        try:
+            # 检查状态
+            if player.state != PlayerState.CULTIVATING:
+                raise InvalidStateException(
+                    player.state.value,
+                    PlayerState.CULTIVATING.value
+                )
+            
+            # 结束闭关，获取时长
+            duration_minutes = player.end_cultivation()
+            
+            # 检查最小时长
+            if duration_minutes < 1:
+                raise ValueError("闭关时间不足1分钟")
+            
+            # 计算时长上限
+            max_minutes = self._get_max_cultivation_minutes(player.level_index)
+            effective_minutes = min(duration_minutes, max_minutes)
+            is_overtime = duration_minutes > max_minutes
+            
+            # 计算获得的修为
+            gained_exp = self._calculate_cultivation_exp(player, effective_minutes)
+            
+            # 更新玩家修为
+            player.add_experience(gained_exp)
+            
+            # 保存并提交
+            self.player_repo.save(player)
+            self.player_repo.session.commit()
+            
+            return CultivationResult(
+                duration_minutes=duration_minutes,
+                gained_exp=gained_exp,
+                is_overtime=is_overtime,
+                max_minutes=max_minutes
             )
-        
-        # 结束闭关，获取时长
-        duration_minutes = player.end_cultivation()
-        
-        # 检查最小时长
-        if duration_minutes < 1:
-            raise ValueError("闭关时间不足1分钟")
-        
-        # 计算时长上限
-        max_minutes = self._get_max_cultivation_minutes(player.level_index)
-        effective_minutes = min(duration_minutes, max_minutes)
-        is_overtime = duration_minutes > max_minutes
-        
-        # 计算获得的修为
-        gained_exp = self._calculate_cultivation_exp(player, effective_minutes)
-        
-        # 更新玩家修为
-        player.add_experience(gained_exp)
-        
-        # 保存
-        self.player_repo.save(player)
-        
-        return CultivationResult(
-            duration_minutes=duration_minutes,
-            gained_exp=gained_exp,
-            is_overtime=is_overtime,
-            max_minutes=max_minutes
-        )
+        except Exception as e:
+            self.player_repo.session.rollback()
+            raise
+        finally:
+            self.player_repo.session.close()
     
     def _get_max_cultivation_minutes(self, level_index: int) -> int:
         """

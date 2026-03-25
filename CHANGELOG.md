@@ -1,5 +1,22 @@
 # 更新日志
 
+## [3.1.6] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**闭关状态保存失败修复**
+
+- 修复 `CultivationService.start_cultivation()` 缺少事务提交导致状态未保存
+- 修复 `CultivationService.end_cultivation()` 缺少事务提交导致修为未保存
+- 为两个方法添加完整的事务管理（try-except-finally）
+- 添加 `commit()` 提交事务
+- 添加 `rollback()` 回滚异常
+- 添加 `close()` 关闭会话
+- 修复了"闭关"后立即"出关"提示"道友当前并未闭关"的问题
+- 确保闭关状态和修为变更正确保存到数据库
+
+---
+
 ## [3.1.5] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复
