@@ -2,6 +2,8 @@
 from pathlib import Path
 from typing import Optional
 
+from astrbot.api import logger
+
 from .config import ConfigManager
 
 
@@ -36,7 +38,7 @@ class Container:
         if self._config_manager is None:
             config_dir = None
             if self.data_dir:
-                config_dir = self.data_dir.parent / "config"
+                config_dir = self.data_dir / "config"
             self._config_manager = ConfigManager(config_dir)
         return self._config_manager
     
@@ -71,7 +73,7 @@ class Container:
         """获取装备仓储"""
         from ..infrastructure.repositories.equipment_repo import EquipmentRepository
         session = self.database().create_session()
-        config_dir = self.data_dir.parent / "config" if self.data_dir else Path("config")
+        config_dir = self.data_dir / "config" if self.data_dir else Path("config")
         return EquipmentRepository(session, config_dir)
     
     def shop_repository(self):
@@ -342,4 +344,10 @@ class Container:
         """清理资源"""
         if self._database:
             # 关闭数据库连接
-            pass
+            try:
+                self._database.close()
+                logger.info("【修仙V3】数据库连接已关闭")
+            except Exception as e:
+                logger.error(f"【修仙V3】关闭数据库连接失败: {e}")
+            finally:
+                self._database = None

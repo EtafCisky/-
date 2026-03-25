@@ -1,6 +1,5 @@
 """领域工厂"""
 import random
-from typing import Optional
 
 from .models.player import Player
 from .enums import CultivationType, PlayerState
@@ -28,7 +27,14 @@ class PlayerFactory:
             
         Returns:
             玩家实例
+            
+        Raises:
+            ValueError: 如果修炼类型无效
         """
+        # 校验修炼类型
+        if cultivation_type not in [CultivationType.SPIRITUAL, CultivationType.BODY]:
+            raise ValueError(f"无效的修炼类型: {cultivation_type}")
+        
         # 生成灵根显示名称
         root_display_name = spirit_root.get_display_name()
         

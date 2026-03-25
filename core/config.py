@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional, List
 from pydantic import BaseModel, Field
 
+from astrbot.api import logger
+
 from .exceptions import ConfigurationException
 
 
@@ -196,8 +198,26 @@ class ConfigManager:
             
             return Settings(**settings_data)
         except Exception as e:
-            # 如果加载失败，返回默认配置
+            # 配置加载失败应该记录详细错误
+            logger.error(f"【修仙V3】加载配置失败: {e}", exc_info=True)
+            logger.warning("【修仙V3】使用默认配置")
             return Settings()
+    
+    # 允许加载的配置文件白名单
+    ALLOWED_CONFIG_FILES = {
+        "level_config.json",
+        "body_level_config.json",
+        "items.json",
+        "weapons.json",
+        "pills.json",
+        "exp_pills.json",
+        "utility_pills.json",
+        "storage_rings.json",
+        "adventure_config.json",
+        "bounty_templates.json",
+        "alchemy_recipes.json",
+        "game_config.json"
+    }
     
     def load_json_config(self, filename: str) -> Dict[str, Any]:
         """
@@ -208,7 +228,14 @@ class ConfigManager:
             
         Returns:
             配置字典
+            
+        Raises:
+            ConfigurationException: 如果文件名不在白名单或文件不存在
         """
+        # 白名单校验
+        if filename not in self.ALLOWED_CONFIG_FILES:
+            raise ConfigurationException(f"不允许加载的配置文件: {filename}")
+        
         config_file = self.config_dir / filename
         
         if not config_file.exists():
