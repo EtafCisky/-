@@ -308,19 +308,46 @@ class ConfigManager:
     def get_items_config(self) -> Dict[str, Any]:
         """获取物品配置"""
         if self._items_config is None:
-            self._items_config = self.load_json_config("items.json")
+            config = self.load_json_config("items.json")
+            # 如果配置是 {"items": [...]} 格式，提取 items 部分
+            if isinstance(config, dict) and "items" in config:
+                config = config["items"]
+            
+            # 如果是列表，转换为字典（以 id 或 name 为键）
+            if isinstance(config, list):
+                self._items_config = {item.get('id', item.get('name')): item for item in config}
+            else:
+                self._items_config = config if config else {}
         return self._items_config
     
     def get_pills_config(self) -> Dict[str, Any]:
         """获取丹药配置"""
         if self._pills_config is None:
-            self._pills_config = self.load_json_config("pills.json")
+            config = self.load_json_config("pills.json")
+            # 如果配置是 {"pills": [...]} 格式，提取 pills 部分
+            if isinstance(config, dict) and "pills" in config:
+                config = config["pills"]
+            
+            # 如果是列表，转换为字典（以 id 或 name 为键）
+            if isinstance(config, list):
+                self._pills_config = {item.get('id', item.get('name')): item for item in config}
+            else:
+                self._pills_config = config if config else {}
         return self._pills_config
     
     def get_weapons_config(self) -> Dict[str, Any]:
         """获取武器配置"""
         if self._weapons_config is None:
-            self._weapons_config = self.load_json_config("weapons.json")
+            config = self.load_json_config("weapons.json")
+            # 如果配置是 {"weapons": [...]} 格式，提取 weapons 部分
+            if isinstance(config, dict) and "weapons" in config:
+                config = config["weapons"]
+            
+            # 如果是列表，转换为字典（以 id 或 name 为键）
+            if isinstance(config, list):
+                self._weapons_config = {item.get('id', item.get('name')): item for item in config}
+            else:
+                self._weapons_config = config if config else {}
         return self._weapons_config
     
     def get_config(self, config_name: str) -> Dict[str, Any]:
