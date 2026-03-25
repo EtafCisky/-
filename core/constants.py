@@ -137,34 +137,9 @@ class Commands:
     RANK_LEVEL = "境界排行"
     RANK_POWER = "战力排行"
     RANK_WEALTH = "灵石排行"
-    RANK_GOLD = "灵石排行"
     RANK_SECT = "宗门排行"
     RANK_DEPOSIT = "存款排行"
     RANK_CONTRIBUTION = "贡献排行"
-
-
-class PlayerState:
-    """玩家状态常量"""
-    IDLE = "idle"  # 空闲
-    CULTIVATING = "cultivating"  # 闭关中
-    ADVENTURING = "adventuring"  # 历练中
-    IN_COMBAT = "in_combat"  # 战斗中
-
-
-class CultivationType:
-    """修炼类型常量"""
-    SPIRITUAL = "灵修"  # 灵修
-    PHYSICAL = "体修"  # 体修
-
-
-class ItemType:
-    """物品类型常量"""
-    WEAPON = "weapon"  # 武器
-    ARMOR = "armor"  # 防具
-    TECHNIQUE = "technique"  # 功法
-    PILL = "pill"  # 丹药
-    MATERIAL = "material"  # 材料
-    STORAGE_RING = "storage_ring"  # 储物戒
 
 
 class GameConstants:

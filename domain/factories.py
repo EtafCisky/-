@@ -32,7 +32,7 @@ class PlayerFactory:
             ValueError: 如果修炼类型无效
         """
         # 校验修炼类型
-        if cultivation_type not in [CultivationType.SPIRITUAL, CultivationType.BODY]:
+        if cultivation_type not in [CultivationType.SPIRITUAL, CultivationType.PHYSICAL]:
             raise ValueError(f"无效的修炼类型: {cultivation_type}")
         
         # 生成灵根显示名称

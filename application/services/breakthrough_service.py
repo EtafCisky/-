@@ -218,7 +218,7 @@ class BreakthroughService:
     
     def _get_level_data(self, player: Player) -> list:
         """获取境界配置数据"""
-        if player.cultivation_type == CultivationType.BODY.value:
+        if player.cultivation_type == CultivationType.PHYSICAL.value:
             return self.config_manager.body_level_data
         else:
             return self.config_manager.level_data
@@ -304,7 +304,7 @@ class BreakthroughService:
         magic_defense_gain = next_level_data.get("breakthrough_magic_defense_gain", 0)
         
         # 根据修炼类型处理灵气/气血增长
-        if player.cultivation_type == CultivationType.BODY.value:
+        if player.cultivation_type == CultivationType.PHYSICAL.value:
             # 体修使用气血
             blood_qi_gain = next_level_data.get("breakthrough_blood_qi_gain", 0)
             player.max_blood_qi += blood_qi_gain

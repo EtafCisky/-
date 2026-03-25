@@ -256,14 +256,24 @@ class ConfigManager:
     @property
     def level_data(self) -> list:
         """获取灵修境界数据列表"""
-        return self.get_level_config()
+        config = self.get_level_config()
+        # 如果配置是字典且包含 levels 键，返回 levels 列表
+        if isinstance(config, dict) and "levels" in config:
+            return config["levels"]
+        # 否则假设配置本身就是列表
+        return config if isinstance(config, list) else []
     
     @property
     def body_level_data(self) -> list:
         """获取体修境界数据列表"""
         if self._body_level_config is None:
             self._body_level_config = self.load_json_config("body_level_config.json")
-        return self._body_level_config
+        config = self._body_level_config
+        # 如果配置是字典且包含 levels 键，返回 levels 列表
+        if isinstance(config, dict) and "levels" in config:
+            return config["levels"]
+        # 否则假设配置本身就是列表
+        return config if isinstance(config, list) else []
     
     def get_level_data(self, cultivation_type: str = "灵修") -> list:
         """

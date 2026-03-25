@@ -14,17 +14,18 @@ class Container:
     管理所有组件的生命周期和依赖关系
     """
     
-    def __init__(self, data_dir: Optional[Path] = None):
+    def __init__(self, data_dir: Optional[Path] = None, config_manager: Optional[ConfigManager] = None):
         """
         初始化容器
         
         Args:
             data_dir: 数据目录路径
+            config_manager: 配置管理器实例（如果不提供则创建新实例）
         """
         self.data_dir = data_dir
         
         # 单例组件
-        self._config_manager: Optional[ConfigManager] = None
+        self._config_manager: Optional[ConfigManager] = config_manager
         self._database = None
         
         # 仓储层（每次创建新实例）
@@ -36,17 +37,23 @@ class Container:
     def config_manager(self) -> ConfigManager:
         """获取配置管理器（单例）"""
         if self._config_manager is None:
-            config_dir = None
-            if self.data_dir:
-                config_dir = self.data_dir / "config"
-            self._config_manager = ConfigManager(config_dir)
+            raise RuntimeError("配置管理器未初始化，请在创建 Container 时传入 config_manager 参数")
         return self._config_manager
     
     def database(self):
         """获取数据库连接（单例）"""
         if self._database is None:
             from ..infrastructure.database.connection import DatabaseConnection
-            db_path = self.data_dir / "astrbot_plugin_monixiuxianv3.db" if self.data_dir else "astrbot_plugin_monixiuxianv3.db"
+            
+            # 从配置管理器读取数据库路径
+            db_filename = self.config_manager().settings.database.path
+            
+            # 如果有 data_dir，使用 data_dir 下的路径
+            if self.data_dir:
+                db_path = self.data_dir / db_filename
+            else:
+                db_path = db_filename
+            
             self._database = DatabaseConnection(str(db_path), echo=False)
         return self._database
     

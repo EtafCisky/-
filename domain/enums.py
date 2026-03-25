@@ -29,11 +29,25 @@ class PlayerState(str, Enum):
     
     @classmethod
     def from_string(cls, value: str) -> "PlayerState":
-        """从字符串转换"""
+        """
+        从字符串转换为 PlayerState 枚举
+        
+        Args:
+            value: 状态字符串值
+            
+        Returns:
+            对应的 PlayerState 枚举
+            
+        Raises:
+            ValueError: 当输入的状态值无效时
+        """
+        value = value.strip()
         for state in cls:
             if state.value == value:
                 return state
-        return cls.IDLE
+        # 如果找不到匹配的状态，抛出异常
+        valid_states = ", ".join([f"'{s.value}'" for s in cls])
+        raise ValueError(f"无效的玩家状态: '{value}'。有效状态: {valid_states}")
 
 
 class SpiritRootType(str, Enum):
