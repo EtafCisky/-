@@ -174,7 +174,7 @@ class PlayerRepository(BaseRepository[Player]):
             created_at=table_obj.created_at,
             updated_at=table_obj.updated_at,
             last_check_in_date=None,  # 需要从时间戳转换
-            cultivation_start_time=0,  # 需要从状态表获取
+            cultivation_start_time=table_obj.cultivation_start_time,
             user_name=table_obj.nickname
         )
     
@@ -207,7 +207,8 @@ class PlayerRepository(BaseRepository[Player]):
             sect_id=str(player.sect_id) if player.sect_id else None,
             sect_position=str(player.sect_position) if player.sect_position else None,
             created_at=player.created_at,
-            updated_at=player.updated_at
+            updated_at=player.updated_at,
+            cultivation_start_time=player.cultivation_start_time
         )
     
     def _update_from_domain(self, table_obj: PlayerTable, player: Player) -> None:
@@ -237,3 +238,4 @@ class PlayerRepository(BaseRepository[Player]):
         table_obj.sect_id = str(player.sect_id) if player.sect_id else None
         table_obj.sect_position = str(player.sect_position) if player.sect_position else None
         table_obj.updated_at = player.updated_at
+        table_obj.cultivation_start_time = player.cultivation_start_time

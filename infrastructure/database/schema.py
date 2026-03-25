@@ -62,6 +62,7 @@ class PlayerTable(Base):
     created_at = Column(Integer, nullable=False, default=lambda: int(time.time()), comment='创建时间')
     updated_at = Column(Integer, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time()), comment='更新时间')
     last_signin_at = Column(Integer, nullable=True, comment='最后签到时间')
+    cultivation_start_time = Column(Integer, nullable=False, default=0, comment='闭关开始时间')
     
     # 索引
     __table_args__ = (
