@@ -1,0 +1,825 @@
+"""修仙插件 V3 - 主入口"""
+from pathlib import Path
+from astrbot.api.event import filter, AstrMessageEvent
+from astrbot.api.star import Context, Star, StarTools, register
+from astrbot.api import logger
+
+from .core.container import Container
+from .core.constants import Commands
+from .core.config import ConfigManager
+from .infrastructure.database.connection import DatabaseConnection
+
+
+@register(
+    "xiuxian_v3",
+    "Kiro AI Assistant",
+    "基于清晰架构重构的修仙模拟游戏插件",
+    "3.0.0"
+)
+class XiuxianV3Plugin(Star):
+    """修仙插件 V3 - 清晰架构版本"""
+    
+    def __init__(self, context: Context):
+        super().__init__(context)
+        
+        # 获取插件数据目录
+        self.data_dir = StarTools.get_data_dir("xiuxian_v3")
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 获取 AstrBot 配置
+        astrbot_config = context.get_config("xiuxian_v3", {})
+        
+        # 初始化配置管理器
+        config_dir = self.data_dir.parent.parent / "config"
+        self.config_manager = ConfigManager(config_dir=config_dir, astrbot_config=astrbot_config)
+        
+        # 初始化依赖注入容器
+        self.container = Container(data_dir=self.data_dir)
+        
+        # 数据库连接（使用配置中的数据库文件名）
+        db_filename = self.config_manager.settings.files.database_file
+        db_path = self.data_dir / db_filename
+        self.db_connection = DatabaseConnection(str(db_path), echo=False)
+        
+        # 初始化 handlers
+        from .utils.spirit_root_generator import SpiritRootGenerator
+        from .presentation.handlers.player_handler import PlayerHandler
+        from .presentation.handlers.help_handler import HelpHandler
+        from .presentation.handlers.cultivation_handler import CultivationHandler
+        from .presentation.handlers.breakthrough_handler import BreakthroughHandler
+        from .presentation.handlers.combat_handler import CombatHandler
+        from .presentation.handlers.storage_ring_handler import StorageRingHandler
+        from .presentation.handlers.equipment_handler import EquipmentHandler
+        from .presentation.handlers.pill_handler import PillHandler
+        from .presentation.handlers.alchemy_handler import AlchemyHandler
+        from .presentation.handlers.shop_handler import ShopHandler
+        from .presentation.handlers.sect_handler import SectHandler
+        from .presentation.handlers.adventure_handler import AdventureHandler
+        from .presentation.handlers.rift_handler import RiftHandler
+        from .presentation.handlers.boss_handler import BossHandler
+        from .presentation.handlers.bounty_handler import BountyHandler
+        from .presentation.handlers.bank_handler import BankHandler
+        from .presentation.handlers.blessed_land_handler import BlessedLandHandler
+        from .presentation.handlers.spirit_farm_handler import SpiritFarmHandler
+        from .presentation.handlers.spirit_eye_handler import SpiritEyeHandler
+        from .presentation.handlers.dual_cultivation_handler import DualCultivationHandler
+        from .presentation.handlers.impart_handler import ImpartHandler
+        from .presentation.handlers.ranking_handler import RankingHandler
+        
+        spirit_root_gen = SpiritRootGenerator(self.config_manager)
+        
+        self.help_handler = HelpHandler()
+        self.player_handler = PlayerHandler(
+            self.container.player_service(),
+            spirit_root_gen
+        )
+        self.cultivation_handler = CultivationHandler(
+            self.container.cultivation_service()
+        )
+        self.breakthrough_handler = BreakthroughHandler(
+            self.container.breakthrough_service()
+        )
+        self.combat_handler = CombatHandler(
+            self.container.combat_service()
+        )
+        self.storage_ring_handler = StorageRingHandler(
+            self.container.storage_ring_service(),
+            self.container.player_service()
+        )
+        self.equipment_handler = EquipmentHandler(
+            self.container.equipment_service()
+        )
+        self.pill_handler = PillHandler(
+            self.container.pill_service()
+        )
+        self.alchemy_handler = AlchemyHandler(
+            self.container.alchemy_service()
+        )
+        self.shop_handler = ShopHandler(
+            self.container.shop_service()
+        )
+        self.sect_handler = SectHandler(
+            self.container.sect_service()
+        )
+        self.adventure_handler = AdventureHandler(
+            self.container.adventure_service()
+        )
+        self.rift_handler = RiftHandler(
+            self.container.rift_service()
+        )
+        self.boss_handler = BossHandler(
+            self.container.boss_service()
+        )
+        self.bounty_handler = BountyHandler(
+            self.container.bounty_service()
+        )
+        self.bank_handler = BankHandler(
+            self.container.bank_service()
+        )
+        self.blessed_land_handler = BlessedLandHandler(
+            self.container.blessed_land_service()
+        )
+        self.spirit_farm_handler = SpiritFarmHandler(
+            self.container.spirit_farm_service()
+        )
+        self.spirit_eye_handler = SpiritEyeHandler(
+            self.container.spirit_eye_service()
+        )
+        self.dual_cultivation_handler = DualCultivationHandler(
+            self.container.dual_cultivation_service()
+        )
+        self.impart_handler = ImpartHandler(
+            self.container.impart_service()
+        )
+        self.ranking_handler = RankingHandler(
+            self.container.ranking_service(),
+            self.container.player_repository()
+        )
+    
+    async def initialize(self):
+        """插件启动"""
+        try:
+            # 初始化数据库
+            self.db_connection.initialize()
+            logger.info("【修仙V3】数据库初始化完成")
+            
+            # 初始化秘境数据
+            self._initialize_rifts()
+            logger.info("【修仙V3】秘境数据初始化完成")
+            
+            # 初始化 handlers（将在后续实现）
+            # self.player_handler = PlayerHandler(...)
+            # self.cultivation_handler = CultivationHandler(...)
+            
+            logger.info("【修仙V3】插件已启动")
+        except Exception as e:
+            logger.error(f"【修仙V3】插件启动失败: {e}")
+            raise
+    
+    def _initialize_rifts(self):
+        """初始化秘境数据"""
+        try:
+            from .domain.models.rift import Rift
+            
+            rift_repo = self.container.rift_repository()
+            
+            # 检查是否已有秘境数据
+            existing_rifts = rift_repo.get_all_rifts()
+            if existing_rifts:
+                return  # 已有数据，跳过初始化
+            
+            # 创建初始秘境
+            initial_rifts = [
+                Rift(
+                    rift_id=0,  # 会被数据库自动分配
+                    rift_name="幽暗森林",
+                    rift_level=1,
+                    required_level=3,  # 筑基期
+                    exp_reward_min=5000,
+                    exp_reward_max=15000,
+                    gold_reward_min=1000,
+                    gold_reward_max=3000,
+                    description="低级秘境，适合筑基期修士探索"
+                ),
+                Rift(
+                    rift_id=0,
+                    rift_name="玄冰洞窟",
+                    rift_level=2,
+                    required_level=6,  # 金丹期
+                    exp_reward_min=20000,
+                    exp_reward_max=50000,
+                    gold_reward_min=5000,
+                    gold_reward_max=10000,
+                    description="中级秘境，适合金丹期修士探索"
+                ),
+                Rift(
+                    rift_id=0,
+                    rift_name="天火禁地",
+                    rift_level=3,
+                    required_level=9,  # 元婴期
+                    exp_reward_min=80000,
+                    exp_reward_max=150000,
+                    gold_reward_min=15000,
+                    gold_reward_max=30000,
+                    description="高级秘境，适合元婴期修士探索"
+                ),
+            ]
+            
+            # 插入秘境数据
+            for rift in initial_rifts:
+                rift_repo.create_rift(rift)
+            
+            logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
+            
+        except Exception as e:
+            logger.warning(f"【修仙V3】初始化秘境数据失败: {e}")
+            # 不抛出异常，允许插件继续启动
+    
+    # ===== 玩家系统命令 =====
+    
+    @filter.command(Commands.HELP)
+    async def cmd_help(self, event: AstrMessageEvent):
+        """帮助"""
+        async for result in self.help_handler.handle_help(event):
+            yield result
+    
+    @filter.command(Commands.CREATE_PLAYER)
+    async def cmd_create_player(self, event: AstrMessageEvent, cult_type: str = ""):
+        """创建角色"""
+        async for result in self.player_handler.handle_create_player(event, cult_type):
+            yield result
+    
+    @filter.command(Commands.PLAYER_INFO)
+    async def cmd_player_info(self, event: AstrMessageEvent):
+        """查看信息"""
+        async for result in self.player_handler.handle_player_info(event):
+            yield result
+    
+    @filter.command(Commands.CHECK_IN)
+    async def cmd_check_in(self, event: AstrMessageEvent):
+        """签到"""
+        async for result in self.player_handler.handle_check_in(event):
+            yield result
+    
+    @filter.command(Commands.CHANGE_NICKNAME)
+    async def cmd_change_nickname(self, event: AstrMessageEvent, new_nickname: str = ""):
+        """改道号"""
+        async for result in self.player_handler.handle_change_nickname(event, new_nickname):
+            yield result
+    
+    @filter.command(Commands.REBIRTH)
+    async def cmd_rebirth(self, event: AstrMessageEvent, confirm_text: str = ""):
+        """弃道重修"""
+        async for result in self.player_handler.handle_rebirth(event, confirm_text):
+            yield result
+    
+    # ===== 修炼系统命令 =====
+    
+    @filter.command(Commands.START_CULTIVATION)
+    async def cmd_start_cultivation(self, event: AstrMessageEvent):
+        """开始闭关"""
+        async for result in self.cultivation_handler.handle_start_cultivation(event):
+            yield result
+    
+    @filter.command(Commands.END_CULTIVATION)
+    async def cmd_end_cultivation(self, event: AstrMessageEvent):
+        """结束闭关"""
+        async for result in self.cultivation_handler.handle_end_cultivation(event):
+            yield result
+    
+    # ===== 突破系统命令 =====
+    
+    @filter.command(Commands.BREAKTHROUGH)
+    async def cmd_breakthrough(self, event: AstrMessageEvent, pill_name: str = ""):
+        """突破"""
+        async for result in self.breakthrough_handler.handle_breakthrough(event, pill_name):
+            yield result
+    
+    @filter.command(Commands.BREAKTHROUGH_INFO)
+    async def cmd_breakthrough_info(self, event: AstrMessageEvent):
+        """突破信息"""
+        async for result in self.breakthrough_handler.handle_breakthrough_info(event):
+            yield result
+    
+    # ===== 战斗系统命令 =====
+    
+    @filter.command(Commands.SPAR)
+    async def cmd_spar(self, event: AstrMessageEvent, target: str = ""):
+        """切磋"""
+        async for result in self.combat_handler.handle_spar(event, target):
+            yield result
+    
+    @filter.command(Commands.DUEL)
+    async def cmd_duel(self, event: AstrMessageEvent, target: str = ""):
+        """决斗"""
+        async for result in self.combat_handler.handle_duel(event, target):
+            yield result
+    
+    @filter.command(Commands.COMBAT_LOG)
+    async def cmd_combat_log(self, event: AstrMessageEvent):
+        """战斗记录"""
+        async for result in self.combat_handler.handle_combat_log(event):
+            yield result
+    
+    # ===== 储物戒系统命令 =====
+    
+    @filter.command(Commands.STORAGE_RING)
+    async def cmd_storage_ring(self, event: AstrMessageEvent):
+        """储物戒"""
+        async for result in self.storage_ring_handler.handle_storage_ring(event):
+            yield result
+    
+    @filter.command(Commands.RETRIEVE_ITEM)
+    async def cmd_retrieve_item(self, event: AstrMessageEvent, args: str = ""):
+        """取出"""
+        async for result in self.storage_ring_handler.handle_retrieve_item(event, args):
+            yield result
+    
+    @filter.command(Commands.DISCARD_ITEM)
+    async def cmd_discard_item(self, event: AstrMessageEvent, args: str = ""):
+        """丢弃"""
+        async for result in self.storage_ring_handler.handle_discard_item(event, args):
+            yield result
+    
+    @filter.command(Commands.GIFT_ITEM)
+    async def cmd_gift_item(self, event: AstrMessageEvent, args: str = ""):
+        """赠予"""
+        async for result in self.storage_ring_handler.handle_gift_item(event, args):
+            yield result
+    
+    @filter.command(Commands.ACCEPT_GIFT)
+    async def cmd_accept_gift(self, event: AstrMessageEvent):
+        """接收"""
+        async for result in self.storage_ring_handler.handle_accept_gift(event):
+            yield result
+    
+    @filter.command(Commands.REJECT_GIFT)
+    async def cmd_reject_gift(self, event: AstrMessageEvent):
+        """拒绝"""
+        async for result in self.storage_ring_handler.handle_reject_gift(event):
+            yield result
+    
+    @filter.command(Commands.UPGRADE_RING)
+    async def cmd_upgrade_ring(self, event: AstrMessageEvent, ring_name: str = ""):
+        """更换储物戒"""
+        async for result in self.storage_ring_handler.handle_upgrade_ring(event, ring_name):
+            yield result
+    
+    @filter.command(Commands.SEARCH_ITEM)
+    async def cmd_search_item(self, event: AstrMessageEvent, keyword: str = ""):
+        """搜索物品"""
+        async for result in self.storage_ring_handler.handle_search_item(event, keyword):
+            yield result
+    
+    # ===== 装备系统命令 =====
+    
+    @filter.command("我的装备")
+    async def cmd_equipment_info(self, event: AstrMessageEvent):
+        """我的装备"""
+        async for result in self.equipment_handler.handle_show_equipment(event):
+            yield result
+    
+    @filter.command("装备")
+    async def cmd_equip_item(self, event: AstrMessageEvent):
+        """装备"""
+        async for result in self.equipment_handler.handle_equip_item(event):
+            yield result
+    
+    @filter.command("卸下")
+    async def cmd_unequip_item(self, event: AstrMessageEvent):
+        """卸下"""
+        async for result in self.equipment_handler.handle_unequip_item(event):
+            yield result
+    
+    # ===== 丹药系统命令 =====
+    
+    @filter.command("丹药背包")
+    async def cmd_show_pills(self, event: AstrMessageEvent):
+        """丹药背包"""
+        async for result in self.pill_handler.handle_show_pills(event):
+            yield result
+    
+    @filter.command("服用丹药")
+    async def cmd_use_pill(self, event: AstrMessageEvent):
+        """服用丹药"""
+        async for result in self.pill_handler.handle_use_pill(event):
+            yield result
+    
+    @filter.command("搜索丹药")
+    async def cmd_search_pills(self, event: AstrMessageEvent):
+        """搜索丹药"""
+        async for result in self.pill_handler.handle_search_pills(event):
+            yield result
+    
+    # ===== 炼丹系统命令 =====
+    
+    @filter.command(Commands.ALCHEMY_RECIPES)
+    async def cmd_alchemy_recipes(self, event: AstrMessageEvent):
+        """丹药配方"""
+        async for result in self.alchemy_handler.handle_show_recipes(event):
+            yield result
+    
+    @filter.command(Commands.CRAFT_PILL)
+    async def cmd_craft_pill(self, event: AstrMessageEvent, recipe_id: str = ""):
+        """炼丹"""
+        async for result in self.alchemy_handler.handle_craft_pill(event, recipe_id):
+            yield result
+    
+    # ===== 商店系统命令 =====
+    
+    @filter.command(Commands.PILL_PAVILION)
+    async def cmd_pill_pavilion(self, event: AstrMessageEvent):
+        """丹阁"""
+        async for result in self.shop_handler.handle_pill_pavilion(event):
+            yield result
+    
+    @filter.command(Commands.WEAPON_PAVILION)
+    async def cmd_weapon_pavilion(self, event: AstrMessageEvent):
+        """器阁"""
+        async for result in self.shop_handler.handle_weapon_pavilion(event):
+            yield result
+    
+    @filter.command(Commands.TREASURE_PAVILION)
+    async def cmd_treasure_pavilion(self, event: AstrMessageEvent):
+        """百宝阁"""
+        async for result in self.shop_handler.handle_treasure_pavilion(event):
+            yield result
+    
+    @filter.command(Commands.BUY)
+    async def cmd_buy(self, event: AstrMessageEvent, args: str = ""):
+        """购买"""
+        async for result in self.shop_handler.handle_buy(event, args):
+            yield result
+    
+    # ===== 宗门系统命令 =====
+    
+    @filter.command(Commands.CREATE_SECT)
+    async def cmd_create_sect(self, event: AstrMessageEvent, sect_name: str = ""):
+        """创建宗门"""
+        async for result in self.sect_handler.handle_create_sect(event, sect_name):
+            yield result
+    
+    @filter.command(Commands.JOIN_SECT)
+    async def cmd_join_sect(self, event: AstrMessageEvent, sect_name: str = ""):
+        """加入宗门"""
+        async for result in self.sect_handler.handle_join_sect(event, sect_name):
+            yield result
+    
+    @filter.command(Commands.LEAVE_SECT)
+    async def cmd_leave_sect(self, event: AstrMessageEvent):
+        """退出宗门"""
+        async for result in self.sect_handler.handle_leave_sect(event):
+            yield result
+    
+    @filter.command(Commands.SECT_INFO)
+    async def cmd_sect_info(self, event: AstrMessageEvent):
+        """宗门信息"""
+        async for result in self.sect_handler.handle_sect_info(event):
+            yield result
+    
+    @filter.command(Commands.SECT_LIST)
+    async def cmd_sect_list(self, event: AstrMessageEvent):
+        """宗门列表"""
+        async for result in self.sect_handler.handle_sect_list(event):
+            yield result
+    
+    @filter.command(Commands.SECT_DONATE)
+    async def cmd_sect_donate(self, event: AstrMessageEvent, amount: str = ""):
+        """宗门捐献"""
+        async for result in self.sect_handler.handle_donate(event, amount):
+            yield result
+    
+    @filter.command(Commands.SECT_TASK)
+    async def cmd_sect_task(self, event: AstrMessageEvent):
+        """宗门任务"""
+        async for result in self.sect_handler.handle_sect_task(event):
+            yield result
+    
+    @filter.command(Commands.CHANGE_POSITION)
+    async def cmd_change_position(self, event: AstrMessageEvent, args: str = ""):
+        """变更职位"""
+        async for result in self.sect_handler.handle_change_position(event, args):
+            yield result
+    
+    @filter.command(Commands.TRANSFER_OWNERSHIP)
+    async def cmd_transfer_ownership(self, event: AstrMessageEvent, target_id: str = ""):
+        """宗主传位"""
+        async for result in self.sect_handler.handle_transfer_ownership(event, target_id):
+            yield result
+    
+    @filter.command(Commands.KICK_MEMBER)
+    async def cmd_kick_member(self, event: AstrMessageEvent, target_id: str = ""):
+        """踢出成员"""
+        async for result in self.sect_handler.handle_kick_member(event, target_id):
+            yield result
+    
+    # ===== 历练系统命令 =====
+    
+    @filter.command(Commands.ADVENTURE_INFO)
+    async def cmd_adventure_info(self, event: AstrMessageEvent):
+        """历练信息"""
+        async for result in self.adventure_handler.handle_adventure_info(event):
+            yield result
+    
+    @filter.command(Commands.START_ADVENTURE)
+    async def cmd_start_adventure(self, event: AstrMessageEvent, route_name: str = ""):
+        """开始历练"""
+        async for result in self.adventure_handler.handle_start_adventure(event, route_name):
+            yield result
+    
+    @filter.command(Commands.ADVENTURE_STATUS)
+    async def cmd_adventure_status(self, event: AstrMessageEvent):
+        """历练状态"""
+        async for result in self.adventure_handler.handle_adventure_status(event):
+            yield result
+    
+    @filter.command(Commands.COMPLETE_ADVENTURE)
+    async def cmd_complete_adventure(self, event: AstrMessageEvent):
+        """完成历练"""
+        async for result in self.adventure_handler.handle_complete_adventure(event):
+            yield result
+    
+    # ===== 秘境系统命令 =====
+    
+    @filter.command(Commands.RIFT_LIST)
+    async def cmd_rift_list(self, event: AstrMessageEvent):
+        """秘境列表"""
+        async for result in self.rift_handler.handle_rift_list(event):
+            yield result
+    
+    @filter.command(Commands.ENTER_RIFT)
+    async def cmd_enter_rift(self, event: AstrMessageEvent, rift_id: str = ""):
+        """探索秘境"""
+        async for result in self.rift_handler.handle_enter_rift(event, rift_id):
+            yield result
+    
+    @filter.command(Commands.FINISH_EXPLORATION)
+    async def cmd_finish_exploration(self, event: AstrMessageEvent):
+        """完成探索"""
+        async for result in self.rift_handler.handle_finish_exploration(event):
+            yield result
+    
+    @filter.command(Commands.EXIT_RIFT)
+    async def cmd_exit_rift(self, event: AstrMessageEvent):
+        """退出秘境"""
+        async for result in self.rift_handler.handle_exit_rift(event):
+            yield result
+    
+    # ===== Boss系统命令 =====
+    
+    @filter.command(Commands.BOSS_INFO)
+    async def cmd_boss_info(self, event: AstrMessageEvent):
+        """世界Boss"""
+        async for result in self.boss_handler.handle_boss_info(event):
+            yield result
+    
+    @filter.command(Commands.CHALLENGE_BOSS)
+    async def cmd_challenge_boss(self, event: AstrMessageEvent):
+        """挑战Boss"""
+        async for result in self.boss_handler.handle_challenge_boss(event):
+            yield result
+    
+    # ===== 悬赏系统命令 =====
+    
+    @filter.command(Commands.BOUNTY_LIST)
+    async def cmd_bounty_list(self, event: AstrMessageEvent):
+        """悬赏令"""
+        async for result in self.bounty_handler.handle_bounty_list(event):
+            yield result
+    
+    @filter.command(Commands.ACCEPT_BOUNTY)
+    async def cmd_accept_bounty(self, event: AstrMessageEvent, bounty_id: str = ""):
+        """接取悬赏"""
+        async for result in self.bounty_handler.handle_accept_bounty(event, bounty_id):
+            yield result
+    
+    @filter.command(Commands.BOUNTY_STATUS)
+    async def cmd_bounty_status(self, event: AstrMessageEvent):
+        """悬赏状态"""
+        async for result in self.bounty_handler.handle_bounty_status(event):
+            yield result
+    
+    @filter.command(Commands.COMPLETE_BOUNTY)
+    async def cmd_complete_bounty(self, event: AstrMessageEvent):
+        """完成悬赏"""
+        async for result in self.bounty_handler.handle_complete_bounty(event):
+            yield result
+    
+    @filter.command(Commands.ABANDON_BOUNTY)
+    async def cmd_abandon_bounty(self, event: AstrMessageEvent):
+        """放弃悬赏"""
+        async for result in self.bounty_handler.handle_abandon_bounty(event):
+            yield result
+    
+    # ===== 银行系统命令 =====
+    
+    @filter.command(Commands.BANK_INFO)
+    async def cmd_bank_info(self, event: AstrMessageEvent):
+        """灵石银行"""
+        async for result in self.bank_handler.handle_bank_info(event):
+            yield result
+    
+    @filter.command(Commands.DEPOSIT)
+    async def cmd_deposit(self, event: AstrMessageEvent, amount: str = ""):
+        """存灵石"""
+        async for result in self.bank_handler.handle_deposit(event, amount):
+            yield result
+    
+    @filter.command(Commands.WITHDRAW)
+    async def cmd_withdraw(self, event: AstrMessageEvent, amount: str = ""):
+        """取灵石"""
+        async for result in self.bank_handler.handle_withdraw(event, amount):
+            yield result
+    
+    @filter.command(Commands.CLAIM_INTEREST)
+    async def cmd_claim_interest(self, event: AstrMessageEvent):
+        """领取利息"""
+        async for result in self.bank_handler.handle_claim_interest(event):
+            yield result
+    
+    @filter.command(Commands.LOAN)
+    async def cmd_loan(self, event: AstrMessageEvent, amount: str = ""):
+        """贷款"""
+        async for result in self.bank_handler.handle_loan(event, amount):
+            yield result
+    
+    @filter.command(Commands.REPAY)
+    async def cmd_repay(self, event: AstrMessageEvent):
+        """还款"""
+        async for result in self.bank_handler.handle_repay(event):
+            yield result
+    
+    @filter.command(Commands.BANK_TRANSACTIONS)
+    async def cmd_bank_transactions(self, event: AstrMessageEvent):
+        """银行流水"""
+        async for result in self.bank_handler.handle_transactions(event):
+            yield result
+    
+    @filter.command(Commands.BREAKTHROUGH_LOAN)
+    async def cmd_breakthrough_loan(self, event: AstrMessageEvent, amount: str = ""):
+        """突破贷款"""
+        async for result in self.bank_handler.handle_breakthrough_loan(event, amount):
+            yield result
+    
+    # ===== 洞天福地系统命令 =====
+    
+    @filter.command(Commands.BLESSED_LAND_INFO)
+    async def cmd_blessed_land_info(self, event: AstrMessageEvent):
+        """洞天信息"""
+        async for result in self.blessed_land_handler.handle_blessed_land_info(event):
+            yield result
+    
+    @filter.command(Commands.PURCHASE_BLESSED_LAND)
+    async def cmd_purchase_blessed_land(self, event: AstrMessageEvent, land_type: str = ""):
+        """购买洞天"""
+        async for result in self.blessed_land_handler.handle_purchase(event, land_type):
+            yield result
+    
+    @filter.command(Commands.UPGRADE_BLESSED_LAND)
+    async def cmd_upgrade_blessed_land(self, event: AstrMessageEvent):
+        """升级洞天"""
+        async for result in self.blessed_land_handler.handle_upgrade(event):
+            yield result
+    
+    @filter.command(Commands.COLLECT_BLESSED_LAND)
+    async def cmd_collect_blessed_land(self, event: AstrMessageEvent):
+        """洞天收取"""
+        async for result in self.blessed_land_handler.handle_collect(event):
+            yield result
+    
+    # ===== 灵田系统命令 =====
+    
+    @filter.command(Commands.FARM_INFO)
+    async def cmd_farm_info(self, event: AstrMessageEvent):
+        """灵田信息"""
+        async for result in self.spirit_farm_handler.handle_farm_info(event):
+            yield result
+    
+    @filter.command(Commands.CREATE_FARM)
+    async def cmd_create_farm(self, event: AstrMessageEvent):
+        """开垦灵田"""
+        async for result in self.spirit_farm_handler.handle_create_farm(event):
+            yield result
+    
+    @filter.command(Commands.PLANT_HERB)
+    async def cmd_plant_herb(self, event: AstrMessageEvent, herb_name: str = ""):
+        """种植"""
+        async for result in self.spirit_farm_handler.handle_plant(event, herb_name):
+            yield result
+    
+    @filter.command(Commands.HARVEST)
+    async def cmd_harvest(self, event: AstrMessageEvent):
+        """收获"""
+        async for result in self.spirit_farm_handler.handle_harvest(event):
+            yield result
+    
+    @filter.command(Commands.UPGRADE_FARM)
+    async def cmd_upgrade_farm(self, event: AstrMessageEvent):
+        """升级灵田"""
+        async for result in self.spirit_farm_handler.handle_upgrade_farm(event):
+            yield result
+    
+    # ===== 天地灵眼系统命令 =====
+    
+    @filter.command(Commands.SPIRIT_EYE_INFO)
+    async def cmd_spirit_eye_info(self, event: AstrMessageEvent):
+        """灵眼信息"""
+        async for result in self.spirit_eye_handler.handle_spirit_eye_info(event):
+            yield result
+    
+    @filter.command(Commands.CLAIM_SPIRIT_EYE)
+    async def cmd_claim_spirit_eye(self, event: AstrMessageEvent, eye_id: str = ""):
+        """抢占灵眼"""
+        async for result in self.spirit_eye_handler.handle_claim(event, eye_id):
+            yield result
+    
+    @filter.command(Commands.COLLECT_SPIRIT_EYE)
+    async def cmd_collect_spirit_eye(self, event: AstrMessageEvent):
+        """灵眼收取"""
+        async for result in self.spirit_eye_handler.handle_collect(event):
+            yield result
+    
+    @filter.command(Commands.RELEASE_SPIRIT_EYE)
+    async def cmd_release_spirit_eye(self, event: AstrMessageEvent):
+        """释放灵眼"""
+        async for result in self.spirit_eye_handler.handle_release(event):
+            yield result
+    
+    # ===== 双修系统命令 =====
+    
+    @filter.command(Commands.DUAL_CULTIVATION)
+    async def cmd_dual_cultivation(self, event: AstrMessageEvent, target: str = ""):
+        """双修"""
+        async for result in self.dual_cultivation_handler.handle_dual_request(event, target):
+            yield result
+    
+    @filter.command(Commands.ACCEPT_DUAL)
+    async def cmd_accept_dual(self, event: AstrMessageEvent):
+        """接受双修"""
+        async for result in self.dual_cultivation_handler.handle_accept(event):
+            yield result
+    
+    @filter.command(Commands.REJECT_DUAL)
+    async def cmd_reject_dual(self, event: AstrMessageEvent):
+        """拒绝双修"""
+        async for result in self.dual_cultivation_handler.handle_reject(event):
+            yield result
+    
+    # ===== 传承系统命令 =====
+    
+    @filter.command(Commands.IMPART_INFO)
+    async def cmd_impart_info(self, event: AstrMessageEvent):
+        """传承信息"""
+        async for result in self.impart_handler.handle_impart_info(event):
+            yield result
+    
+    @filter.command(Commands.IMPART_CHALLENGE)
+    async def cmd_impart_challenge(self, event: AstrMessageEvent, target_info: str = ""):
+        """传承挑战"""
+        async for result in self.impart_handler.handle_impart_challenge(event, target_info):
+            yield result
+    
+    @filter.command(Commands.IMPART_RANKING)
+    async def cmd_impart_ranking(self, event: AstrMessageEvent):
+        """传承排行"""
+        async for result in self.impart_handler.handle_impart_ranking(event):
+            yield result
+    
+    # ===== 排行榜系统命令 =====
+    
+    @filter.command(Commands.RANK_LEVEL)
+    async def cmd_rank_level(self, event: AstrMessageEvent):
+        """境界排行"""
+        async for result in self.ranking_handler.handle_rank_level(event):
+            yield result
+    
+    @filter.command(Commands.RANK_POWER)
+    async def cmd_rank_power(self, event: AstrMessageEvent):
+        """战力排行"""
+        async for result in self.ranking_handler.handle_rank_power(event):
+            yield result
+    
+    @filter.command(Commands.RANK_WEALTH)
+    async def cmd_rank_wealth(self, event: AstrMessageEvent):
+        """灵石排行"""
+        async for result in self.ranking_handler.handle_rank_wealth(event):
+            yield result
+    
+    @filter.command(Commands.RANK_GOLD)
+    async def cmd_rank_gold(self, event: AstrMessageEvent):
+        """灵石排行（别名）"""
+        async for result in self.ranking_handler.handle_rank_wealth(event):
+            yield result
+    
+    @filter.command(Commands.RANK_SECT)
+    async def cmd_rank_sect(self, event: AstrMessageEvent):
+        """宗门排行"""
+        async for result in self.ranking_handler.handle_rank_sect(event):
+            yield result
+    
+    @filter.command(Commands.RANK_DEPOSIT)
+    async def cmd_rank_deposit(self, event: AstrMessageEvent):
+        """存款排行"""
+        async for result in self.ranking_handler.handle_rank_deposit(event):
+            yield result
+    
+    @filter.command(Commands.RANK_CONTRIBUTION)
+    async def cmd_rank_contribution(self, event: AstrMessageEvent):
+        """贡献排行"""
+        async for result in self.ranking_handler.handle_rank_sect_contribution(event):
+            yield result
+    
+    # ===== 其他命令将在后续实现 =====
+    
+    async def terminate(self):
+        """插件关闭"""
+        try:
+            # 关闭数据库连接
+            self.db_connection.close()
+            
+            # 清理容器资源
+            self.container.cleanup()
+            
+            logger.info("【修仙V3】插件已关闭")
+        except Exception as e:
+            logger.error(f"【修仙V3】插件关闭失败: {e}")
