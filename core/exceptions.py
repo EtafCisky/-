@@ -8,6 +8,12 @@ class XiuxianException(Exception):
         super().__init__(self.message)
 
 
+# BusinessException 作为 XiuxianException 的别名，用于业务逻辑异常
+class BusinessException(XiuxianException):
+    """业务异常 - 用于一般业务逻辑错误"""
+    pass
+
+
 class PlayerNotFoundException(XiuxianException):
     """玩家不存在异常"""
     def __init__(self, user_id: str):
