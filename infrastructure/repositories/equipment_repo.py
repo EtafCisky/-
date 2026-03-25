@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from .base import BaseRepository
 from ..database.schema import PlayerTable
 from ...domain.models.equipment import Equipment, EquippedItems
-from ...domain.enums import ItemType, ItemRank
+from ...domain.enums import ItemType, ItemRarity
 
 
 class EquipmentRepository(BaseRepository):

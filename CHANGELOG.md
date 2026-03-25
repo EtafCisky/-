@@ -1,5 +1,17 @@
 # 更新日志
 
+## [3.0.4] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**导入错误修复**
+- 修复 `ItemRank` 导入错误，应为 `ItemRarity`
+- 统一枚举命名：装备品阶使用 `ItemRarity` 而非 `ItemRank`
+- 修复 `equipment.py` 和 `equipment_repo.py` 中的导入和使用
+- 确保所有枚举引用一致
+
+---
+
 ## [3.0.3] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复

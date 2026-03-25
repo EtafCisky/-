@@ -5,7 +5,7 @@
 """
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
-from ..enums import ItemType, ItemRank
+from ..enums import ItemType, ItemRarity
 
 
 @dataclass
@@ -62,7 +62,7 @@ class Equipment:
     id: str  # 装备ID
     name: str  # 装备名称
     type: ItemType  # 装备类型
-    rank: ItemRank  # 装备品阶
+    rank: ItemRarity  # 装备品阶
     description: str  # 装备描述
     required_level_index: int  # 需求等级索引
     stats: EquipmentStats  # 属性加成
@@ -92,7 +92,7 @@ class Equipment:
             "id": self.id,
             "name": self.name,
             "type": self.type.value if isinstance(self.type, ItemType) else self.type,
-            "rank": self.rank.value if isinstance(self.rank, ItemRank) else self.rank,
+            "rank": self.rank.value if isinstance(self.rank, ItemRarity) else self.rank,
             "description": self.description,
             "required_level_index": self.required_level_index,
             "stats": self.stats.to_dict(),
@@ -125,9 +125,9 @@ class Equipment:
         rank = data.get("rank", "凡品")
         if isinstance(rank, str):
             try:
-                rank = ItemRank(rank)
+                rank = ItemRarity(rank)
             except ValueError:
-                rank = ItemRank.COMMON
+                rank = ItemRarity.COMMON
         
         # 处理属性加成
         stats_data = {}
