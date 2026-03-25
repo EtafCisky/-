@@ -1,0 +1,40 @@
+{
+  "levels": [
+    {
+      "index": 0,
+      "name": "练气期一层",
+      "realm": "练气期",
+      "layer": 1,
+      "required_exp": 0,
+      "breakthrough_exp": 1000,
+      "hp_bonus": 100,
+      "mp_bonus": 100,
+      "attack_bonus": 10,
+      "defense_bonus": 5
+    },
+    {
+      "index": 1,
+      "name": "练气期二层",
+      "realm": "练气期",
+      "layer": 2,
+      "required_exp": 1000,
+      "breakthrough_exp": 2000,
+      "hp_bonus": 120,
+      "mp_bonus": 120,
+      "attack_bonus": 12,
+      "defense_bonus": 6
+    },
+    {
+      "index": 2,
+      "name": "练气期三层",
+      "realm": "练气期",
+      "layer": 3,
+      "required_exp": 3000,
+      "breakthrough_exp": 3000,
+      "hp_bonus": 140,
+      "mp_bonus": 140,
+      "attack_bonus": 14,
+      "defense_bonus": 7
+    }
+  ]
+}

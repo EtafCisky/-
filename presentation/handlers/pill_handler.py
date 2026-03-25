@@ -1,0 +1,120 @@
+"""
+丹药处理器
+
+处理丹药相关的命令。
+"""
+from typing import AsyncGenerator
+from astrbot.api import filter
+from astrbot.api.event import AstrMessageEvent
+
+from ...application.services.pill_service import PillService
+from ...core.exceptions import BusinessException
+from ..decorators import require_player
+
+
+class PillHandler:
+    """丹药处理器"""
+    
+    def __init__(self, pill_service: PillService):
+        """
+        初始化丹药处理器
+        
+        Args:
+            pill_service: 丹药服务
+        """
+        self.pill_service = pill_service
+    
+    @filter.command("丹药背包")
+    @require_player
+    async def handle_show_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+        """
+        显示丹药背包
+        
+        命令格式：丹药背包
+        """
+        try:
+            user_id = event.get_sender_id()
+            
+            # 获取并格式化丹药背包
+            message = self.pill_service.format_pill_inventory(user_id)
+            
+            yield message
+            
+        except BusinessException as e:
+            yield str(e)
+        except Exception as e:
+            yield f"查看丹药背包失败：{str(e)}"
+    
+    @filter.command("服用丹药")
+    @require_player
+    async def handle_use_pill(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+        """
+        服用丹药
+        
+        命令格式：服用丹药 <丹药名称>
+        """
+        try:
+            user_id = event.get_sender_id()
+            message_text = event.get_message_plain()
+            
+            # 解析命令参数
+            parts = message_text.strip().split(maxsplit=1)
+            if len(parts) < 2:
+                yield "请指定要服用的丹药名称\n格式：服用丹药 <丹药名称>\n例如：服用丹药 一品气血丹"
+                return
+            
+            pill_name = parts[1].strip()
+            
+            # 使用丹药
+            success, message = self.pill_service.use_pill(user_id, pill_name)
+            
+            yield message
+            
+        except BusinessException as e:
+            yield str(e)
+        except Exception as e:
+            yield f"服用丹药失败：{str(e)}"
+    
+    @filter.command("搜索丹药")
+    @require_player
+    async def handle_search_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+        """
+        搜索丹药
+        
+        命令格式：搜索丹药 <关键词>
+        """
+        try:
+            user_id = event.get_sender_id()
+            message_text = event.get_message_plain()
+            
+            # 解析命令参数
+            parts = message_text.strip().split(maxsplit=1)
+            if len(parts) < 2:
+                yield "请指定搜索关键词\n格式：搜索丹药 <关键词>"
+                return
+            
+            keyword = parts[1].strip()
+            
+            # 搜索丹药
+            results = self.pill_service.search_pills(user_id, keyword)
+            
+            if not results:
+                yield f"没有找到包含「{keyword}」的丹药"
+                return
+            
+            # 格式化结果
+            lines = [f"搜索结果（关键词：{keyword}）"]
+            for pill_name, count in results:
+                pill_config = self.pill_service.get_pill_config(pill_name)
+                if pill_config:
+                    rank = pill_config.get("rank", "未知")
+                    lines.append(f"[{rank}] {pill_name} × {count}")
+                else:
+                    lines.append(f"{pill_name} × {count}")
+            
+            yield "\n".join(lines)
+            
+        except BusinessException as e:
+            yield str(e)
+        except Exception as e:
+            yield f"搜索丹药失败：{str(e)}"

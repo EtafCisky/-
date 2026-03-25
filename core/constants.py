@@ -1,0 +1,214 @@
+"""常量定义"""
+
+class Commands:
+    """命令名称常量"""
+    # 玩家系统
+    CREATE_PLAYER = "我要修仙"
+    PLAYER_INFO = "我的信息"
+    CHECK_IN = "签到"
+    CHANGE_NICKNAME = "改道号"
+    REBIRTH = "弃道重修"
+    HELP = "帮助"
+    
+    # 修炼系统
+    START_CULTIVATION = "闭关"
+    END_CULTIVATION = "出关"
+    
+    # 突破系统
+    BREAKTHROUGH = "突破"
+    BREAKTHROUGH_INFO = "突破信息"
+    
+    # 战斗系统
+    SPAR = "切磋"
+    DUEL = "决斗"
+    COMBAT_LOG = "战斗记录"
+    
+    # 储物戒系统
+    STORAGE_RING = "储物戒"
+    RETRIEVE_ITEM = "取出"
+    DISCARD_ITEM = "丢弃"
+    GIFT_ITEM = "赠予"
+    ACCEPT_GIFT = "接收"
+    REJECT_GIFT = "拒绝"
+    UPGRADE_RING = "更换储物戒"
+    SEARCH_ITEM = "搜索物品"
+    
+    # 装备系统
+    EQUIP_WEAPON = "装备武器"
+    EQUIP_ARMOR = "装备防具"
+    EQUIP_TECHNIQUE = "装备功法"
+    UNEQUIP = "卸下"
+    EQUIPMENT_INFO = "我的装备"
+    
+    # 背包系统
+    BACKPACK = "我的背包"
+    USE_ITEM = "使用"
+    
+    # 丹药系统
+    PILL_BACKPACK = "丹药背包"
+    USE_PILL = "服用丹药"
+    SEARCH_PILL = "搜索丹药"
+    
+    # 炼丹系统
+    ALCHEMY_RECIPES = "丹药配方"
+    CRAFT_PILL = "炼丹"
+    
+    # 商店系统
+    PILL_PAVILION = "丹阁"
+    WEAPON_PAVILION = "器阁"
+    TREASURE_PAVILION = "百宝阁"
+    BUY = "购买"
+    
+    # 宗门系统
+    CREATE_SECT = "创建宗门"
+    JOIN_SECT = "加入宗门"
+    LEAVE_SECT = "退出宗门"
+    SECT_INFO = "宗门信息"
+    SECT_LIST = "宗门列表"
+    SECT_DONATE = "宗门捐献"
+    SECT_TASK = "宗门任务"
+    CHANGE_POSITION = "变更职位"
+    TRANSFER_OWNERSHIP = "宗主传位"
+    KICK_MEMBER = "踢出成员"
+    
+    # 历练系统
+    ADVENTURE_INFO = "历练信息"
+    START_ADVENTURE = "开始历练"
+    ADVENTURE_STATUS = "历练状态"
+    COMPLETE_ADVENTURE = "完成历练"
+    
+    # 秘境系统
+    RIFT_LIST = "秘境列表"
+    ENTER_RIFT = "探索秘境"
+    FINISH_EXPLORATION = "完成探索"
+    EXIT_RIFT = "退出秘境"
+    
+    # Boss系统
+    BOSS_INFO = "世界Boss"
+    CHALLENGE_BOSS = "挑战Boss"
+    
+    # 悬赏系统
+    BOUNTY_LIST = "悬赏令"
+    ACCEPT_BOUNTY = "接取悬赏"
+    BOUNTY_STATUS = "悬赏状态"
+    COMPLETE_BOUNTY = "完成悬赏"
+    ABANDON_BOUNTY = "放弃悬赏"
+    
+    # 银行系统
+    BANK_INFO = "银行"
+    DEPOSIT = "存灵石"
+    WITHDRAW = "取灵石"
+    CLAIM_INTEREST = "领取利息"
+    LOAN = "贷款"
+    REPAY = "还款"
+    BANK_TRANSACTIONS = "银行流水"
+    BREAKTHROUGH_LOAN = "突破贷款"
+    
+    # 洞天福地系统
+    BLESSED_LAND_INFO = "洞天信息"
+    PURCHASE_BLESSED_LAND = "购买洞天"
+    UPGRADE_BLESSED_LAND = "升级洞天"
+    COLLECT_BLESSED_LAND = "洞天收取"
+    
+    # 灵田系统
+    FARM_INFO = "灵田信息"
+    CREATE_FARM = "开垦灵田"
+    PLANT_HERB = "种植"
+    HARVEST = "收获"
+    UPGRADE_FARM = "升级灵田"
+    
+    # 天地灵眼系统
+    SPIRIT_EYE_INFO = "灵眼信息"
+    CLAIM_SPIRIT_EYE = "抢占灵眼"
+    COLLECT_SPIRIT_EYE = "灵眼收取"
+    RELEASE_SPIRIT_EYE = "释放灵眼"
+    
+    # 双修系统
+    DUAL_CULTIVATION = "双修"
+    ACCEPT_DUAL = "接受双修"
+    REJECT_DUAL = "拒绝双修"
+    
+    # 传承系统
+    IMPART_INFO = "传承信息"
+    IMPART_CHALLENGE = "传承挑战"
+    IMPART_RANKING = "传承排行"
+    
+    # 排行榜
+    RANK_LEVEL = "境界排行"
+    RANK_POWER = "战力排行"
+    RANK_WEALTH = "灵石排行"
+    RANK_GOLD = "灵石排行"
+    RANK_SECT = "宗门排行"
+    RANK_DEPOSIT = "存款排行"
+    RANK_CONTRIBUTION = "贡献排行"
+
+
+class PlayerState:
+    """玩家状态常量"""
+    IDLE = "idle"  # 空闲
+    CULTIVATING = "cultivating"  # 闭关中
+    ADVENTURING = "adventuring"  # 历练中
+    IN_COMBAT = "in_combat"  # 战斗中
+
+
+class CultivationType:
+    """修炼类型常量"""
+    SPIRITUAL = "灵修"  # 灵修
+    PHYSICAL = "体修"  # 体修
+
+
+class ItemType:
+    """物品类型常量"""
+    WEAPON = "weapon"  # 武器
+    ARMOR = "armor"  # 防具
+    TECHNIQUE = "technique"  # 功法
+    PILL = "pill"  # 丹药
+    MATERIAL = "material"  # 材料
+    STORAGE_RING = "storage_ring"  # 储物戒
+
+
+class GameConstants:
+    """游戏常量"""
+    # 修炼相关
+    MAX_CULTIVATION_HOURS = 24  # 最大闭关时长（小时）
+    BASE_CULTIVATION_EXP_PER_MINUTE = 10  # 每分钟基础修为
+    
+    # 签到相关
+    DAILY_SIGNIN_GOLD_MIN = 50  # 签到最少灵石
+    DAILY_SIGNIN_GOLD_MAX = 200  # 签到最多灵石
+    
+    # 战斗相关
+    COMBAT_COOLDOWN_SECONDS = 60  # 战斗冷却时间（秒）
+    
+    # 商店相关
+    SHOP_REFRESH_HOURS = 24  # 商店刷新时间（小时）
+    
+    # 宗门相关
+    SECT_CREATE_COST = 10000  # 创建宗门费用
+    SECT_MAX_MEMBERS = 50  # 宗门最大人数
+    
+    # 突破相关
+    BREAKTHROUGH_SUCCESS_BASE_RATE = 0.5  # 突破基础成功率
+    BREAKTHROUGH_COOLDOWN_HOURS = 1  # 突破冷却时间（小时）
+
+
+class ErrorMessages:
+    """错误消息常量"""
+    PLAYER_NOT_FOUND = "❌ 你还未踏入修仙之路！\n💡 发送「我要修仙」开始你的修仙之旅"
+    PLAYER_ALREADY_EXISTS = "❌ 你已经踏入修仙之路了！"
+    INVALID_STATE = "❌ 当前状态无法执行此操作"
+    INSUFFICIENT_GOLD = "❌ 灵石不足"
+    INSUFFICIENT_EXP = "❌ 修为不足"
+    ITEM_NOT_FOUND = "❌ 物品不存在"
+    COOLDOWN_NOT_READY = "❌ 冷却时间未到"
+    INVALID_PARAMETER = "❌ 参数错误"
+
+
+class SuccessMessages:
+    """成功消息常量"""
+    PLAYER_CREATED = "🎉 恭喜道友踏入修仙之路！"
+    CULTIVATION_STARTED = "🧘 开始闭关修炼..."
+    CULTIVATION_ENDED = "✨ 出关成功！"
+    BREAKTHROUGH_SUCCESS = "🎊 突破成功！"
+    ITEM_PURCHASED = "✅ 购买成功！"
+    ITEM_SOLD = "✅ 出售成功！"
