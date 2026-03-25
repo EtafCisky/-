@@ -11,8 +11,8 @@ from .infrastructure.database.connection import DatabaseConnection
 
 
 @register(
-    "xiuxian_v3",
-    "Kiro AI Assistant",
+    "astrbot_plugin_monixiuxianv3",
+    "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
     "3.0.0"
 )
@@ -23,11 +23,11 @@ class XiuxianV3Plugin(Star):
         super().__init__(context)
         
         # 获取插件数据目录
-        self.data_dir = StarTools.get_data_dir("xiuxian_v3")
+        self.data_dir = StarTools.get_data_dir("astrbot_plugin_monixiuxianv3")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # 获取 AstrBot 配置
-        astrbot_config = context.get_config("xiuxian_v3", {})
+        astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3", {})
         
         # 初始化配置管理器
         config_dir = self.data_dir.parent.parent / "config"

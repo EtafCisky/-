@@ -44,7 +44,7 @@ class Container:
         """获取数据库连接（单例）"""
         if self._database is None:
             from ..infrastructure.database.connection import DatabaseConnection
-            db_path = self.data_dir / "xiuxian_v3.db" if self.data_dir else "xiuxian_v3.db"
+            db_path = self.data_dir / "astrbot_plugin_monixiuxianv3.db" if self.data_dir else "astrbot_plugin_monixiuxianv3.db"
             self._database = DatabaseConnection(str(db_path), echo=False)
         return self._database
     

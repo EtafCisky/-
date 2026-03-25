@@ -66,12 +66,12 @@ class SpiritRootWeightsConfig(BaseModel):
 
 class FilesConfig(BaseModel):
     """文件路径配置"""
-    database_file: str = "xiuxian_v3.db"
+    database_file: str = "astrbot_plugin_monixiuxianv3.db"
 
 
 class DatabaseConfig(BaseModel):
     """数据库配置"""
-    path: str = "xiuxian_v3.db"
+    path: str = "astrbot_plugin_monixiuxianv3.db"
     echo: bool = False
     pool_size: int = 5
     max_overflow: int = 10
@@ -191,7 +191,7 @@ class ConfigManager:
             if "FILES" in self._astrbot_config:
                 f = self._astrbot_config["FILES"]
                 settings_data["files"] = {
-                    "database_file": f.get("DATABASE_FILE", "xiuxian_v3.db")
+                    "database_file": f.get("DATABASE_FILE", "astrbot_plugin_monixiuxianv3.db")
                 }
             
             return Settings(**settings_data)
