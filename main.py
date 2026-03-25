@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.2.13"
+    "3.2.14"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -236,6 +236,9 @@ class XiuxianV3Plugin(Star):
             # 初始化秘境数据
             self._initialize_rifts()
             
+            # 初始化Boss数据（如果没有存活的Boss，自动生成一个）
+            self._initialize_boss()
+            
             logger.info("【修仙V3】插件已启动")
         except Exception as e:
             logger.error(f"【修仙V3】插件启动失败: {e}", exc_info=True)
@@ -271,59 +274,91 @@ class XiuxianV3Plugin(Star):
             
             rift_repo = self.container.rift_repository()
             
-            # 检查是否已有秘境数据
-            existing_rifts = rift_repo.get_all_rifts()
-            if existing_rifts:
-                logger.info("【修仙V3】秘境数据已存在，跳过初始化")
-                return  # 已有数据，跳过初始化
-            
-            # 创建初始秘境
-            initial_rifts = [
-                Rift(
-                    rift_id=0,  # 会被数据库自动分配
-                    rift_name="幽暗森林",
-                    rift_level=1,
-                    required_level=3,  # 筑基期
-                    exp_reward_min=5000,
-                    exp_reward_max=15000,
-                    gold_reward_min=1000,
-                    gold_reward_max=3000,
-                    description="低级秘境，适合筑基期修士探索"
-                ),
-                Rift(
-                    rift_id=0,
-                    rift_name="玄冰洞窟",
-                    rift_level=2,
-                    required_level=6,  # 金丹期
-                    exp_reward_min=20000,
-                    exp_reward_max=50000,
-                    gold_reward_min=5000,
-                    gold_reward_max=10000,
-                    description="中级秘境，适合金丹期修士探索"
-                ),
-                Rift(
-                    rift_id=0,
-                    rift_name="天火禁地",
-                    rift_level=3,
-                    required_level=9,  # 元婴期
-                    exp_reward_min=80000,
-                    exp_reward_max=150000,
-                    gold_reward_min=15000,
-                    gold_reward_max=30000,
-                    description="高级秘境，适合元婴期修士探索"
-                ),
-            ]
-            
-            # 插入秘境数据
-            for rift in initial_rifts:
-                rift_repo.create_rift(rift)
-            
-            logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
+            try:
+                # 检查是否已有秘境数据
+                existing_rifts = rift_repo.get_all_rifts()
+                if existing_rifts:
+                    logger.info("【修仙V3】秘境数据已存在，跳过初始化")
+                    return  # 已有数据，跳过初始化
+                
+                # 创建初始秘境
+                initial_rifts = [
+                    Rift(
+                        rift_id=0,  # 会被数据库自动分配
+                        rift_name="幽暗森林",
+                        rift_level=1,
+                        required_level=3,  # 筑基期
+                        exp_reward_min=5000,
+                        exp_reward_max=15000,
+                        gold_reward_min=1000,
+                        gold_reward_max=3000,
+                        description="低级秘境，适合筑基期修士探索"
+                    ),
+                    Rift(
+                        rift_id=0,
+                        rift_name="玄冰洞窟",
+                        rift_level=2,
+                        required_level=6,  # 金丹期
+                        exp_reward_min=20000,
+                        exp_reward_max=50000,
+                        gold_reward_min=5000,
+                        gold_reward_max=10000,
+                        description="中级秘境，适合金丹期修士探索"
+                    ),
+                    Rift(
+                        rift_id=0,
+                        rift_name="天火禁地",
+                        rift_level=3,
+                        required_level=9,  # 元婴期
+                        exp_reward_min=80000,
+                        exp_reward_max=150000,
+                        gold_reward_min=15000,
+                        gold_reward_max=30000,
+                        description="高级秘境，适合元婴期修士探索"
+                    ),
+                ]
+                
+                # 插入秘境数据
+                for rift in initial_rifts:
+                    rift_repo.create_rift(rift)
+                
+                logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
+            finally:
+                # 确保关闭session
+                rift_repo.session.close()
             
         except Exception as e:
             logger.error(f"【修仙V3】初始化秘境数据失败: {e}", exc_info=True)
             # 秘境初始化失败不应阻止插件启动，但需要记录详细错误
             logger.warning("【修仙V3】秘境功能可能无法正常使用，请检查日志")
+    
+    def _initialize_boss(self):
+        """初始化Boss数据（如果没有存活的Boss，自动生成一个）"""
+        try:
+            boss_service = self.container.boss_service()
+            
+            # 注意：boss_service内部会创建多个repository，每个都有自己的session
+            # 我们需要确保所有session都被正确关闭
+            try:
+                # 检查是否已有存活的Boss
+                existing_boss = boss_service.get_active_boss()
+                if existing_boss:
+                    logger.info(f"【修仙V3】已有存活的Boss：{existing_boss.boss_name}")
+                    return  # 已有Boss，跳过初始化
+                
+                # 自动生成一个Boss
+                boss = boss_service.auto_spawn_boss()
+                logger.info(f"【修仙V3】已自动生成初始Boss：{boss.boss_name}（{boss.boss_level}境）")
+            finally:
+                # 关闭boss_service中所有repository的session
+                boss_service.boss_repo.session.close()
+                boss_service.player_repo.session.close()
+                boss_service.storage_ring_repo.session.close()
+            
+        except Exception as e:
+            logger.error(f"【修仙V3】初始化Boss数据失败: {e}", exc_info=True)
+            # Boss初始化失败不应阻止插件启动，但需要记录详细错误
+            logger.warning("【修仙V3】Boss功能可能无法正常使用，请检查日志或使用'生成Boss'命令手动生成")
     
     # ===== 玩家系统命令 =====
     
@@ -667,6 +702,12 @@ class XiuxianV3Plugin(Star):
     async def cmd_challenge_boss(self, event: AstrMessageEvent):
         """挑战Boss"""
         async for result in self.boss_handler.handle_challenge_boss(event):
+            yield result
+    
+    @filter.command(Commands.SPAWN_BOSS)
+    async def cmd_spawn_boss(self, event: AstrMessageEvent):
+        """生成Boss（管理员）"""
+        async for result in self.boss_handler.handle_spawn_boss(event):
             yield result
     
     # ===== 悬赏系统命令 =====
