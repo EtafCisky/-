@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.11"
+    "3.0.12"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -390,19 +390,19 @@ class XiuxianV3Plugin(Star):
     
     # ===== 装备系统命令 =====
     
-    @filter.command("我的装备")
+    @filter.command(Commands.EQUIPMENT_INFO)
     async def cmd_equipment_info(self, event: AstrMessageEvent):
         """我的装备"""
         async for result in self.equipment_handler.handle_show_equipment(event):
             yield result
     
-    @filter.command("装备")
+    @filter.command(Commands.EQUIP)
     async def cmd_equip_item(self, event: AstrMessageEvent):
         """装备"""
         async for result in self.equipment_handler.handle_equip_item(event):
             yield result
     
-    @filter.command("卸下")
+    @filter.command(Commands.UNEQUIP)
     async def cmd_unequip_item(self, event: AstrMessageEvent):
         """卸下"""
         async for result in self.equipment_handler.handle_unequip_item(event):
@@ -410,19 +410,19 @@ class XiuxianV3Plugin(Star):
     
     # ===== 丹药系统命令 =====
     
-    @filter.command("丹药背包")
+    @filter.command(Commands.PILL_BACKPACK)
     async def cmd_show_pills(self, event: AstrMessageEvent):
         """丹药背包"""
         async for result in self.pill_handler.handle_show_pills(event):
             yield result
     
-    @filter.command("服用丹药")
+    @filter.command(Commands.USE_PILL)
     async def cmd_use_pill(self, event: AstrMessageEvent):
         """服用丹药"""
         async for result in self.pill_handler.handle_use_pill(event):
             yield result
     
-    @filter.command("搜索丹药")
+    @filter.command(Commands.SEARCH_PILL)
     async def cmd_search_pills(self, event: AstrMessageEvent):
         """搜索丹药"""
         async for result in self.pill_handler.handle_search_pills(event):

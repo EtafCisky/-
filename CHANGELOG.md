@@ -1,5 +1,24 @@
 # 更新日志
 
+## [3.0.12] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**命令注册冲突修复**
+
+- 修复插件内部命令重复注册导致的冲突问题
+- 统一使用 `Commands` 常量而非硬编码字符串注册命令
+- 修复的命令：
+  - 丹药背包：使用 `Commands.PILL_BACKPACK`
+  - 服用丹药：使用 `Commands.USE_PILL`
+  - 搜索丹药：使用 `Commands.SEARCH_PILL`
+  - 我的装备：使用 `Commands.EQUIPMENT_INFO`
+  - 装备：使用 `Commands.EQUIP`（新增常量）
+  - 卸下：使用 `Commands.UNEQUIP`
+- 确保所有命令只注册一次，避免冲突
+
+---
+
 ## [3.0.11] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复

@@ -34,6 +34,7 @@ class Commands:
     SEARCH_ITEM = "搜索物品"
     
     # 装备系统
+    EQUIP = "装备"
     EQUIP_WEAPON = "装备武器"
     EQUIP_ARMOR = "装备防具"
     EQUIP_TECHNIQUE = "装备功法"
