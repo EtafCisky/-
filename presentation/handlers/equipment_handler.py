@@ -4,8 +4,7 @@
 处理装备相关的命令。
 """
 from typing import AsyncGenerator
-from astrbot.api import filter
-from astrbot.api.event import AstrMessageEvent
+from astrbot.api.event import AstrMessageEvent, filter
 
 from ...application.services.equipment_service import EquipmentService
 from ...core.exceptions import BusinessException

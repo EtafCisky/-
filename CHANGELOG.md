@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.0.6] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**AstrBot API 导入错误修复**
+
+- 修复 `filter` 导入路径错误：应从 `astrbot.api.event` 导入，而非 `astrbot.api`
+- 修复 `main.py` 中的导入语句
+- 修复 `equipment_handler.py` 中的导入语句
+- 修复 `pill_handler.py` 中的导入语句
+- 确保插件可以正常加载和运行
+
+---
+
 ## [3.0.5] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复
