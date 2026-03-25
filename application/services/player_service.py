@@ -48,11 +48,11 @@ class PlayerService:
         Raises:
             PlayerAlreadyExistsException: 玩家已存在
         """
+        # 检查是否已存在（在事务外检查，避免不必要的事务开销）
+        if self.player_repo.exists(user_id):
+            raise PlayerAlreadyExistsException(user_id)
+        
         try:
-            # 检查是否已存在
-            if self.player_repo.exists(user_id):
-                raise PlayerAlreadyExistsException(user_id)
-            
             # 生成灵根
             spirit_root = self.spirit_root_generator.generate_random_root()
             
