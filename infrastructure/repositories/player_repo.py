@@ -197,6 +197,17 @@ class PlayerRepository(BaseRepository[Player]):
         # 暂时返回 None
         return None
     
+    def get_all_players(self) -> List[Player]:
+        """
+        获取所有玩家
+        
+        Returns:
+            玩家列表
+        """
+        stmt = select(PlayerTable)
+        results = self.session.execute(stmt).scalars().all()
+        return [self._to_domain(r) for r in results]
+    
     def _to_domain(self, table_obj: PlayerTable) -> Player:
         """将数据库对象转换为领域对象"""
         import json

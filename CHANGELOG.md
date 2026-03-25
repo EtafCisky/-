@@ -1,5 +1,17 @@
 # 更新日志
 
+## [3.2.15] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+PlayerRepository 缺失方法修复
+
+- 添加 `get_all_players()` 方法到 `PlayerRepository`
+- 修复了使用"境界排行"命令时出现 "'PlayerRepository' object has no attribute 'get_all_players'" 错误
+- 该方法返回所有玩家列表，用于排行榜和统计功能
+
+---
+
 ## [3.2.14] - 2026-03-26 (功能完善版)
 
 ### ✨ 新功能
