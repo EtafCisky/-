@@ -37,7 +37,9 @@ class RankingService:
         
         for idx, player in enumerate(sorted_players, 1):
             name = player.nickname or player.user_id[:8]
-            level_name = self._get_level_name(player.level_index, player.cultivation_type)
+            # 获取修炼类型的值（枚举转字符串）
+            cult_type = player.cultivation_type.value if hasattr(player.cultivation_type, 'value') else str(player.cultivation_type)
+            level_name = self._get_level_name(player.level_index, cult_type)
             msg += f"{idx}. {name}\n"
             msg += f"   境界：{level_name} | 修为：{player.experience:,}\n\n"
         
@@ -69,8 +71,10 @@ class RankingService:
         
         for idx, (player, power) in enumerate(sorted_players, 1):
             name = player.nickname or player.user_id[:8]
+            # 获取修炼类型的值
+            cult_type = player.cultivation_type.value if hasattr(player.cultivation_type, 'value') else str(player.cultivation_type)
             # 显示主要攻击属性
-            if player.cultivation_type == "体修":
+            if cult_type == "体修":
                 main_atk = player.physical_damage
                 atk_label = "物伤"
             else:
@@ -181,11 +185,11 @@ class RankingService:
     
     def _get_level_name(self, level_index: int, cultivation_type: str) -> str:
         """获取境界名称"""
-        if cultivation_type == "体修":
-            levels = self.config_manager.body_levels
-        else:
-            levels = self.config_manager.levels
+        # 使用 get_level_data 方法获取境界数据
+        level_data = self.config_manager.get_level_data(cultivation_type)
         
-        if 0 <= level_index < len(levels):
-            return levels[level_index]["name"]
+        if 0 <= level_index < len(level_data):
+            level_info = level_data[level_index]
+            # 尝试多个可能的键名
+            return level_info.get("name") or level_info.get("level_name", "未知境界")
         return "未知境界"
