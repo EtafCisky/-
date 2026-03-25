@@ -1,5 +1,6 @@
 """领域工厂"""
 import random
+from typing import Optional
 
 from .models.player import Player
 from .enums import CultivationType, PlayerState
@@ -14,7 +15,8 @@ class PlayerFactory:
         user_id: str,
         cultivation_type: CultivationType,
         spirit_root: SpiritRootInfo,
-        initial_gold: int = 100
+        initial_gold: int = 100,
+        user_name: Optional[str] = None
     ) -> Player:
         """
         创建新玩家
@@ -24,6 +26,7 @@ class PlayerFactory:
             cultivation_type: 修炼类型
             spirit_root: 灵根信息
             initial_gold: 初始灵石
+            user_name: 用户名（QQ昵称），如果提供则使用，否则使用默认格式
             
         Returns:
             玩家实例
@@ -38,6 +41,9 @@ class PlayerFactory:
         # 生成灵根显示名称
         root_display_name = spirit_root.get_display_name()
         
+        # 确定昵称：优先使用提供的用户名，否则使用默认格式
+        nickname = user_name if user_name else f"道友{user_id[:6]}"
+        
         if cultivation_type == CultivationType.SPIRITUAL:
             # 灵修初始数据
             # 寿命：100
@@ -51,7 +57,7 @@ class PlayerFactory:
             
             return Player(
                 user_id=user_id,
-                nickname=f"道友{user_id[:6]}",
+                nickname=nickname,
                 cultivation_type=cultivation_type,
                 spiritual_root=root_display_name,
                 level_index=0,
@@ -88,7 +94,7 @@ class PlayerFactory:
             
             return Player(
                 user_id=user_id,
-                nickname=f"道友{user_id[:6]}",
+                nickname=nickname,
                 cultivation_type=cultivation_type,
                 spiritual_root=root_display_name,
                 level_index=0,
