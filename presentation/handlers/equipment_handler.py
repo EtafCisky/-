@@ -26,7 +26,7 @@ class EquipmentHandler:
         self.player_service = player_service
     
     @require_player
-    async def handle_show_equipment(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_show_equipment(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         显示已装备的物品
         
@@ -49,7 +49,7 @@ class EquipmentHandler:
             yield f"查看装备失败：{str(e)}"
     
     @require_player
-    async def handle_equip_item(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_equip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         装备物品
         
@@ -89,7 +89,7 @@ class EquipmentHandler:
             yield f"装备失败：{str(e)}"
     
     @require_player
-    async def handle_unequip_item(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_unequip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         卸下装备
         

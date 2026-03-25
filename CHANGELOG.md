@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.1.12] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+装备处理器参数签名修复
+
+- 修复 `EquipmentHandler.handle_show_equipment()` 缺少 `player` 参数
+- 修复 `EquipmentHandler.handle_equip_item()` 缺少 `player` 参数
+- 修复 `EquipmentHandler.handle_unequip_item()` 缺少 `player` 参数
+- `@require_player` 装饰器会传入 `player` 参数，方法签名必须接收它
+- 修复了使用"我的装备"命令时出现 "takes 2 positional arguments but 3 were given" 错误
+
+---
+
 ## [3.1.11] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复
