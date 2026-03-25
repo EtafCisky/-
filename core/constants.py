@@ -87,6 +87,7 @@ class Commands:
     # Boss系统
     BOSS_INFO = "世界Boss"
     CHALLENGE_BOSS = "挑战Boss"
+    SPAWN_BOSS = "生成Boss"
     
     # 悬赏系统
     BOUNTY_LIST = "悬赏令"
