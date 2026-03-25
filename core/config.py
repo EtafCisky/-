@@ -126,19 +126,19 @@ class ConfigManager:
             
             # 调试日志：显示接收到的配置
             logger.info(f"【修仙V3】加载配置，AstrBot配置内容: {self._astrbot_config}")
+            logger.info(f"【修仙V3】配置类型: {type(self._astrbot_config)}")
             
-            # 访问控制
-            if "ACCESS_CONTROL" in self._astrbot_config:
-                ac = self._astrbot_config["ACCESS_CONTROL"]
-                settings_data["access_control"] = {
-                    "whitelist_groups": ac.get("WHITELIST_GROUPS", []),
-                    "shop_managers": ac.get("SHOP_MANAGERS", []),
-                    "boss_admins": ac.get("BOSS_ADMINS", [])
-                }
-            
-            # 核心数值
-            if "VALUES" in self._astrbot_config:
-                v = self._astrbot_config["VALUES"]
+            # 如果 astrbot_config 本身就是配置字典，直接使用
+            # AstrBot 传递的格式可能是: {"INITIAL_GOLD": 1000, ...} 而不是 {"VALUES": {"INITIAL_GOLD": 1000}}
+            if isinstance(self._astrbot_config, dict):
+                # 检查是否有嵌套的 VALUES 键
+                if "VALUES" in self._astrbot_config:
+                    # 有嵌套结构，按原逻辑处理
+                    v = self._astrbot_config["VALUES"]
+                else:
+                    # 没有嵌套，直接使用顶层配置
+                    v = self._astrbot_config
+                
                 initial_gold = v.get("INITIAL_GOLD", 100)
                 logger.info(f"【修仙V3】从配置读取初始灵石: {initial_gold}")
                 settings_data["values"] = {
@@ -155,8 +155,15 @@ class ConfigManager:
                     "shop_discount_max": v.get("SHOP_DISCOUNT_MAX", 1.2),
                     "shop_stock_divisor": v.get("SHOP_STOCK_DIVISOR", 100)
                 }
-            else:
-                logger.warning("【修仙V3】配置中未找到 VALUES 部分，使用默认值")
+            
+            # 访问控制
+            if "ACCESS_CONTROL" in self._astrbot_config:
+                ac = self._astrbot_config["ACCESS_CONTROL"]
+                settings_data["access_control"] = {
+                    "whitelist_groups": ac.get("WHITELIST_GROUPS", []),
+                    "shop_managers": ac.get("SHOP_MANAGERS", []),
+                    "boss_admins": ac.get("BOSS_ADMINS", [])
+                }
             
             # 灵根速度
             if "SPIRIT_ROOT_SPEEDS" in self._astrbot_config:
