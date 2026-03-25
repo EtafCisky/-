@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.1.15] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+丹药处理器参数签名和返回值修复
+
+- 修复 `PillHandler.handle_show_pills()` 缺少 `player` 参数
+- 修复 `PillHandler.handle_use_pill()` 缺少 `player` 参数
+- 修复 `PillHandler.handle_search_pills()` 缺少 `player` 参数
+- 所有返回消息使用 `event.plain_result()` 包装
+- 修复了使用丹药相关命令时出现 "takes 2 positional arguments but 3 were given" 错误
+
+---
+
 ## [3.1.14] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

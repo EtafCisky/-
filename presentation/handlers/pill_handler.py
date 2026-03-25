@@ -26,7 +26,7 @@ class PillHandler:
         self.player_service = player_service
     
     @require_player
-    async def handle_show_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_show_pills(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         显示丹药背包
         
@@ -38,15 +38,15 @@ class PillHandler:
             # 获取并格式化丹药背包
             message = self.pill_service.format_pill_inventory(user_id)
             
-            yield message
+            yield event.plain_result(message)
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"查看丹药背包失败：{str(e)}"
+            yield event.plain_result(f"查看丹药背包失败：{str(e)}")
     
     @require_player
-    async def handle_use_pill(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_use_pill(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         服用丹药
         
@@ -59,7 +59,7 @@ class PillHandler:
             # 解析命令参数
             parts = message_text.strip().split(maxsplit=1)
             if len(parts) < 2:
-                yield "请指定要服用的丹药名称\n格式：服用丹药 <丹药名称>\n例如：服用丹药 一品气血丹"
+                yield event.plain_result("请指定要服用的丹药名称\n格式：服用丹药 <丹药名称>\n例如：服用丹药 一品气血丹")
                 return
             
             pill_name = parts[1].strip()
@@ -67,15 +67,15 @@ class PillHandler:
             # 使用丹药
             success, message = self.pill_service.use_pill(user_id, pill_name)
             
-            yield message
+            yield event.plain_result(message)
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"服用丹药失败：{str(e)}"
+            yield event.plain_result(f"服用丹药失败：{str(e)}")
     
     @require_player
-    async def handle_search_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
+    async def handle_search_pills(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
         """
         搜索丹药
         
@@ -88,7 +88,7 @@ class PillHandler:
             # 解析命令参数
             parts = message_text.strip().split(maxsplit=1)
             if len(parts) < 2:
-                yield "请指定搜索关键词\n格式：搜索丹药 <关键词>"
+                yield event.plain_result("请指定搜索关键词\n格式：搜索丹药 <关键词>")
                 return
             
             keyword = parts[1].strip()
@@ -97,7 +97,7 @@ class PillHandler:
             results = self.pill_service.search_pills(user_id, keyword)
             
             if not results:
-                yield f"没有找到包含「{keyword}」的丹药"
+                yield event.plain_result(f"没有找到包含「{keyword}」的丹药")
                 return
             
             # 格式化结果
@@ -110,9 +110,9 @@ class PillHandler:
                 else:
                     lines.append(f"{pill_name} × {count}")
             
-            yield "\n".join(lines)
+            yield event.plain_result("\n".join(lines))
             
         except BusinessException as e:
-            yield str(e)
+            yield event.plain_result(str(e))
         except Exception as e:
-            yield f"搜索丹药失败：{str(e)}"
+            yield event.plain_result(f"搜索丹药失败：{str(e)}")
