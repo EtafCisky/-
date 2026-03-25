@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.2.16] - 2026-03-26 (功能改进版)
+
+### ✨ 功能改进
+
+使用QQ名作为道友名字
+
+- 创建角色时自动使用QQ昵称作为道友名字，而不是数字ID
+- 修改 `PlayerFactory.create_new_player()` 添加 `user_name` 参数（可选）
+- 修改 `PlayerService.create_player()` 添加 `user_name` 参数并传递给工厂方法
+- 修改 `PlayerHandler.handle_create_player()` 获取 `event.get_sender_name()` 并传递给服务
+- 如果提供了QQ昵称，使用它作为nickname；否则使用默认格式 `f"道友{user_id[:6]}"`
+- 提升用户体验，让角色名字更加个性化和易识别
+
+---
+
 ## [3.2.15] - 2026-03-26 (Bug 修复版)
 
 ### 🐛 Bug 修复

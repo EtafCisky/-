@@ -55,7 +55,10 @@ class PlayerHandler:
         
         # 创建玩家
         try:
-            player = self.player_service.create_player(user_id, cult_type)
+            # 获取QQ昵称
+            sender_name = event.get_sender_name()
+            
+            player = self.player_service.create_player(user_id, cult_type, sender_name)
             
             # 获取灵根信息用于显示
             root_name = player.spiritual_root.replace("灵根", "")

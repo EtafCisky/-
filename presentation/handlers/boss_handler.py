@@ -105,3 +105,31 @@ class BossHandler:
             yield event.plain_result(str(e))
         except Exception as e:
             yield event.plain_result(f"挑战Boss失败：{e}")
+    
+    async def handle_spawn_boss(self, event: AstrMessageEvent) -> AsyncGenerator:
+        """处理生成Boss命令（管理员）"""
+        try:
+            # 生成Boss
+            boss = self.boss_service.auto_spawn_boss()
+            
+            lines = [
+                "👹 Boss降临",
+                "━━━━━━━━━━━━━━━",
+                "",
+                f"{boss.boss_name}降临世间！",
+                "",
+                f"境界：{boss.boss_level}",
+                f"HP：{boss.max_hp:,}",
+                f"ATK：{boss.atk:,}",
+                f"防御：{boss.defense}%减伤",
+                f"奖励：{boss.stone_reward:,}灵石",
+                "",
+                "快来挑战吧！"
+            ]
+            
+            yield event.plain_result("\n".join(lines))
+            
+        except GameException as e:
+            yield event.plain_result(str(e))
+        except Exception as e:
+            yield event.plain_result(f"生成Boss失败：{e}")
