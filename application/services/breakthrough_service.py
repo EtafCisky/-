@@ -42,12 +42,12 @@ class BreakthroughService:
         # 获取下一境界所需修为
         next_level_index = player.level_index + 1
         next_level_data = level_data[next_level_index]
-        required_exp = next_level_data.get("exp_needed", 0)
+        required_exp = next_level_data.get("required_exp", next_level_data.get("exp_needed", 0))
         
         # 检查修为是否满足
         if player.experience < required_exp:
-            current_level = level_data[player.level_index]["level_name"]
-            next_level = next_level_data["level_name"]
+            current_level = level_data[player.level_index].get("name", level_data[player.level_index].get("level_name", "未知"))
+            next_level = next_level_data.get("name", next_level_data.get("level_name", "未知"))
             return False, (
                 f"修为不足！\n"
                 f"当前境界：{current_level}\n"
@@ -80,9 +80,9 @@ class BreakthroughService:
         current_level_data = level_data[player.level_index]
         next_level_data = level_data[player.level_index + 1]
         
-        current_level_name = current_level_data["level_name"]
-        next_level_name = next_level_data["level_name"]
-        required_exp = next_level_data.get("exp_needed", 0)
+        current_level_name = current_level_data.get("name", current_level_data.get("level_name", "未知"))
+        next_level_name = next_level_data.get("name", next_level_data.get("level_name", "未知"))
+        required_exp = next_level_data.get("required_exp", next_level_data.get("exp_needed", 0))
         base_success_rate = next_level_data.get("success_rate", 0.5)
         
         # 检查修为是否满足
@@ -142,10 +142,10 @@ class BreakthroughService:
         random_value = random.random()
         breakthrough_success = random_value < success_rate
         
-        current_level_name = level_data[player.level_index]["level_name"]
+        current_level_name = level_data[player.level_index].get("name", level_data[player.level_index].get("level_name", "未知"))
         next_level_index = player.level_index + 1
         next_level_data = level_data[next_level_index]
-        next_level_name = next_level_data["level_name"]
+        next_level_name = next_level_data.get("name", next_level_data.get("level_name", "未知"))
         
         if breakthrough_success:
             # 突破成功 - 提升境界并更新属性

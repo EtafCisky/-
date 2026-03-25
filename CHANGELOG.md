@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.1.9] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**突破服务配置键名兼容性修复**
+
+- 修复 `BreakthroughService.get_breakthrough_info()` 中使用错误的键名 `level_name` 导致的 KeyError
+- 修复 `BreakthroughService.execute_breakthrough()` 中使用错误的键名 `level_name` 导致的 KeyError
+- 修复 `BreakthroughService.check_breakthrough_requirements()` 中使用错误的键名 `exp_needed` 和 `level_name` 导致的错误
+- 配置文件使用 `name` 和 `required_exp` 作为键名
+- 添加键名兼容性处理，同时支持 `name`/`level_name` 和 `required_exp`/`exp_needed`
+- 修复了使用"突破信息"命令时出现 "'level_name'" 错误的问题
+
+---
+
 ## [3.1.8] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复
