@@ -1,5 +1,26 @@
 # 更新日志
 
+## [3.2.11] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+宗门处理器参数签名修复
+
+- 修复 `SectHandler` 所有使用 `@require_player` 装饰器的方法缺少 `player` 参数
+- 修复的方法：
+  - `handle_create_sect()` - 创建宗门
+  - `handle_join_sect()` - 加入宗门
+  - `handle_leave_sect()` - 退出宗门
+  - `handle_sect_info()` - 宗门信息
+  - `handle_donate()` - 宗门捐献
+  - `handle_change_position()` - 变更职位
+  - `handle_transfer_ownership()` - 宗主传位
+  - `handle_kick_member()` - 踢出成员
+  - `handle_sect_task()` - 宗门任务
+- 修复了使用宗门相关命令时出现 "takes from 2 to 3 positional arguments but 4 were given" 错误
+
+---
+
 ## [3.2.10] - 2026-03-25 (紧急修复版)
 
 ### 🐛 Bug 修复

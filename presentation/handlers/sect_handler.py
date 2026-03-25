@@ -30,6 +30,7 @@ class SectHandler:
     async def handle_create_sect(
         self, 
         event: AstrMessageEvent,
+        player,
         sect_name: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -65,6 +66,7 @@ class SectHandler:
     async def handle_join_sect(
         self, 
         event: AstrMessageEvent,
+        player,
         sect_name: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -94,7 +96,8 @@ class SectHandler:
     @require_player
     async def handle_leave_sect(
         self, 
-        event: AstrMessageEvent
+        event: AstrMessageEvent,
+        player
     ) -> AsyncGenerator[str, None]:
         """
         处理退出宗门命令
@@ -118,7 +121,8 @@ class SectHandler:
     @require_player
     async def handle_sect_info(
         self, 
-        event: AstrMessageEvent
+        event: AstrMessageEvent,
+        player
     ) -> AsyncGenerator[str, None]:
         """
         处理查看宗门信息命令
@@ -162,6 +166,7 @@ class SectHandler:
     async def handle_donate(
         self, 
         event: AstrMessageEvent,
+        player,
         amount: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -198,6 +203,7 @@ class SectHandler:
     async def handle_change_position(
         self, 
         event: AstrMessageEvent,
+        player,
         args: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -246,6 +252,7 @@ class SectHandler:
     async def handle_transfer_ownership(
         self, 
         event: AstrMessageEvent,
+        player,
         target_id: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -278,6 +285,7 @@ class SectHandler:
     async def handle_kick_member(
         self, 
         event: AstrMessageEvent,
+        player,
         target_id: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -309,7 +317,8 @@ class SectHandler:
     @require_player
     async def handle_sect_task(
         self, 
-        event: AstrMessageEvent
+        event: AstrMessageEvent,
+        player
     ) -> AsyncGenerator[str, None]:
         """
         处理宗门任务命令
