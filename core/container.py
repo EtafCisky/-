@@ -277,8 +277,8 @@ class Container:
         """获取悬赏服务"""
         from ..application.services.bounty_service import BountyService
         return BountyService(
-            self.player_repository(),
             self.bounty_repository(),
+            self.player_repository(),
             self.storage_ring_repository(),
             self.config_manager()
         )

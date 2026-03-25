@@ -75,12 +75,24 @@ class ShopService:
         # 添加物品（防具、功法等）
         items_config = self.config_manager.get_config("items")
         if items_config:
+            # 类型映射：中文 -> 英文（用于统一类型）
+            type_mapping = {
+                '丹药': 'pill',
+                '材料': 'material',
+                '法器': 'weapon',
+                '功法': 'technique',
+                '防具': 'armor',
+                '饰品': 'accessory'
+            }
             for item in items_config.values():
                 if item.get('shop_weight', 0) > 0 and item.get('price', 0) > 0:
+                    item_type = item['type']
+                    # 统一转换为英文类型
+                    normalized_type = type_mapping.get(item_type, item_type)
                     all_items.append({
                         'id': item.get('id', item['name']),
                         'name': item['name'],
-                        'type': item['type'],
+                        'type': normalized_type,
                         'price': item['price'],
                         'weight': item['shop_weight'],
                         'rank': item.get('rank', '凡品'),
@@ -446,17 +458,28 @@ class ShopService:
         # 扣除灵石
         player.gold -= total_price
         
-        # 根据物品类型处理
+        # 根据物品类型处理（支持中英文类型）
         item_type = target_item['type']
         result_lines = []
         
-        if item_type in ['weapon', 'armor', 'main_technique', 'technique', 'accessory', 'material']:
+        # 类型映射：中文 -> 英文
+        type_mapping = {
+            '丹药': 'pill',
+            '材料': 'material',
+            '法器': 'weapon',
+            '功法': 'technique'
+        }
+        
+        # 统一转换为英文类型
+        normalized_type = type_mapping.get(item_type, item_type)
+        
+        if normalized_type in ['weapon', 'armor', 'main_technique', 'technique', 'accessory', 'material']:
             # 存入储物戒
             self.storage_ring_repo.add_item(user_id, item_name, quantity)
-            type_name = self.TYPE_LABEL_MAP.get(item_type, '物品')
+            type_name = self.TYPE_LABEL_MAP.get(normalized_type, '物品')
             result_lines.append(f"成功购买{type_name}【{target_item['name']}】x{quantity}，已存入储物戒。")
         
-        elif item_type in ['pill', 'exp_pill', 'utility_pill']:
+        elif normalized_type in ['pill', 'exp_pill', 'utility_pill']:
             # 存入丹药背包
             inventory = player.pills_inventory
             inventory[item_name] = inventory.get(item_name, 0) + quantity
@@ -464,7 +487,7 @@ class ShopService:
             result_lines.append(f"成功购买【{target_item['name']}】x{quantity}，已添加到丹药背包。")
         
         else:
-            raise BusinessException(f"未知的物品类型：{item_type}")
+            raise BusinessException(f"未知的物品类型：{item_type}（标准化后：{normalized_type}）")
         
         # 更新玩家
         self.player_repo.update(player)

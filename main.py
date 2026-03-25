@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.2.7"
+    "3.2.9"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -133,7 +133,7 @@ class XiuxianV3Plugin(Star):
         from .presentation.handlers.adventure_handler import AdventureHandler
         from .presentation.handlers.rift_handler import RiftHandler
         from .presentation.handlers.boss_handler import BossHandler
-        # from .presentation.handlers.bounty_handler import BountyHandler  # TODO: Implement bounty_service
+        from .presentation.handlers.bounty_handler import BountyHandler
         from .presentation.handlers.bank_handler import BankHandler
         from .presentation.handlers.blessed_land_handler import BlessedLandHandler
         from .presentation.handlers.spirit_farm_handler import SpiritFarmHandler
@@ -195,9 +195,9 @@ class XiuxianV3Plugin(Star):
         self.boss_handler = BossHandler(
             self.container.boss_service()
         )
-        # self.bounty_handler = BountyHandler(  # TODO: Implement bounty_service
-        #     self.container.bounty_service()
-        # )
+        self.bounty_handler = BountyHandler(
+            self.container.bounty_service()
+        )
         self.bank_handler = BankHandler(
             self.container.bank_service()
         )
@@ -671,36 +671,35 @@ class XiuxianV3Plugin(Star):
     
     # ===== 悬赏系统命令 =====
     
-    # TODO: Implement bounty_service before enabling these commands
-    # @filter.command(Commands.BOUNTY_LIST)
-    # async def cmd_bounty_list(self, event: AstrMessageEvent):
-    #     """悬赏令"""
-    #     async for result in self.bounty_handler.handle_bounty_list(event):
-    #         yield result
+    @filter.command(Commands.BOUNTY_LIST)
+    async def cmd_bounty_list(self, event: AstrMessageEvent):
+        """悬赏令"""
+        async for result in self.bounty_handler.handle_bounty_list(event):
+            yield result
     
-    # @filter.command(Commands.ACCEPT_BOUNTY)
-    # async def cmd_accept_bounty(self, event: AstrMessageEvent, bounty_id: str = ""):
-    #     """接取悬赏"""
-    #     async for result in self.bounty_handler.handle_accept_bounty(event, bounty_id):
-    #         yield result
+    @filter.command(Commands.ACCEPT_BOUNTY)
+    async def cmd_accept_bounty(self, event: AstrMessageEvent, bounty_id: str = ""):
+        """接取悬赏"""
+        async for result in self.bounty_handler.handle_accept_bounty(event, bounty_id):
+            yield result
     
-    # @filter.command(Commands.BOUNTY_STATUS)
-    # async def cmd_bounty_status(self, event: AstrMessageEvent):
-    #     """悬赏状态"""
-    #     async for result in self.bounty_handler.handle_bounty_status(event):
-    #         yield result
+    @filter.command(Commands.BOUNTY_STATUS)
+    async def cmd_bounty_status(self, event: AstrMessageEvent):
+        """悬赏状态"""
+        async for result in self.bounty_handler.handle_bounty_status(event):
+            yield result
     
-    # @filter.command(Commands.COMPLETE_BOUNTY)
-    # async def cmd_complete_bounty(self, event: AstrMessageEvent):
-    #     """完成悬赏"""
-    #     async for result in self.bounty_handler.handle_complete_bounty(event):
-    #         yield result
+    @filter.command(Commands.COMPLETE_BOUNTY)
+    async def cmd_complete_bounty(self, event: AstrMessageEvent):
+        """完成悬赏"""
+        async for result in self.bounty_handler.handle_complete_bounty(event):
+            yield result
     
-    # @filter.command(Commands.ABANDON_BOUNTY)
-    # async def cmd_abandon_bounty(self, event: AstrMessageEvent):
-    #     """放弃悬赏"""
-    #     async for result in self.bounty_handler.handle_abandon_bounty(event):
-    #         yield result
+    @filter.command(Commands.ABANDON_BOUNTY)
+    async def cmd_abandon_bounty(self, event: AstrMessageEvent):
+        """放弃悬赏"""
+        async for result in self.bounty_handler.handle_abandon_bounty(event):
+            yield result
     
     # ===== 银行系统命令 =====
     
