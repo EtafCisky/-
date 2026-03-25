@@ -1,5 +1,20 @@
 # 更新日志
 
+## [3.2.12] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+战斗处理器参数签名修复
+
+- 修复 `CombatHandler` 所有使用 `@require_player` 装饰器的方法缺少 `player` 参数
+- 修复的方法：
+  - `handle_spar()` - 切磋
+  - `handle_duel()` - 决斗
+  - `handle_combat_log()` - 战斗记录
+- 修复了使用战斗相关命令时出现 "takes from 2 to 3 positional arguments but 4 were given" 错误
+
+---
+
 ## [3.2.11] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

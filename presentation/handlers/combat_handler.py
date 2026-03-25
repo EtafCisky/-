@@ -64,7 +64,7 @@ class CombatHandler:
         return None
     
     @require_player
-    async def handle_spar(self, event: AstrMessageEvent, target: str = ""):
+    async def handle_spar(self, event: AstrMessageEvent, player, target: str = ""):
         """
         处理切磋命令（不消耗HP/MP）
         
@@ -113,7 +113,7 @@ class CombatHandler:
             yield event.plain_result(f"❌ 切磋失败：{str(e)}")
     
     @require_player
-    async def handle_duel(self, event: AstrMessageEvent, target: str = ""):
+    async def handle_duel(self, event: AstrMessageEvent, player, target: str = ""):
         """
         处理决斗命令（消耗HP/MP）
         
@@ -164,7 +164,7 @@ class CombatHandler:
             yield event.plain_result(f"❌ 决斗失败：{str(e)}")
     
     @require_player
-    async def handle_combat_log(self, event: AstrMessageEvent):
+    async def handle_combat_log(self, event: AstrMessageEvent, player):
         """
         处理查看战斗记录命令
         
