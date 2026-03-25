@@ -19,7 +19,7 @@ class StorageRingHandler:
         self.player_service = player_service
     
     @require_player
-    async def handle_storage_ring(self, event: AstrMessageEvent):
+    async def handle_storage_ring(self, event: AstrMessageEvent, player):
         """显示储物戒信息"""
         user_id = event.get_sender_id()
         display_name = event.get_sender_name()
@@ -63,7 +63,7 @@ class StorageRingHandler:
         yield event.plain_result("".join(lines))
     
     @require_player
-    async def handle_retrieve_item(self, event: AstrMessageEvent, args: str = ""):
+    async def handle_retrieve_item(self, event: AstrMessageEvent, player, args: str = ""):
         """从储物戒取出物品"""
         user_id = event.get_sender_id()
         
@@ -99,7 +99,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_discard_item(self, event: AstrMessageEvent, args: str = ""):
+    async def handle_discard_item(self, event: AstrMessageEvent, player, args: str = ""):
         """丢弃储物戒中的物品"""
         user_id = event.get_sender_id()
         
@@ -136,7 +136,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_gift_item(self, event: AstrMessageEvent, args: str = ""):
+    async def handle_gift_item(self, event: AstrMessageEvent, player, args: str = ""):
         """赠予物品给其他玩家"""
         user_id = event.get_sender_id()
         sender_name = event.get_sender_name()
@@ -220,7 +220,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_accept_gift(self, event: AstrMessageEvent):
+    async def handle_accept_gift(self, event: AstrMessageEvent, player):
         """接收赠予的物品"""
         user_id = event.get_sender_id()
         
@@ -232,7 +232,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_reject_gift(self, event: AstrMessageEvent):
+    async def handle_reject_gift(self, event: AstrMessageEvent, player):
         """拒绝赠予的物品"""
         user_id = event.get_sender_id()
         
@@ -244,7 +244,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_upgrade_ring(self, event: AstrMessageEvent, ring_name: str = ""):
+    async def handle_upgrade_ring(self, event: AstrMessageEvent, player, ring_name: str = ""):
         """升级/更换储物戒"""
         user_id = event.get_sender_id()
         
@@ -292,7 +292,7 @@ class StorageRingHandler:
             yield event.plain_result(f"❌ {message}")
     
     @require_player
-    async def handle_search_item(self, event: AstrMessageEvent, keyword: str = ""):
+    async def handle_search_item(self, event: AstrMessageEvent, player, keyword: str = ""):
         """搜索储物戒中的物品"""
         user_id = event.get_sender_id()
         

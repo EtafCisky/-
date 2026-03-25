@@ -1,5 +1,25 @@
 # 更新日志
 
+## [3.2.7] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+储物戒处理器参数签名修复
+
+- 修复 `StorageRingHandler` 所有使用 `@require_player` 装饰器的方法缺少 `player` 参数
+- 修复的方法：
+  - `handle_storage_ring()` - 显示储物戒信息
+  - `handle_retrieve_item()` - 取出物品
+  - `handle_discard_item()` - 丢弃物品
+  - `handle_gift_item()` - 赠予物品
+  - `handle_accept_gift()` - 接收赠予
+  - `handle_reject_gift()` - 拒绝赠予
+  - `handle_upgrade_ring()` - 更换储物戒
+  - `handle_search_item()` - 搜索物品
+- 修复了使用储物戒相关命令时出现 "takes 2 positional arguments but 3 were given" 错误
+
+---
+
 ## [3.2.6] - 2026-03-25 (商店系统完善版)
 
 ### 🐛 Bug 修复
