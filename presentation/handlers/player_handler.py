@@ -18,10 +18,12 @@ class PlayerHandler:
     def __init__(
         self,
         player_service: PlayerService,
-        spirit_root_generator: SpiritRootGenerator
+        spirit_root_generator: SpiritRootGenerator,
+        container=None
     ):
         self.player_service = player_service
         self.spirit_root_generator = spirit_root_generator
+        self.container = container
     
     async def handle_create_player(
         self,
@@ -220,15 +222,15 @@ class PlayerHandler:
         cooldown_key = f"rebirth_cooldown_{user_id}"
         
         # 从系统配置获取上次重修时间
+        config_repo = None
         try:
             from ...infrastructure.repositories.system_config_repo import SystemConfigRepository
-            from ...core.container import Container
             
-            # 创建临时容器获取仓储
-            temp_container = Container()
-            config_repo = SystemConfigRepository(temp_container.database().create_session())
+            # 使用注入的容器获取仓储
+            if self.container:
+                config_repo = SystemConfigRepository(self.container.database().create_session())
             
-            last_rebirth_str = config_repo.get_config(cooldown_key)
+            last_rebirth_str = config_repo.get_config(cooldown_key) if config_repo else None
             if last_rebirth_str:
                 last_rebirth_time = int(last_rebirth_str)
                 cooldown_seconds = 7 * 24 * 3600  # 7天
@@ -259,10 +261,12 @@ class PlayerHandler:
         try:
             from ...infrastructure.repositories.bank_repo import BankRepository
             
-            temp_container = Container()
-            bank_repo = BankRepository(temp_container.database().create_session())
+            # 使用注入的容器获取仓储
+            bank_repo = None
+            if self.container:
+                bank_repo = BankRepository(self.container.database().create_session())
             
-            active_loans = bank_repo.get_active_loans(user_id)
+            active_loans = bank_repo.get_active_loans(user_id) if bank_repo else []
             if active_loans:
                 yield event.plain_result(
                     "❌ 你还有未还清的贷款，无法弃道重修！\n"
@@ -290,7 +294,8 @@ class PlayerHandler:
             
             # 记录重修时间
             try:
-                config_repo.set_config(cooldown_key, str(current_time))
+                if config_repo:
+                    config_repo.set_config(cooldown_key, str(current_time))
             except Exception:
                 pass
             

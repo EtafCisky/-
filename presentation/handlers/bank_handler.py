@@ -21,12 +21,14 @@ class BankHandler:
             # 获取银行信息
             info = self.bank_service.get_bank_info(user_id)
             
-            # 获取玩家信息
-            from ...infrastructure.repositories.player_repo import PlayerRepository
+            # 从银行信息中获取玩家灵石（bank_service 内部已经获取了 player）
+            # 我们需要重新获取一次来显示当前持有灵石
             from ...core.container import Container
-            container = Container()
-            player_repo = container.player_repository()
-            player = player_repo.get_player(user_id)
+            from ...core.config import ConfigManager
+            
+            # 这里需要从外部传入 config_manager，暂时使用 bank_service 的
+            # 直接从 bank_service 获取 player_repo
+            player = self.bank_service.player_repo.get_player(user_id)
             
             msg_lines = [
                 "🏦 灵石银行",

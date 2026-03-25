@@ -84,12 +84,8 @@ class AdventureHandler:
             user_id = event.get_sender_id()
             result = self.adventure_service.finish_adventure(user_id)
             
-            # 获取玩家当前状态
-            from ...infrastructure.repositories.player_repo import PlayerRepository
-            from ...core.container import Container
-            container = Container()
-            player_repo = container.player_repository()
-            player = player_repo.get_player(user_id)
+            # 直接从 adventure_service 的 player_repo 获取玩家信息
+            player = self.adventure_service.player_repo.get_player(user_id)
             
             # 构建结果消息（模仿旧代码格式）
             lines = [

@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.1.8] - 2026-03-25 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**Container 初始化缺失 config_manager 修复**
+
+- 修复 `PlayerHandler.handle_rebirth()` 中创建 `Container()` 时未传入 `config_manager` 的问题
+- 为 `PlayerHandler` 添加 `container` 参数注入，避免在方法内部创建临时容器
+- 修复重修功能中系统配置和银行仓储的初始化问题
+- 在 `main.py` 中更新 `PlayerHandler` 初始化，传入 `self.container` 参数
+- 修复了"配置管理器未初始化，请在创建 Container 时传入 config_manager 参数"错误
+
+---
+
 ## [3.1.7] - 2026-03-25 (Bug 修复版)
 
 ### 🐛 Bug 修复

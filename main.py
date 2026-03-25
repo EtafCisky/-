@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.1.4"
+    "3.1.8"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -119,7 +119,8 @@ class XiuxianV3Plugin(Star):
         self.help_handler = HelpHandler()
         self.player_handler = PlayerHandler(
             self.container.player_service(),
-            spirit_root_gen
+            spirit_root_gen,
+            self.container
         )
         self.cultivation_handler = CultivationHandler(
             self.container.cultivation_service(),

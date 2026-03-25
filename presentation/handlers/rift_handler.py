@@ -37,12 +37,10 @@ class RiftHandler:
             for level in sorted(rifts_by_level.keys()):
                 lines.append(f"\n【{level_names.get(level, f'等级{level}')}】")
                 for rift in rifts_by_level[level]:
-                    # 获取境界名称
-                    from ...core.container import Container
-                    container = Container()
-                    config_mgr = container.config_manager()
+                    # 从 rift_service 的 config_manager 获取境界名称
+                    config_mgr = self.rift_service.config_manager
                     level_data = config_mgr.level_data
-                    required_level_name = level_data[rift.required_level].get("level_name", f"境界{rift.required_level}") if rift.required_level < len(level_data) else f"境界{rift.required_level}"
+                    required_level_name = level_data[rift.required_level].get("name", f"境界{rift.required_level}") if rift.required_level < len(level_data) else f"境界{rift.required_level}"
                     
                     lines.append(
                         f"· ID {rift.rift_id}: {rift.rift_name}"
@@ -98,12 +96,8 @@ class RiftHandler:
             user_id = event.get_sender_id()
             result = self.rift_service.finish_exploration(user_id)
             
-            # 获取玩家当前状态
-            from ...infrastructure.repositories.player_repo import PlayerRepository
-            from ...core.container import Container
-            container = Container()
-            player_repo = container.player_repository()
-            player = player_repo.get_player(user_id)
+            # 直接从 rift_service 的 player_repo 获取玩家信息
+            player = self.rift_service.player_repo.get_player(user_id)
             
             # 构建结果消息
             lines = [
