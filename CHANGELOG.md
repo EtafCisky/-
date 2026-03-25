@@ -21,6 +21,11 @@
   - 放弃悬赏（30分钟冷却）
 - 修复了使用"悬赏令"命令没有反应的问题
 
+### 🐛 Bug 修复
+
+- 修复 `BountyRepository` 导入错误（`base_repo` -> `base`）
+- 移除 `BountyRepository` 对 `BaseRepository` 的继承，简化实现
+
 ---
 
 ## [3.2.8] - 2026-03-25 (Bug 修复版)

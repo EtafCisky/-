@@ -6,14 +6,13 @@ from sqlalchemy.orm import Session
 
 from ...domain.models.bounty import BountyTask
 from ..database.schema import BountyTaskTable
-from .base_repo import BaseRepository
 
 
-class BountyRepository(BaseRepository):
+class BountyRepository:
     """悬赏仓储"""
     
     def __init__(self, session: Session):
-        super().__init__(session)
+        self.session = session
     
     def get_active_bounty(self, user_id: str) -> Optional[BountyTask]:
         """
@@ -145,20 +144,3 @@ class BountyRepository(BaseRepository):
             self.session.add(config)
         
         self.session.commit()
-    
-    # 实现抽象方法
-    def get_by_id(self, entity_id: str):
-        """获取实体（悬赏仓储不需要此方法）"""
-        raise NotImplementedError("悬赏仓储不支持通过ID获取")
-    
-    def save(self, entity):
-        """保存实体（使用 create_task 代替）"""
-        raise NotImplementedError("使用 create_task 方法")
-    
-    def delete(self, entity_id: str):
-        """删除实体（使用 update_task_status 代替）"""
-        raise NotImplementedError("使用 update_task_status 方法")
-    
-    def exists(self, entity_id: str) -> bool:
-        """检查实体是否存在"""
-        return self.get_active_bounty(entity_id) is not None

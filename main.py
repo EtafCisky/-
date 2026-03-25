@@ -1,4 +1,4 @@
-"""修仙插件 V3 - 主入口"""
+No module named 'data.plugins.astrbot_plugin_monixiuxianv3.infrastructure.repositories.base_repo'"""修仙插件 V3 - 主入口"""
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star, StarTools, register
 from astrbot.api import logger
