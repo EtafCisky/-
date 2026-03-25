@@ -323,6 +323,33 @@ class ConfigManager:
             self._weapons_config = self.load_json_config("weapons.json")
         return self._weapons_config
     
+    def get_config(self, config_name: str) -> Dict[str, Any]:
+        """
+        通用配置获取方法
+        
+        Args:
+            config_name: 配置名称（如 "pills", "weapons", "items" 等）
+            
+        Returns:
+            配置字典
+        """
+        # 映射到具体的配置获取方法
+        config_methods = {
+            "pills": self.get_pills_config,
+            "weapons": self.get_weapons_config,
+            "items": self.get_items_config,
+            "level_config": self.get_level_config,
+        }
+        
+        if config_name in config_methods:
+            return config_methods[config_name]()
+        
+        # 如果没有专门的方法，尝试直接加载 JSON 文件
+        try:
+            return self.load_json_config(f"{config_name}.json")
+        except Exception:
+            return {}
+    
     def reload(self):
         """重新加载所有配置"""
         self._settings = None
