@@ -30,6 +30,23 @@ class EquipmentRepository(BaseRepository):
         self._weapons_cache: Optional[Dict[str, Equipment]] = None
         self._items_cache: Optional[Dict[str, Equipment]] = None
     
+    # 实现 BaseRepository 的抽象方法
+    def get_by_id(self, id: str) -> Optional[Equipment]:
+        """根据ID获取装备（实现抽象方法）"""
+        return self.get_equipment_by_id(id)
+    
+    def save(self, entity: Equipment) -> None:
+        """保存装备（装备数据从配置文件加载，不支持保存）"""
+        raise NotImplementedError("装备数据从配置文件加载，不支持保存操作")
+    
+    def delete(self, id: str) -> None:
+        """删除装备（装备数据从配置文件加载，不支持删除）"""
+        raise NotImplementedError("装备数据从配置文件加载，不支持删除操作")
+    
+    def exists(self, id: str) -> bool:
+        """检查装备是否存在"""
+        return self.get_equipment_by_id(id) is not None
+    
     def _load_weapons(self) -> Dict[str, Equipment]:
         """加载武器配置"""
         if self._weapons_cache is not None:
