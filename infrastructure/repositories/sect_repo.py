@@ -49,6 +49,18 @@ class SectRepository:
             created_at=sect_record.created_at
         )
     
+    def get_sect(self, sect_id: int) -> Optional[Sect]:
+        """
+        根据ID获取宗门（别名方法）
+        
+        Args:
+            sect_id: 宗门ID
+            
+        Returns:
+            宗门对象，如果不存在则返回None
+        """
+        return self.get_by_id(sect_id)
+    
     def get_by_name(self, name: str) -> Optional[Sect]:
         """
         根据名称获取宗门
@@ -162,6 +174,18 @@ class SectRepository:
         
         return sects
     
+    def get_all_sects(self, limit: int = 100) -> List[Sect]:
+        """
+        获取所有宗门（别名方法）
+        
+        Args:
+            limit: 限制数量
+            
+        Returns:
+            宗门列表
+        """
+        return self.get_all(limit)
+    
     def get_members(self, sect_id: int) -> List[SectMember]:
         """
         获取宗门成员列表
@@ -194,6 +218,18 @@ class SectRepository:
             ))
         
         return result
+    
+    def get_sect_members(self, sect_id: int) -> List[SectMember]:
+        """
+        获取宗门成员列表（别名方法）
+        
+        Args:
+            sect_id: 宗门ID
+            
+        Returns:
+            成员列表
+        """
+        return self.get_members(sect_id)
     
     def get_member_count(self, sect_id: int) -> int:
         """

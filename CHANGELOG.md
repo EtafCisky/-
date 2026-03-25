@@ -1,5 +1,33 @@
 # 更新日志
 
+## [3.2.19] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+宗门仓储方法别名修复
+
+- 在 `SectRepository` 中添加 `get_all_sects()` 作为 `get_all()` 的别名方法
+- 在 `SectRepository` 中添加 `get_sect()` 作为 `get_by_id()` 的别名方法
+- 在 `SectRepository` 中添加 `get_sect_members()` 作为 `get_members()` 的别名方法
+- 修复了使用"宗门排行"命令时出现 "'SectRepository' object has no attribute 'get_all_sects'" 错误
+- 确保排行榜服务可以正确调用宗门仓储方法
+
+---
+
+## [3.2.18] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+排行榜系统 ConfigManager 属性错误修复
+
+- 修复 `RankingService._get_level_name()` 方法中使用不存在的 `config_manager.levels` 和 `config_manager.body_levels` 属性
+- 改为使用 `config_manager.get_level_data()` 方法获取境界数据
+- 修复 `get_level_ranking()` 和 `get_power_ranking()` 中修炼类型枚举值的处理
+- 添加键名兼容性处理，同时支持 `name` 和 `level_name` 键
+- 修复了使用"境界排行"命令时出现 "'ConfigManager' object has no attribute 'levels'" 错误
+
+---
+
 ## [3.2.17] - 2026-03-26 (功能新增版)
 
 ### ✨ 新增功能
