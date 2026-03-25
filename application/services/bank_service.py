@@ -35,16 +35,15 @@ class BankService:
         self.bank_repo = bank_repo
         self.config_manager = config_manager
         
-        # 从配置读取银行参数
-        bank_config = config_manager.settings.game.get("bank", {})
-        self.daily_interest_rate = bank_config.get("daily_interest_rate", self.DEFAULT_DAILY_INTEREST_RATE)
-        self.max_deposit = bank_config.get("max_deposit", self.DEFAULT_MAX_DEPOSIT)
-        self.loan_interest_rate = bank_config.get("loan_interest_rate", self.DEFAULT_LOAN_INTEREST_RATE)
-        self.loan_duration_days = bank_config.get("loan_duration_days", self.DEFAULT_LOAN_DURATION_DAYS)
-        self.max_loan_amount = bank_config.get("max_loan_amount", self.DEFAULT_MAX_LOAN_AMOUNT)
-        self.min_loan_amount = bank_config.get("min_loan_amount", self.DEFAULT_MIN_LOAN_AMOUNT)
-        self.breakthrough_loan_rate = bank_config.get("breakthrough_loan_rate", self.DEFAULT_BREAKTHROUGH_LOAN_RATE)
-        self.breakthrough_loan_duration = bank_config.get("breakthrough_loan_duration", self.DEFAULT_BREAKTHROUGH_LOAN_DURATION)
+        # 使用默认配置（暂不支持从配置文件读取）
+        self.daily_interest_rate = self.DEFAULT_DAILY_INTEREST_RATE
+        self.max_deposit = self.DEFAULT_MAX_DEPOSIT
+        self.loan_interest_rate = self.DEFAULT_LOAN_INTEREST_RATE
+        self.loan_duration_days = self.DEFAULT_LOAN_DURATION_DAYS
+        self.max_loan_amount = self.DEFAULT_MAX_LOAN_AMOUNT
+        self.min_loan_amount = self.DEFAULT_MIN_LOAN_AMOUNT
+        self.breakthrough_loan_rate = self.DEFAULT_BREAKTHROUGH_LOAN_RATE
+        self.breakthrough_loan_duration = self.DEFAULT_BREAKTHROUGH_LOAN_DURATION
     
     # ===== 账户信息 =====
     
