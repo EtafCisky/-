@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.0.13] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**Handler 重复命令注册修复**
+
+- 移除 `pill_handler.py` 中的 `@filter.command` 装饰器
+- 移除 `equipment_handler.py` 中的 `@filter.command` 装饰器
+- 命令现在只在 `main.py` 中注册一次，handler 方法仅作为处理函数
+- 修复了 handler 和 main.py 双重注册导致的命令冲突
+- 移除 handler 文件中不再需要的 `filter` 导入
+
+---
+
 ## [3.0.12] - 2024 (Bug 修复版)
 
 ### 🐛 Bug 修复

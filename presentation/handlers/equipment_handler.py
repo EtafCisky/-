@@ -4,7 +4,7 @@
 处理装备相关的命令。
 """
 from typing import AsyncGenerator
-from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.event import AstrMessageEvent
 
 from ...application.services.equipment_service import EquipmentService
 from ...core.exceptions import BusinessException
@@ -23,7 +23,6 @@ class EquipmentHandler:
         """
         self.equipment_service = equipment_service
     
-    @filter.command("我的装备")
     @require_player
     async def handle_show_equipment(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """
@@ -47,7 +46,6 @@ class EquipmentHandler:
         except Exception as e:
             yield f"查看装备失败：{str(e)}"
     
-    @filter.command("装备")
     @require_player
     async def handle_equip_item(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """
@@ -88,7 +86,6 @@ class EquipmentHandler:
         except Exception as e:
             yield f"装备失败：{str(e)}"
     
-    @filter.command("卸下")
     @require_player
     async def handle_unequip_item(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """

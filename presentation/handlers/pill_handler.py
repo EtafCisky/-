@@ -4,7 +4,7 @@
 处理丹药相关的命令。
 """
 from typing import AsyncGenerator
-from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.event import AstrMessageEvent
 
 from ...application.services.pill_service import PillService
 from ...core.exceptions import BusinessException
@@ -23,7 +23,6 @@ class PillHandler:
         """
         self.pill_service = pill_service
     
-    @filter.command("丹药背包")
     @require_player
     async def handle_show_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """
@@ -44,7 +43,6 @@ class PillHandler:
         except Exception as e:
             yield f"查看丹药背包失败：{str(e)}"
     
-    @filter.command("服用丹药")
     @require_player
     async def handle_use_pill(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """
@@ -74,7 +72,6 @@ class PillHandler:
         except Exception as e:
             yield f"服用丹药失败：{str(e)}"
     
-    @filter.command("搜索丹药")
     @require_player
     async def handle_search_pills(self, event: AstrMessageEvent) -> AsyncGenerator[str, None]:
         """
