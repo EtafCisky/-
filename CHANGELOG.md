@@ -1,5 +1,19 @@
 # 更新日志
 
+## [3.2.10] - 2026-03-25 (紧急修复版)
+
+### 🐛 Bug 修复
+
+main.py 文件损坏修复
+
+- 修复 `main.py` 第一行被错误信息污染的问题
+- 错误信息：`No module named 'data.plugins.astrbot_plugin_monixiuxianv3.infrastructure.repositories.base_repo'`
+- 该错误信息被错误地写入了文件第一行，导致 Python 语法错误
+- 已清理错误信息，恢复正确的文档字符串：`"""修仙插件 V3 - 主入口"""`
+- 确保插件可以正常加载和运行
+
+---
+
 ## [3.2.9] - 2026-03-25 (功能实现版)
 
 ### ✨ 新增功能
