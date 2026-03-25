@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.0.1"
+    "3.0.3"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -24,15 +24,17 @@ class XiuxianV3Plugin(Star):
         self.data_dir = StarTools.get_data_dir("astrbot_plugin_monixiuxianv3")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
-        # 获取 AstrBot 配置
-        astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3", {})
+        # 获取 AstrBot 配置（不传默认值，如果没有配置则返回 None）
+        astrbot_config = context.get_config("astrbot_plugin_monixiuxianv3")
+        if astrbot_config is None:
+            astrbot_config = {}
         
         # 初始化配置管理器
         config_dir = self.data_dir / "config"
         self.config_manager = ConfigManager(config_dir=config_dir, astrbot_config=astrbot_config)
         
-        # 初始化依赖注入容器
-        self.container = Container(data_dir=self.data_dir)
+        # 初始化依赖注入容器（传入配置管理器）
+        self.container = Container(data_dir=self.data_dir, config_manager=self.config_manager)
         
         # 初始化所有 handlers
         self._setup_handlers()
@@ -777,12 +779,6 @@ class XiuxianV3Plugin(Star):
     @filter.command(Commands.RANK_WEALTH)
     async def cmd_rank_wealth(self, event: AstrMessageEvent):
         """灵石排行"""
-        async for result in self.ranking_handler.handle_rank_wealth(event):
-            yield result
-    
-    @filter.command(Commands.RANK_GOLD)
-    async def cmd_rank_gold(self, event: AstrMessageEvent):
-        """灵石排行（别名）"""
         async for result in self.ranking_handler.handle_rank_wealth(event):
             yield result
     

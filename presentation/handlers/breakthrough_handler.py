@@ -52,7 +52,7 @@ class BreakthroughHandler:
                 f"• 使用命令：突破\n"
             )
             
-            if info["cultivation_type"] == CultivationType.BODY.value:
+            if info["cultivation_type"] == CultivationType.PHYSICAL.value:
                 message += (
                     f"• 突破成功：境界提升，肉身更强\n"
                     f"• 突破失败：损失10%修为，有概率死亡\n"
@@ -99,7 +99,7 @@ class BreakthroughHandler:
                 gains = result.attribute_gains
                 
                 # 根据修炼类型生成不同的成功消息
-                if player.cultivation_type == CultivationType.BODY.value:
+                if player.cultivation_type == CultivationType.PHYSICAL.value:
                     message = (
                         f"✨ 突破成功！✨\n"
                         f"━━━━━━━━━━━━━━━\n"

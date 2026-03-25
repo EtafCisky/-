@@ -1,5 +1,83 @@
 # 更新日志
 
+## [3.0.3] - 2024 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+**插件加载失败**
+- 修复 `context.get_config()` 调用参数错误
+- 移除不支持的默认值参数，改为手动处理 None 情况
+- 确保插件可以正常加载
+
+---
+
+## [3.0.2] - 2024 (第二轮代码审核修复版)
+
+### 🔧 严重逻辑错误修复 (P0)
+
+**枚举成员引用错误**
+- 修复 `CultivationType.BODY` → `CultivationType.PHYSICAL` 引用错误
+- 修正 `breakthrough_service.py` 中的 2 处枚举引用
+- 修正 `factories.py` 和 `breakthrough_handler.py` 中的枚举校验
+- 确保体修玩家创建和突破流程正常
+
+**配置管理器实例统一**
+- Container 现在接收 config_manager 参数，不再内部创建新实例
+- main.py 将配置管理器传入 Container，确保全局唯一
+- 消除了两套配置源导致的配置不一致问题
+- 所有 Service 现在使用同一个配置管理器实例
+
+**命令注册冲突**
+- 移除 constants.py 中的重复 `RANK_GOLD` 定义
+- 移除 main.py 中的重复 `cmd_rank_gold` 方法
+- 统一使用 `RANK_WEALTH` 和 `cmd_rank_wealth`
+- 消除命令路由冲突
+
+### ✨ 代码质量改进 (P1)
+
+**状态定义统一**
+- 移除 constants.py 中的重复 `PlayerState` 定义（英文值）
+- 移除 constants.py 中的重复 `CultivationType` 定义
+- 移除 constants.py 中的重复 `ItemType` 定义
+- 统一使用 domain/enums.py 中的枚举定义（中文值）
+- 确保状态判断和显示一致性
+
+**类型标注修复**
+- 修正 `level_data` 和 `body_level_data` 属性，正确处理 JSON 配置结构
+- 添加对字典和列表格式的兼容性处理
+- 确保返回类型与实际使用一致
+
+**异常处理改进**
+- `_load_settings()` 已有详细错误日志和堆栈追踪
+- 配置加载失败时记录警告并使用默认配置
+- 关键配置错误可被及时发现
+
+### 🛡️ 代码健壮性增强 (P2)
+
+**枚举转换安全性**
+- 修改 `PlayerState.from_string()` 对无效输入抛出 ValueError
+- 添加清晰的错误提示，列出所有有效状态
+- 防止静默失败导致的逻辑错误
+
+**装饰器兼容性**
+- 改进 `require_player` 和 `check_player_state` 装饰器
+- 支持异步生成器和普通异步函数两种类型
+- 添加类型检查和清晰的错误提示
+- 使用 `inspect` 模块动态判断函数类型
+
+**配置化数据库路径**
+- `Container.database()` 现在从配置管理器读取数据库路径
+- 支持通过配置文件自定义数据库文件名
+- 提高配置的灵活性和可维护性
+
+### 📝 技术债务
+
+以下问题已识别但未在本次修复：
+- 会话管理策略需要优化
+- 配置文件路径白名单已实现，需要持续维护
+
+---
+
 ## [3.0.1] - 2024 (代码审核修复版)
 
 ### 🔧 高风险问题修复

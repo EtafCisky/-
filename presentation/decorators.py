@@ -1,4 +1,5 @@
 """表现层装饰器"""
+import inspect
 from functools import wraps
 from typing import Callable
 
@@ -11,6 +12,8 @@ def require_player(func: Callable):
     
     如果玩家不存在，返回提示消息
     如果玩家存在，将玩家对象作为参数传递给处理函数
+    
+    支持异步生成器和普通异步函数
     """
     @wraps(func)
     async def wrapper(self, event: AstrMessageEvent, *args, **kwargs):
@@ -26,9 +29,22 @@ def require_player(func: Callable):
             )
             return
         
-        # 将玩家对象传递给处理函数
-        async for result in func(self, event, player, *args, **kwargs):
-            yield result
+        # 检查被装饰函数的类型
+        result = func(self, event, player, *args, **kwargs)
+        
+        # 如果是异步生成器，使用 async for
+        if inspect.isasyncgen(result):
+            async for item in result:
+                yield item
+        # 如果是协程（普通异步函数），使用 await
+        elif inspect.iscoroutine(result):
+            yield await result
+        else:
+            # 不应该到达这里，但为了安全起见
+            raise TypeError(
+                f"被装饰的函数 {func.__name__} 必须是异步生成器或异步函数，"
+                f"但得到了 {type(result)}"
+            )
     
     return wrapper
 
@@ -39,6 +55,8 @@ def check_player_state(required_state: str):
     
     Args:
         required_state: 要求的状态
+        
+    支持异步生成器和普通异步函数
     """
     def decorator(func: Callable):
         @wraps(func)
@@ -50,8 +68,22 @@ def check_player_state(required_state: str):
                 )
                 return
             
-            async for result in func(self, event, player, *args, **kwargs):
-                yield result
+            # 检查被装饰函数的类型
+            result = func(self, event, player, *args, **kwargs)
+            
+            # 如果是异步生成器，使用 async for
+            if inspect.isasyncgen(result):
+                async for item in result:
+                    yield item
+            # 如果是协程（普通异步函数），使用 await
+            elif inspect.iscoroutine(result):
+                yield await result
+            else:
+                # 不应该到达这里，但为了安全起见
+                raise TypeError(
+                    f"被装饰的函数 {func.__name__} 必须是异步生成器或异步函数，"
+                    f"但得到了 {type(result)}"
+                )
         
         return wrapper
     return decorator
