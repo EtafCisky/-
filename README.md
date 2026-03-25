@@ -309,7 +309,6 @@ xiuxian_v3/
 ## 🙏 致谢
 
 - 原作者：monixiuxian2 插件开发者
-- 重构：Kiro AI Assistant
 - 框架：AstrBot
 
 ---
