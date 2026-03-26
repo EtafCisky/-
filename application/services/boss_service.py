@@ -6,6 +6,7 @@ from typing import List, Tuple, Optional
 from ...core.config import ConfigManager
 from ...core.exceptions import GameException
 from ...domain.models.boss import Boss, BossLevelConfig, BossBattleResult
+from ...domain.enums import PlayerState
 from ...infrastructure.repositories.player_repo import PlayerRepository
 from ...infrastructure.repositories.boss_repo import BossRepository
 from ...infrastructure.repositories.storage_ring_repo import StorageRingRepository
@@ -155,7 +156,7 @@ class BossService:
             raise GameException("当前没有Boss")
         
         # 3. 检查玩家状态
-        if player.state != "idle":
+        if player.state != PlayerState.IDLE:
             raise GameException("你当前正忙，无法挑战Boss")
         
         # 4. 计算玩家战斗属性

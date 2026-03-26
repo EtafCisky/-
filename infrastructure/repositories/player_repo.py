@@ -1,5 +1,6 @@
 """玩家仓储"""
 import json
+import time
 from typing import Optional, List, Dict, Any
 
 from ...domain.models.player import Player
@@ -170,6 +171,28 @@ class PlayerRepository(BaseRepository[Player]):
         player.add_experience(exp)
         self.save(player)
     
+    def add_pill(self, user_id: str, pill_name: str, count: int) -> None:
+        """
+        增加玩家丹药（便捷方法）
+        
+        Args:
+            user_id: 用户ID
+            pill_name: 丹药名称
+            count: 数量
+        """
+        player = self.get_by_id(user_id)
+        if not player:
+            raise ValueError(f"玩家不存在: {user_id}")
+        
+        # 更新丹药背包
+        if pill_name in player.pills_inventory:
+            player.pills_inventory[pill_name] += count
+        else:
+            player.pills_inventory[pill_name] = count
+        
+        player.updated_at = int(time.time())
+        self.save(player)
+    
     def get_player_state(self, user_id: str):
         """
         获取玩家状态（便捷方法，用于兼容性）
@@ -178,11 +201,63 @@ class PlayerRepository(BaseRepository[Player]):
             user_id: 用户ID
             
         Returns:
-            玩家状态对象
+            玩家状态对象（包含 extra_data 字段）
         """
-        # TODO: 实现 PlayerStateTable 查询
-        # 暂时返回 None
-        return None
+        # 从 player_states.json 获取状态数据
+        state_data = self.storage.get("player_states.json", user_id)
+        if not state_data:
+            return None
+        
+        # 返回一个简单的对象，包含 extra_data
+        class PlayerStateData:
+            def __init__(self, extra_data):
+                self.extra_data = extra_data
+        
+        return PlayerStateData(state_data.get('extra_data'))
+    
+    def update_player_state(
+        self,
+        user_id: str,
+        state: str,
+        extra_data: Optional[str] = None
+    ) -> None:
+        """
+        更新玩家状态
+        
+        Args:
+            user_id: 用户ID
+            state: 状态值（字符串或 PlayerState 枚举）
+            extra_data: 额外数据（JSON 字符串）
+        """
+        # 获取玩家
+        player = self.get_by_id(user_id)
+        if not player:
+            raise ValueError(f"玩家不存在: {user_id}")
+        
+        # 更新玩家状态
+        # 如果 state 是 PlayerState 枚举，获取其值
+        if isinstance(state, PlayerState):
+            player.state = state
+        else:
+            # 如果是字符串，尝试转换为 PlayerState
+            player.state = PlayerState.from_string(state)
+        
+        # 保存玩家
+        self.save(player)
+        
+        # 保存额外数据到 player_states.json
+        if extra_data is not None:
+            state_data = {
+                'user_id': user_id,
+                'state': player.state.value,
+                'extra_data': extra_data,
+                'updated_at': TimestampConverter.to_iso8601(int(time.time()))
+            }
+            self.storage.set("player_states.json", user_id, state_data)
+        else:
+            # 如果 extra_data 为 None，删除状态数据
+            if self.storage.exists("player_states.json", user_id):
+                self.storage.delete("player_states.json", user_id)
     
     def get_all_players(self) -> List[Player]:
         """

@@ -1,5 +1,42 @@
 # 更新日志
 
+## [3.4.4] - 2026-03-26 (状态检查 Bug 修复)
+
+### 🐛 Bug 修复
+
+**状态检查错误修复**
+
+- ✅ 修复「弃道重修」命令状态检查 Bug（player_handler.py）
+  - 问题：使用字符串 "idle" 比较，导致始终判断为忙碌状态
+  - 修复：改用 PlayerState.IDLE 枚举进行比较
+- ✅ 修复「挑战 Boss」命令状态检查 Bug（boss_service.py）
+  - 问题：使用字符串 "idle" 比较
+  - 修复：改用 PlayerState.IDLE 枚举进行比较
+- ✅ 修复「秘境探索」相关命令状态检查 Bug（rift_service.py）
+  - 问题：使用字符串 "idle" 和 "exploring" 比较
+  - 修复：改用 PlayerState.IDLE 和 PlayerState.IN_RIFT 枚举进行比较
+  - 同时修复状态设置，使用正确的枚举值
+
+**缺失方法实现**
+
+- ✅ 实现 PlayerRepository.update_player_state() 方法
+  - 支持更新玩家状态和额外数据
+  - 使用 player_states.json 存储额外状态信息
+  - 自动处理 PlayerState 枚举和字符串转换
+- ✅ 实现 PlayerRepository.get_player_state() 方法
+  - 从 player_states.json 读取状态数据
+  - 返回包含 extra_data 的状态对象
+- ✅ 实现 PlayerRepository.add_pill() 方法
+  - 支持向玩家丹药背包添加丹药
+  - 自动更新时间戳
+
+### 📝 技术说明
+
+这些 Bug 是数据库迁移后遗留的问题：
+- 旧代码使用字符串比较状态，但 Player 模型使用 PlayerState 枚举
+- PlayerState.IDLE 的值是 "空闲"（中文），不是 "idle"（英文）
+- 状态管理方法在迁移时未实现，导致运行时错误
+
 ## [3.4.3] - 2026-03-26 (数据库迁移完成 🎉)
 
 ### 🎉 重大更新 - 数据库迁移到 JSON 存储

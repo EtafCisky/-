@@ -6,7 +6,7 @@ from ...core.exceptions import (
     PlayerAlreadyExistsException,
     InvalidParameterException
 )
-from ...domain.enums import CultivationType
+from ...domain.enums import CultivationType, PlayerState
 from ...utils.spirit_root_generator import SpiritRootGenerator
 from ..decorators import require_player
 from ..formatters import PlayerFormatter
@@ -252,7 +252,7 @@ class PlayerHandler:
             pass
         
         # 检查玩家状态
-        if player.state != "idle":
+        if player.state != PlayerState.IDLE:
             yield event.plain_result(
                 "❌ 你当前正在进行其他活动，无法弃道重修！\n"
                 "请先完成当前活动（闭关/历练/秘境等）"

@@ -7,6 +7,7 @@ from typing import List, Tuple, Optional
 from ...core.config import ConfigManager
 from ...core.exceptions import GameException
 from ...domain.models.rift import Rift, RiftEvent, RiftResult
+from ...domain.enums import PlayerState
 from ...infrastructure.repositories.player_repo import PlayerRepository
 from ...infrastructure.repositories.rift_repo import RiftRepository
 from ...infrastructure.repositories.storage_ring_repo import StorageRingRepository
@@ -100,7 +101,7 @@ class RiftService:
             raise GameException("你还未踏入修仙之路")
         
         # 检查状态
-        if player.state != "idle":
+        if player.state != PlayerState.IDLE:
             raise GameException("你当前无法探索秘境")
         
         # 获取秘境
@@ -126,7 +127,7 @@ class RiftService:
         
         self.player_repo.update_player_state(
             user_id,
-            state="exploring",
+            state=PlayerState.IN_RIFT.value,
             extra_data=json.dumps(extra_data)
         )
         
@@ -138,7 +139,7 @@ class RiftService:
         if not player:
             raise GameException("你还未踏入修仙之路")
         
-        if player.state != "exploring":
+        if player.state != PlayerState.IN_RIFT:
             raise GameException("你当前不在探索秘境")
         
         # 解析状态数据
@@ -193,7 +194,7 @@ class RiftService:
                 self.storage_ring_repo.add_item(user_id, item_name, count)
         
         # 重置状态
-        self.player_repo.update_player_state(user_id, state="idle", extra_data=None)
+        self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)
         
         return RiftResult(
             success=True,
@@ -210,11 +211,11 @@ class RiftService:
         if not player:
             raise GameException("你还未踏入修仙之路")
         
-        if player.state != "exploring":
+        if player.state != PlayerState.IN_RIFT:
             raise GameException("你当前不在探索秘境")
         
         # 重置状态
-        self.player_repo.update_player_state(user_id, state="idle", extra_data=None)
+        self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)
         
         return "✅ 你已退出秘境，本次探索未获得任何奖励。"
     
