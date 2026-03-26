@@ -1,5 +1,24 @@
 # 更新日志
 
+## [3.4.6] - 2026-03-26 (Bug修复)
+
+### 🐛 Bug修复
+
+**修复战斗系统 await 表达式错误**
+
+- 修复决斗（决斗）和切磋（切磋）命令的 "object NoneType can't be used in 'await' expression" 错误
+- 移除 CombatService 中对同步仓储方法的错误 await 调用：
+  - `get_combat_cooldown()` - 获取战斗冷却信息
+  - `update_duel_cooldown()` / `update_spar_cooldown()` - 更新冷却时间
+  - `save_combat_log()` - 保存战斗日志
+  - `player_repo.get_by_id()` / `save()` - 玩家数据操作
+
+### 📝 技术说明
+
+- 仓储层（Repository）使用同步方法，服务层（Service）使用 async/await 处理异步流程
+- 只有真正的异步操作（如网络请求）才需要 await
+- JSON 文件读写是同步的，不需要 await
+
 ## [3.4.5] - 2026-03-26 (平衡性调整)
 
 ### ⚖️ 平衡性调整

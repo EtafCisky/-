@@ -144,7 +144,7 @@ class CombatService:
         Returns:
             战斗属性，如果玩家不存在返回None
         """
-        player = await self.player_repo.get_by_id(user_id)
+        player = self.player_repo.get_by_id(user_id)
         if not player:
             return None
         
@@ -189,7 +189,7 @@ class CombatService:
         Returns:
             (是否可以战斗, 剩余冷却时间) 元组
         """
-        cooldown = await self.combat_repo.get_combat_cooldown(user_id)
+        cooldown = self.combat_repo.get_combat_cooldown(user_id)
         if not cooldown:
             return True, 0
         
@@ -215,9 +215,9 @@ class CombatService:
         current_time = int(time.time())
         
         if combat_type == "duel":
-            await self.combat_repo.update_duel_cooldown(user_id, current_time)
+            self.combat_repo.update_duel_cooldown(user_id, current_time)
         else:  # spar
-            await self.combat_repo.update_spar_cooldown(user_id, current_time)
+            self.combat_repo.update_spar_cooldown(user_id, current_time)
     
     def player_vs_player(
         self,
@@ -350,7 +350,7 @@ class CombatService:
         result = self.player_vs_player(attacker_stats, defender_stats, "spar")
         
         # 保存战斗日志
-        await self.combat_repo.save_combat_log(
+        self.combat_repo.save_combat_log(
             attacker_id=attacker_id,
             defender_id=defender_id,
             combat_type="spar",
@@ -389,19 +389,19 @@ class CombatService:
         result = self.player_vs_player(attacker_stats, defender_stats, "duel")
         
         # 更新玩家HP/MP
-        attacker = await self.player_repo.get_by_id(attacker_id)
-        defender = await self.player_repo.get_by_id(defender_id)
+        attacker = self.player_repo.get_by_id(attacker_id)
+        defender = self.player_repo.get_by_id(defender_id)
         
         attacker.hp = result.player1_final_hp
         attacker.mp = result.player1_final_mp
         defender.hp = result.player2_final_hp
         defender.mp = result.player2_final_mp
         
-        await self.player_repo.save(attacker)
-        await self.player_repo.save(defender)
+        self.player_repo.save(attacker)
+        self.player_repo.save(defender)
         
         # 保存战斗日志
-        await self.combat_repo.save_combat_log(
+        self.combat_repo.save_combat_log(
             attacker_id=attacker_id,
             defender_id=defender_id,
             combat_type="duel",
