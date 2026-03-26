@@ -371,12 +371,6 @@ class XiuxianV3Plugin(Star):
         async for result in self.player_handler.handle_change_nickname(event, new_nickname):
             yield result
     
-    @filter.command(Commands.CHANGE_NAME)
-    async def cmd_change_name(self, event: AstrMessageEvent, new_name: str = ""):
-        """改名"""
-        async for result in self.player_handler.handle_change_name(event, new_name):
-            yield result
-    
     @filter.command(Commands.REBIRTH)
     async def cmd_rebirth(self, event: AstrMessageEvent, confirm_text: str = ""):
         """弃道重修"""

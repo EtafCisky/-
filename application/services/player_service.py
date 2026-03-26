@@ -185,32 +185,6 @@ class PlayerService:
         # 保存（JSONStorage 自动处理原子写入）
         self.player_repo.save(player)
     
-    def change_name(self, player: Player, new_name: str) -> None:
-        """
-        修改道友名字（nickname）
-        
-        Args:
-            player: 玩家对象
-            new_name: 新名字
-            
-        Raises:
-            InvalidParameterException: 名字无效
-        """
-        # 验证名字
-        new_name = new_name.strip()
-        
-        if not new_name:
-            raise InvalidParameterException("名字", "名字不能为空")
-        
-        if len(new_name) > 12:
-            raise InvalidParameterException("名字", "名字长度不能超过12个字符")
-        
-        # 更新名字
-        player.nickname = new_name
-        
-        # 保存（JSONStorage 自动处理原子写入）
-        self.player_repo.save(player)
-    
     def delete_player(self, user_id: str) -> None:
         """
         删除玩家（弃道重修）
