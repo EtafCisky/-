@@ -34,6 +34,59 @@ class StorageRingRepository:
         except (json.JSONDecodeError, TypeError):
             return {}
     
+    def get_item_count(self, user_id: str, item_name: str) -> int:
+        """
+        获取指定物品的数量
+        
+        Args:
+            user_id: 用户ID
+            item_name: 物品名称
+            
+        Returns:
+            物品数量
+        """
+        items = self.get_storage_ring_items(user_id)
+        return items.get(item_name, 0)
+    
+    def add_item(self, user_id: str, item_name: str, count: int = 1) -> None:
+        """
+        添加物品到储物戒
+        
+        Args:
+            user_id: 用户ID
+            item_name: 物品名称
+            count: 数量
+        """
+        items = self.get_storage_ring_items(user_id)
+        items[item_name] = items.get(item_name, 0) + count
+        self.set_storage_ring_items(user_id, items)
+    
+    def remove_item(self, user_id: str, item_name: str, count: int = 1) -> bool:
+        """
+        从储物戒移除物品
+        
+        Args:
+            user_id: 用户ID
+            item_name: 物品名称
+            count: 数量
+            
+        Returns:
+            是否成功移除
+        """
+        items = self.get_storage_ring_items(user_id)
+        current_count = items.get(item_name, 0)
+        
+        if current_count < count:
+            return False
+        
+        if current_count == count:
+            del items[item_name]
+        else:
+            items[item_name] = current_count - count
+        
+        self.set_storage_ring_items(user_id, items)
+        return True
+    
     def set_storage_ring_items(self, user_id: str, items: Dict[str, int]) -> None:
         """设置储物戒物品"""
         player_data = self.storage.get(self.players_filename, user_id)

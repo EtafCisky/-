@@ -1,5 +1,29 @@
 # 更新日志
 
+## [3.4.7] - 2026-03-26 (Bug修复)
+
+### 🐛 Bug修复
+
+**修复炼丹系统缺失方法错误**
+
+- 修复 StorageRingRepository 缺少 `get_item_count()` 方法
+- 修复 StorageRingRepository 缺少 `remove_item()` 方法
+- 添加 `add_item()` 方法用于添加物品到储物戒
+- 修复了使用"炼丹"命令时出现"'StorageRingRepository' object has no attribute 'get_item_count'"错误
+- 现在可以正常检查炼丹材料和消耗材料
+
+**修复商店购买命令参数签名错误**
+
+- 修复 ShopHandler.handle_buy() 缺少 `player` 参数
+- 修复了使用"购买"命令时出现"takes from 2 to 3 positional arguments but 4 were given"错误
+- `@require_player` 装饰器会自动注入 player 参数，方法签名必须接收它
+
+### 📝 新增方法
+
+- `get_item_count(user_id, item_name)` - 获取指定物品的数量
+- `add_item(user_id, item_name, count)` - 添加物品到储物戒
+- `remove_item(user_id, item_name, count)` - 从储物戒移除物品
+
 ## [3.4.6] - 2026-03-26 (Bug修复)
 
 ### 🐛 Bug修复

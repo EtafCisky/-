@@ -121,6 +121,7 @@ class ShopHandler:
     async def handle_buy(
         self, 
         event: AstrMessageEvent,
+        player,
         args: str = ""
     ) -> AsyncGenerator[str, None]:
         """
@@ -128,6 +129,7 @@ class ShopHandler:
         
         Args:
             event: 消息事件
+            player: 玩家对象（由装饰器注入）
             args: 参数（物品名 [数量]）
             
         Yields:
