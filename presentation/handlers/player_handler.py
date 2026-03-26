@@ -235,7 +235,7 @@ class PlayerHandler:
             last_rebirth_str = config_repo.get_config(cooldown_key) if config_repo else None
             if last_rebirth_str:
                 last_rebirth_time = int(last_rebirth_str)
-                cooldown_seconds = 7 * 24 * 3600  # 7天
+                cooldown_seconds = 3 * 24 * 3600  # 3天
                 
                 if current_time - last_rebirth_time < cooldown_seconds:
                     remaining = cooldown_seconds - (current_time - last_rebirth_time)
@@ -282,7 +282,7 @@ class PlayerHandler:
         if not confirm_text or confirm_text.strip() != "确认":
             yield event.plain_result(
                 "⚠️ 弃道重修将删除当前角色的所有数据，并无法撤回！\n"
-                "限制：每7天只能重修一次，且必须在空闲状态、无贷款时使用。\n"
+                "限制：每3天只能重修一次，且必须在空闲状态、无贷款时使用。\n"
                 "━━━━━━━━━━━━━━━\n"
                 "若你已做好准备，请发送：\n"
                 "弃道重修 确认"
@@ -304,7 +304,7 @@ class PlayerHandler:
                 "💀 你选择了弃道重修，旧生一切化为尘埃。\n"
                 "━━━━━━━━━━━━━━━\n"
                 "可立即使用「我要修仙」重新踏上仙途。\n"
-                "（7天内不可再次重修）"
+                "（3天内不可再次重修）"
             )
             
         except Exception as e:
