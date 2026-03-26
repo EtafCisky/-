@@ -58,7 +58,7 @@
       "breakthrough_physical_damage_gain": 12,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 10,
-      "breakthrough_magic_defense_gain": 3
+      "breakthrough_magic_defense_gain": 2
     },
     {
       "index": 4,
@@ -73,7 +73,7 @@
       "breakthrough_physical_damage_gain": 15,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 12,
-      "breakthrough_magic_defense_gain": 3
+      "breakthrough_magic_defense_gain": 2
     },
     {
       "index": 5,
@@ -88,7 +88,7 @@
       "breakthrough_physical_damage_gain": 18,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 15,
-      "breakthrough_magic_defense_gain": 3
+      "breakthrough_magic_defense_gain": 2
     },
     {
       "index": 6,
@@ -118,7 +118,7 @@
       "breakthrough_physical_damage_gain": 25,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 20,
-      "breakthrough_magic_defense_gain": 5
+      "breakthrough_magic_defense_gain": 4
     },
     {
       "index": 8,
@@ -133,7 +133,7 @@
       "breakthrough_physical_damage_gain": 28,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 22,
-      "breakthrough_magic_defense_gain": 5
+      "breakthrough_magic_defense_gain": 4
     },
     {
       "index": 9,
@@ -148,7 +148,7 @@
       "breakthrough_physical_damage_gain": 30,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 25,
-      "breakthrough_magic_defense_gain": 5
+      "breakthrough_magic_defense_gain": 4
     },
     {
       "index": 10,
@@ -178,7 +178,7 @@
       "breakthrough_physical_damage_gain": 100,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 80,
-      "breakthrough_magic_defense_gain": 25
+      "breakthrough_magic_defense_gain": 19
     },
     {
       "index": 12,
@@ -193,7 +193,7 @@
       "breakthrough_physical_damage_gain": 150,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 120,
-      "breakthrough_magic_defense_gain": 35
+      "breakthrough_magic_defense_gain": 26
     },
     {
       "index": 13,
@@ -208,7 +208,7 @@
       "breakthrough_physical_damage_gain": 280,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 220,
-      "breakthrough_magic_defense_gain": 65
+      "breakthrough_magic_defense_gain": 49
     },
     {
       "index": 14,
@@ -223,7 +223,7 @@
       "breakthrough_physical_damage_gain": 450,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 350,
-      "breakthrough_magic_defense_gain": 100
+      "breakthrough_magic_defense_gain": 75
     },
     {
       "index": 15,
@@ -238,7 +238,7 @@
       "breakthrough_physical_damage_gain": 650,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 500,
-      "breakthrough_magic_defense_gain": 150
+      "breakthrough_magic_defense_gain": 113
     },
     {
       "index": 16,
@@ -253,7 +253,7 @@
       "breakthrough_physical_damage_gain": 1000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 750,
-      "breakthrough_magic_defense_gain": 225
+      "breakthrough_magic_defense_gain": 169
     },
     {
       "index": 17,
@@ -268,7 +268,7 @@
       "breakthrough_physical_damage_gain": 1500,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 1150,
-      "breakthrough_magic_defense_gain": 350
+      "breakthrough_magic_defense_gain": 263
     },
     {
       "index": 18,
@@ -283,7 +283,7 @@
       "breakthrough_physical_damage_gain": 2200,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 1700,
-      "breakthrough_magic_defense_gain": 500
+      "breakthrough_magic_defense_gain": 375
     },
     {
       "index": 19,
@@ -298,7 +298,7 @@
       "breakthrough_physical_damage_gain": 3300,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 2500,
-      "breakthrough_magic_defense_gain": 750
+      "breakthrough_magic_defense_gain": 563
     },
     {
       "index": 20,
@@ -313,7 +313,7 @@
       "breakthrough_physical_damage_gain": 5500,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 4200,
-      "breakthrough_magic_defense_gain": 1250
+      "breakthrough_magic_defense_gain": 938
     },
     {
       "index": 21,
@@ -328,7 +328,7 @@
       "breakthrough_physical_damage_gain": 7500,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 5800,
-      "breakthrough_magic_defense_gain": 1750
+      "breakthrough_magic_defense_gain": 1313
     },
     {
       "index": 22,
@@ -343,7 +343,7 @@
       "breakthrough_physical_damage_gain": 12000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 9200,
-      "breakthrough_magic_defense_gain": 2750
+      "breakthrough_magic_defense_gain": 2063
     },
     {
       "index": 23,
@@ -358,7 +358,7 @@
       "breakthrough_physical_damage_gain": 18000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 13500,
-      "breakthrough_magic_defense_gain": 4000
+      "breakthrough_magic_defense_gain": 3000
     },
     {
       "index": 24,
@@ -373,7 +373,7 @@
       "breakthrough_physical_damage_gain": 24000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 18500,
-      "breakthrough_magic_defense_gain": 5500
+      "breakthrough_magic_defense_gain": 4125
     },
     {
       "index": 25,
@@ -388,7 +388,7 @@
       "breakthrough_physical_damage_gain": 38000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 28000,
-      "breakthrough_magic_defense_gain": 8500
+      "breakthrough_magic_defense_gain": 6375
     },
     {
       "index": 26,
@@ -403,7 +403,7 @@
       "breakthrough_physical_damage_gain": 62000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 47000,
-      "breakthrough_magic_defense_gain": 14000
+      "breakthrough_magic_defense_gain": 10500
     },
     {
       "index": 27,
@@ -418,7 +418,7 @@
       "breakthrough_physical_damage_gain": 90000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 68000,
-      "breakthrough_magic_defense_gain": 20000
+      "breakthrough_magic_defense_gain": 15000
     },
     {
       "index": 28,
@@ -433,7 +433,7 @@
       "breakthrough_physical_damage_gain": 135000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 100000,
-      "breakthrough_magic_defense_gain": 30000
+      "breakthrough_magic_defense_gain": 22500
     },
     {
       "index": 29,
@@ -448,7 +448,7 @@
       "breakthrough_physical_damage_gain": 200000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 150000,
-      "breakthrough_magic_defense_gain": 45000
+      "breakthrough_magic_defense_gain": 33750
     },
     {
       "index": 30,
@@ -463,7 +463,7 @@
       "breakthrough_physical_damage_gain": 280000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 220000,
-      "breakthrough_magic_defense_gain": 65000
+      "breakthrough_magic_defense_gain": 48750
     },
     {
       "index": 31,
@@ -478,7 +478,7 @@
       "breakthrough_physical_damage_gain": 550000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 420000,
-      "breakthrough_magic_defense_gain": 125000
+      "breakthrough_magic_defense_gain": 93750
     },
     {
       "index": 32,
@@ -493,7 +493,7 @@
       "breakthrough_physical_damage_gain": 780000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 600000,
-      "breakthrough_magic_defense_gain": 175000
+      "breakthrough_magic_defense_gain": 131250
     },
     {
       "index": 33,
@@ -508,7 +508,7 @@
       "breakthrough_physical_damage_gain": 1100000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 850000,
-      "breakthrough_magic_defense_gain": 250000
+      "breakthrough_magic_defense_gain": 187500
     },
     {
       "index": 34,
@@ -523,7 +523,7 @@
       "breakthrough_physical_damage_gain": 1550000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 1200000,
-      "breakthrough_magic_defense_gain": 350000
+      "breakthrough_magic_defense_gain": 262500
     },
     {
       "index": 35,
@@ -538,7 +538,7 @@
       "breakthrough_physical_damage_gain": 2800000,
       "breakthrough_magic_damage_gain": 0,
       "breakthrough_physical_defense_gain": 2200000,
-      "breakthrough_magic_defense_gain": 650000
+      "breakthrough_magic_defense_gain": 487500
     }
   ]
 }

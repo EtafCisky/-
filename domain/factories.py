@@ -87,7 +87,7 @@ class PlayerFactory:
             # 气血：100-500
             # 法伤：0
             # 物伤：100-500
-            # 法防：50-200
+            # 法防：38-150（削弱25%）
             # 物防：100-500
             # 精神力：100-500
             blood_qi = random.randint(100, 500)
@@ -115,6 +115,6 @@ class PlayerFactory:
                 # 战斗属性
                 magic_damage=0,
                 physical_damage=random.randint(100, 500),
-                magic_defense=random.randint(50, 200),
+                magic_defense=random.randint(38, 150),  # 削弱25%：原50-200
                 physical_defense=random.randint(100, 500)
             )

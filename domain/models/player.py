@@ -39,7 +39,7 @@ class Player:
     
     # 战斗属性
     # 灵修：法伤5-100，物伤5，法防0，物防5
-    # 体修：法伤0，物伤100-500，法防50-200，物防100-500
+    # 体修：法伤0，物伤100-500，法防38-150，物防100-500
     physical_damage: int = 5
     magic_damage: int = 5
     physical_defense: int = 5
