@@ -18,6 +18,18 @@
 - 修复了使用"购买"命令时出现"takes from 2 to 3 positional arguments but 4 were given"错误
 - `@require_player` 装饰器会自动注入 player 参数，方法签名必须接收它
 
+**修复PlayerRepository方法调用错误**
+
+- 修复多个服务中错误调用 `player_repo.update()` 方法
+- PlayerRepository 只有 `save()` 方法，没有 `update()` 方法
+- 修复了以下服务：
+  - ShopService - 购买物品
+  - PillService - 服用丹药
+  - AlchemyService - 炼丹
+  - SectService - 宗门捐献
+  - BountyService - 完成悬赏
+- 修复了使用"购买"命令时出现"'PlayerRepository' object has no attribute 'update'"错误
+
 ### 📝 新增方法
 
 - `get_item_count(user_id, item_name)` - 获取指定物品的数量

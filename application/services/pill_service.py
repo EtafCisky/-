@@ -73,7 +73,7 @@ class PillService:
         inventory[pill_name] = inventory.get(pill_name, 0) + count
         player.pills_inventory = inventory
         
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         return True
     
     def remove_pill(self, user_id: str, pill_name: str, count: int = 1) -> bool:
@@ -104,7 +104,7 @@ class PillService:
             del inventory[pill_name]
         
         player.pills_inventory = inventory
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         return True
     
     def get_pill_config(self, pill_name: str) -> Optional[Dict]:
@@ -178,7 +178,7 @@ class PillService:
         player.pills_inventory = inventory
         
         # 保存玩家数据
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         
         return True, message
     

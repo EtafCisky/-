@@ -490,7 +490,7 @@ class ShopService:
             raise BusinessException(f"未知的物品类型：{item_type}（标准化后：{normalized_type}）")
         
         # 更新玩家
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         
         result_lines.append(f"花费灵石: {total_price}，剩余: {player.gold}")
         result_lines.append(f"剩余库存: {remaining}" if remaining > 0 else "该物品已售罄！")

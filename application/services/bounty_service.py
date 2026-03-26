@@ -342,7 +342,7 @@ class BountyService:
         
         player.gold += stone_reward
         player.experience += exp_reward
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         
         # 更新任务状态
         self.bounty_repo.update_task_status(user_id, 2)  # 已完成

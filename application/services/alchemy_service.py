@@ -180,7 +180,7 @@ class AlchemyService:
             inventory[pill_name] = inventory.get(pill_name, 0) + 1
             player.pills_inventory = inventory
             
-            self.player_repo.update(player)
+            self.player_repo.save(player)
             
             # 构建消耗材料显示
             cost_lines = []
@@ -210,7 +210,7 @@ class AlchemyService:
             }
         else:
             # 炼制失败
-            self.player_repo.update(player)
+            self.player_repo.save(player)
             
             # 构建消耗材料显示
             cost_lines = []

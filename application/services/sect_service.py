@@ -110,7 +110,7 @@ class SectService:
         
         # 扣除灵石
         player.gold -= required_stone
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         
         # 创建宗门
         new_sect = Sect(
@@ -239,7 +239,7 @@ class SectService:
         
         # 扣除灵石
         player.gold -= stone_amount
-        self.player_repo.update(player)
+        self.player_repo.save(player)
         
         # 增加宗门建设度和灵石
         scale_gained = sect.add_donation(stone_amount)
