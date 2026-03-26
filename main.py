@@ -75,12 +75,8 @@ class XiuxianV3Plugin(Star):
             "alchemy_recipes.json"
         ]
         
-        # v3.2.6 版本：强制更新 pills.json 和 items.json（修复空商店问题）
-        force_update_files = ["pills.json", "items.json"]
-        version_marker = target_config_dir / ".config_version_3.2.6"
-        
-        # 检查是否需要强制更新
-        need_force_update = not version_marker.exists()
+        # v3.4.10 版本：每次启动都强制更新 bounty_templates.json（确保悬赏时限配置生效）
+        always_update_files = ["bounty_templates.json"]
         
         # 复制配置文件
         for config_file in config_files:
@@ -92,10 +88,11 @@ class XiuxianV3Plugin(Star):
             if not target_file.exists():
                 # 目标文件不存在，必须复制
                 should_copy = True
-            elif need_force_update and config_file in force_update_files:
-                # 需要强制更新的文件
+                logger.info(f"【修仙V3】初始化配置文件: {config_file}")
+            elif config_file in always_update_files:
+                # 每次启动都强制更新的文件
                 should_copy = True
-                logger.info(f"【修仙V3】强制更新配置文件: {config_file}")
+                logger.info(f"【修仙V3】强制更新配置文件: {config_file} (v3.4.10)")
             
             if should_copy and source_file.exists():
                 try:
@@ -104,16 +101,8 @@ class XiuxianV3Plugin(Star):
                 except Exception as e:
                     logger.error(f"【修仙V3】复制配置文件 {config_file} 失败: {e}")
         
-        # 创建版本标记文件
-        if need_force_update:
-            try:
-                version_marker.touch()
-                logger.info("【修仙V3】配置文件更新完成，已标记版本 3.2.6")
-            except Exception as e:
-                logger.error(f"【修仙V3】创建版本标记失败: {e}")
-        
-        # 返回是否需要清空商店数据
-        return need_force_update
+        # 返回 False（不需要清空商店数据）
+        return False
 
     
     def _setup_handlers(self):
