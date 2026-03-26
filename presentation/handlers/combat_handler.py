@@ -31,10 +31,14 @@ class CombatHandler:
         Returns:
             目标玩家ID，如果未找到返回None
         """
+        from astrbot.api import logger
+        
         # 尝试从At组件获取
         message_chain = []
         if hasattr(event, "message_obj") and event.message_obj:
             message_chain = getattr(event.message_obj, "message", []) or []
+        
+        logger.debug(f"【提取目标ID】message_chain长度={len(message_chain)}, arg={arg}")
         
         for component in message_chain:
             if isinstance(component, At):
@@ -43,24 +47,32 @@ class CombatHandler:
                 for attr in ("qq", "target", "uin", "user_id"):
                     candidate = getattr(component, attr, None)
                     if candidate:
+                        logger.debug(f"【提取目标ID】从At组件的{attr}属性获取到：{candidate}")
                         break
                 if candidate:
-                    return str(candidate).lstrip("@")
+                    result = str(candidate).lstrip("@")
+                    logger.debug(f"【提取目标ID】最终返回（At）：{result}")
+                    return result
         
         # 尝试从参数获取
         if arg:
             cleaned = arg.strip().lstrip("@")
             if cleaned.isdigit():
+                logger.debug(f"【提取目标ID】从参数获取到：{cleaned}")
                 return cleaned
         
         # 尝试从消息文本提取数字ID
         message_text = ""
         if hasattr(event, "get_message_str"):
             message_text = event.get_message_str() or ""
+        logger.debug(f"【提取目标ID】消息文本：{message_text}")
         match = re.search(r'(\d{5,})', message_text)
         if match:
-            return match.group(1)
+            result = match.group(1)
+            logger.debug(f"【提取目标ID】从消息文本提取到：{result}")
+            return result
         
+        logger.warning(f"【提取目标ID】未能提取到目标ID")
         return None
     
     @require_player
@@ -121,8 +133,12 @@ class CombatHandler:
             event: 消息事件
             target: 目标参数
         """
+        from astrbot.api import logger
+        
         user_id = event.get_sender_id()
         target_id = await self._get_target_id(event, target)
+        
+        logger.debug(f"【决斗】发起者={user_id}, 目标参数={target}, 提取的target_id={target_id}")
         
         if not target_id:
             yield event.plain_result("❌ 请指定决斗目标\n💡 使用方法：决斗 @对方 或 决斗 [对方ID]")
@@ -142,7 +158,10 @@ class CombatHandler:
                 return
             
             # 检查目标是否存在
+            logger.debug(f"【决斗】准备检查目标玩家，target_id={target_id}")
             target_stats = await self.combat_service.prepare_combat_stats(target_id)
+            logger.debug(f"【决斗】目标玩家属性：{target_stats}")
+            
             if not target_stats:
                 yield event.plain_result("❌ 对方还未踏入修仙之路")
                 return

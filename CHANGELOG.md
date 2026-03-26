@@ -12,6 +12,7 @@
   - `update_duel_cooldown()` / `update_spar_cooldown()` - 更新冷却时间
   - `save_combat_log()` - 保存战斗日志
   - `player_repo.get_by_id()` / `save()` - 玩家数据操作
+- 添加详细的调试日志，帮助诊断战斗系统问题
 
 ### 📝 技术说明
 
