@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.3.12"
+    "3.4.3"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -224,10 +224,9 @@ class XiuxianV3Plugin(Star):
     async def initialize(self):
         """插件启动"""
         try:
-            # 初始化数据库（使用容器中的数据库连接）
-            db = self.container.database()
-            db.initialize()
-            logger.info("【修仙V3】数据库初始化完成")
+            # JSON 存储不需要初始化数据库
+            # 数据目录已在 __init__ 中创建
+            logger.info("【修仙V3】JSON 存储已就绪")
             
             # 如果需要清空商店数据（版本更新时）
             if self.need_clear_shop:
@@ -245,25 +244,17 @@ class XiuxianV3Plugin(Star):
             raise  # 关键初始化失败应该中断启动
     
     def _clear_shop_data(self):
-        """清空商店数据库记录（用于强制刷新商店）"""
+        """清空商店数据（用于强制刷新商店）"""
         try:
-            from .infrastructure.database.schema import ShopTable
+            # 使用 JSON 存储，直接删除商店文件即可
+            shop_repo = self.container.shop_repository()
             
-            # 获取数据库会话
-            db = self.container.database()
-            session = db.get_session()
+            # 获取所有商店并删除
+            all_shops = shop_repo.get_all()
+            for shop in all_shops:
+                shop_repo.delete(shop.shop_id)
             
-            try:
-                # 删除所有商店记录
-                session.query(ShopTable).delete()
-                session.commit()
-                logger.info("【修仙V3】商店数据已清空，下次访问将重新生成商品")
-            except Exception as e:
-                session.rollback()
-                logger.error(f"【修仙V3】清空商店数据失败: {e}")
-                raise
-            finally:
-                session.close()
+            logger.info("【修仙V3】商店数据已清空，下次访问将重新生成商品")
         except Exception as e:
             logger.warning(f"【修仙V3】无法清空商店数据: {e}")
     
@@ -274,58 +265,54 @@ class XiuxianV3Plugin(Star):
             
             rift_repo = self.container.rift_repository()
             
-            try:
-                # 检查是否已有秘境数据
-                existing_rifts = rift_repo.get_all_rifts()
-                if existing_rifts:
-                    logger.info("【修仙V3】秘境数据已存在，跳过初始化")
-                    return  # 已有数据，跳过初始化
-                
-                # 创建初始秘境
-                initial_rifts = [
-                    Rift(
-                        rift_id=0,  # 会被数据库自动分配
-                        rift_name="幽暗森林",
-                        rift_level=1,
-                        required_level=3,  # 筑基期
-                        exp_reward_min=5000,
-                        exp_reward_max=15000,
-                        gold_reward_min=1000,
-                        gold_reward_max=3000,
-                        description="低级秘境，适合筑基期修士探索"
-                    ),
-                    Rift(
-                        rift_id=0,
-                        rift_name="玄冰洞窟",
-                        rift_level=2,
-                        required_level=6,  # 金丹期
-                        exp_reward_min=20000,
-                        exp_reward_max=50000,
-                        gold_reward_min=5000,
-                        gold_reward_max=10000,
-                        description="中级秘境，适合金丹期修士探索"
-                    ),
-                    Rift(
-                        rift_id=0,
-                        rift_name="天火禁地",
-                        rift_level=3,
-                        required_level=9,  # 元婴期
-                        exp_reward_min=80000,
-                        exp_reward_max=150000,
-                        gold_reward_min=15000,
-                        gold_reward_max=30000,
-                        description="高级秘境，适合元婴期修士探索"
-                    ),
-                ]
-                
-                # 插入秘境数据
-                for rift in initial_rifts:
-                    rift_repo.create_rift(rift)
-                
-                logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
-            finally:
-                # 确保关闭session
-                rift_repo.session.close()
+            # 检查是否已有秘境数据
+            existing_rifts = rift_repo.get_all_rifts()
+            if existing_rifts:
+                logger.info("【修仙V3】秘境数据已存在，跳过初始化")
+                return  # 已有数据，跳过初始化
+            
+            # 创建初始秘境
+            initial_rifts = [
+                Rift(
+                    rift_id=0,  # 会被自动分配
+                    rift_name="幽暗森林",
+                    rift_level=1,
+                    required_level=3,  # 筑基期
+                    exp_reward_min=5000,
+                    exp_reward_max=15000,
+                    gold_reward_min=1000,
+                    gold_reward_max=3000,
+                    description="低级秘境，适合筑基期修士探索"
+                ),
+                Rift(
+                    rift_id=0,
+                    rift_name="玄冰洞窟",
+                    rift_level=2,
+                    required_level=6,  # 金丹期
+                    exp_reward_min=20000,
+                    exp_reward_max=50000,
+                    gold_reward_min=5000,
+                    gold_reward_max=10000,
+                    description="中级秘境，适合金丹期修士探索"
+                ),
+                Rift(
+                    rift_id=0,
+                    rift_name="天火禁地",
+                    rift_level=3,
+                    required_level=9,  # 元婴期
+                    exp_reward_min=80000,
+                    exp_reward_max=150000,
+                    gold_reward_min=15000,
+                    gold_reward_max=30000,
+                    description="高级秘境，适合元婴期修士探索"
+                ),
+            ]
+            
+            # 插入秘境数据
+            for rift in initial_rifts:
+                rift_repo.create_rift(rift)
+            
+            logger.info(f"【修仙V3】已创建 {len(initial_rifts)} 个初始秘境")
             
         except Exception as e:
             logger.error(f"【修仙V3】初始化秘境数据失败: {e}", exc_info=True)
@@ -337,23 +324,15 @@ class XiuxianV3Plugin(Star):
         try:
             boss_service = self.container.boss_service()
             
-            # 注意：boss_service内部会创建多个repository，每个都有自己的session
-            # 我们需要确保所有session都被正确关闭
-            try:
-                # 检查是否已有存活的Boss
-                existing_boss = boss_service.get_active_boss()
-                if existing_boss:
-                    logger.info(f"【修仙V3】已有存活的Boss：{existing_boss.boss_name}")
-                    return  # 已有Boss，跳过初始化
-                
-                # 自动生成一个Boss
-                boss = boss_service.auto_spawn_boss()
-                logger.info(f"【修仙V3】已自动生成初始Boss：{boss.boss_name}（{boss.boss_level}境）")
-            finally:
-                # 关闭boss_service中所有repository的session
-                boss_service.boss_repo.session.close()
-                boss_service.player_repo.session.close()
-                boss_service.storage_ring_repo.session.close()
+            # 检查是否已有存活的Boss
+            existing_boss = boss_service.get_active_boss()
+            if existing_boss:
+                logger.info(f"【修仙V3】已有存活的Boss：{existing_boss.boss_name}")
+                return  # 已有Boss，跳过初始化
+            
+            # 自动生成一个Boss
+            boss = boss_service.auto_spawn_boss()
+            logger.info(f"【修仙V3】已自动生成初始Boss：{boss.boss_name}（{boss.boss_level}境）")
             
         except Exception as e:
             logger.error(f"【修仙V3】初始化Boss数据失败: {e}", exc_info=True)

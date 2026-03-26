@@ -1,5 +1,198 @@
 # 更新日志
 
+## [3.4.3] - 2026-03-26 (数据库迁移完成 🎉)
+
+### 🎉 重大更新 - 数据库迁移到 JSON 存储
+
+完成从 SQLAlchemy + SQLite 到 JSON 文件存储的完整迁移，提供更简单、更灵活的数据管理方案。
+
+### ✨ 新增功能
+
+**JSON 存储系统**
+
+- ✅ 实现完整的 JSONStorage 类，支持 CRUD 操作
+- ✅ 文件锁机制（filelock）防止并发写入冲突
+- ✅ 原子写入（临时文件 + 重命名）确保数据完整性
+- ✅ 自动备份和恢复机制（最多保留 3 个备份）
+- ✅ 内存缓存机制提高查询性能
+- ✅ 查询功能（过滤、排序、限制）
+- ✅ 全面的日志记录（所有关键操作）
+- ✅ 数据验证机制
+
+**时间戳标准化**
+
+- ✅ 统一使用 ISO 8601 格式存储时间戳
+- ✅ 自动转换 Unix 时间戳 ↔ ISO 8601 字符串
+- ✅ 所有时间戳使用 UTC 时区
+
+**配置系统集成**
+
+- ✅ 添加 JSONStorageConfig 配置类
+- ✅ 支持通过配置文件自定义存储参数
+- ✅ 提供合理的默认值
+
+### 🔧 技术改进
+
+**Repository 层完全迁移**
+
+- ✅ 更新所有 17 个 Repository 使用 JSONStorage
+- ✅ 实现 _to_domain() 和 _to_dict() 转换方法
+- ✅ 使用 TimestampConverter 处理时间戳字段
+- ✅ 移除所有 SQLAlchemy Session 依赖
+
+**依赖注入容器更新**
+
+- ✅ 移除 database() 方法
+- ✅ 添加 json_storage() 方法返回 JSONStorage 单例
+- ✅ 更新所有 Repository 工厂方法
+- ✅ 从配置管理器读取 JSON 存储配置
+
+**错误处理和日志**
+
+- ✅ 定义完整的存储异常类层次
+- ✅ 所有关键操作都有 debug 日志
+- ✅ 所有异常都有 error 日志
+- ✅ 日志消息包含文件路径和操作类型
+- ✅ 使用统一的日志前缀【JSONStorage】
+
+### 📊 迁移统计
+
+- 17 个 Repository 全部更新
+- 0 个 SQLAlchemy 依赖残留
+- 100% 功能兼容性
+- 完整的文档和配置示例
+
+### 📝 配置说明
+
+在 AstrBot 配置中添加以下配置（可选）：
+
+```json
+{
+  "JSON_STORAGE": {
+    "DATA_DIR": "data/json",
+    "ENABLE_CACHE": true,
+    "LOCK_TIMEOUT": 30,
+    "MAX_BACKUPS": 3
+  }
+}
+```
+
+### 🎯 主要优势
+
+1. **简化部署**: 不再需要 SQLite 数据库
+2. **易于调试**: JSON 文件可直接查看和编辑
+3. **数据可移植**: 纯文本格式便于备份和迁移
+4. **并发安全**: 文件锁机制保护数据完整性
+5. **性能优化**: 内存缓存提高查询速度
+
+### 📖 相关文档
+
+- 使用指南：`infrastructure/storage/README.md`
+- 迁移说明：`MIGRATION_COMPLETE.md`
+- 配置示例：`config_example.json`
+
+### ⚠️ 注意事项
+
+- 本次迁移不包含自动数据迁移工具
+- 旧的 SQLite 数据不会自动转换
+- 用户需要重新开始游戏或手动迁移数据
+- 单个 JSON 文件建议不超过 10MB
+- 适合中小规模并发场景
+
+---
+
+## [3.4.2] - 2026-03-26 (数据库迁移 - 日志记录完善)
+
+### ✨ 新增功能
+
+为 JSONStorage 添加完整的日志记录
+
+- 为 `load()` 方法添加详细日志（文件不存在、加载成功、解析失败、备份恢复）
+- 为 `save()` 方法添加详细日志（保存成功、文件锁超时、保存失败）
+- 为 `set()` 方法添加日志（设置实体）
+- 为 `delete()` 方法添加日志（删除实体、实体不存在）
+- 为 `_atomic_write()` 方法添加详细日志（临时文件写入、备份创建、原子写入完成）
+- 所有异常消息现在都包含文件路径和操作类型
+
+### 📝 说明
+
+- 日志级别：debug 用于正常操作，error 用于异常情况
+- 所有日志都带有 `【JSONStorage】` 前缀，便于过滤和查找
+- 日志记录有助于调试和监控存储操作
+
+---
+
+## [3.4.2] - 2026-03-26 (数据库迁移 - 移除 Session 依赖)
+
+### 🔧 重要修复
+
+移除所有 Service 层对数据库 Session 的依赖
+
+- 修复 `main.py` 中的 `initialize()` 方法，移除数据库初始化调用
+- 修复 `_clear_shop_data()` 方法，改用 Repository 的 delete 方法
+- 修复 `_initialize_rifts()` 和 `_initialize_boss()` 方法，移除 session.close() 调用
+- 修复 `PlayerService` 所有方法，移除 session.commit/rollback/close 调用
+- 修复 `CultivationService` 所有方法，移除 session.commit/rollback/close 调用
+- JSONStorage 的 save() 方法已自动处理原子写入，不需要手动提交事务
+
+### 📝 说明
+
+- 所有数据保存操作现在由 JSONStorage 自动处理
+- 不再需要手动管理事务（commit/rollback）
+- 不再需要手动关闭会话（close）
+- 简化了代码，减少了出错的可能性
+
+---
+
+## [3.4.1] - 2026-03-26 (数据库迁移 - 依赖注入容器更新)
+
+### ✨ 重大更新
+
+数据库迁移到 JSON 存储 - 依赖注入容器更新
+
+- 更新 `core/container.py` 依赖注入容器，从 SQLAlchemy 迁移到 JSONStorage
+- 移除 `database()` 方法，添加 `json_storage()` 方法返回 JSONStorage 单例
+- 更新所有 16 个 Repository 工厂方法，将 `Session` 参数替换为 `JSONStorage` 参数
+- 更新 `cleanup()` 方法，移除数据库连接关闭逻辑，改为清理 JSON 存储缓存
+- 删除旧的数据库连接文件 `infrastructure/database/connection.py`
+- 所有数据现在使用 JSON 文件存储，支持文件锁、原子写入、自动备份等特性
+
+### 🔧 技术改进
+
+- JSON 存储目录：`data_dir/data/`
+- 启用内存缓存以提升性能
+- 文件锁超时时间：30 秒
+- 最大备份文件数量：3 个
+- 所有时间戳字段使用 ISO 8601 格式存储
+
+---
+
+## [3.3.14] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+玩家已存在检查逻辑修复
+
+- 修复 `PlayerService.create_player()` 方法中玩家已存在检查被异常处理捕获的问题
+- 将 `exists()` 检查移到 try-except 块外部，确保 `PlayerAlreadyExistsException` 能正确抛出
+- 修复了已有角色的玩家使用"我要修仙"命令仍然显示欢迎信息的问题
+- 现在已有角色的玩家会收到"道友，你已踏入仙途，无需重复此举"的提示
+
+---
+
+## [3.3.13] - 2026-03-26 (Bug 修复版)
+
+### 🐛 Bug 修复
+
+PlayerFactory 类型导入错误修复
+
+- 修复 `PlayerFactory.create_new_player()` 方法中使用 `Optional[str]` 但未导入 `Optional` 的错误
+- 在 `domain/factories.py` 文件顶部添加 `from typing import Optional` 导入
+- 修复了使用"我要修仙"命令创建角色时出现 "PlayerFactory.create_new_player() got an unexpected keyword argument 'user_name'" 错误
+- 确保角色创建功能正常工作
+
+---
+
 ## [3.3.12] - 2026-03-26 (Bug 修复版)
 
 ### 🐛 Bug 修复

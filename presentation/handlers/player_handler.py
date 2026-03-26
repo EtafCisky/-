@@ -263,11 +263,10 @@ class PlayerHandler:
         # 从系统配置获取上次重修时间
         config_repo = None
         try:
-            from ...infrastructure.repositories.system_config_repo import SystemConfigRepository
-            
             # 使用注入的容器获取仓储
             if self.container:
-                config_repo = SystemConfigRepository(self.container.database().create_session())
+                from ...infrastructure.repositories.system_config_repo import SystemConfigRepository
+                config_repo = SystemConfigRepository(self.container.json_storage())
             
             last_rebirth_str = config_repo.get_config(cooldown_key) if config_repo else None
             if last_rebirth_str:
@@ -298,12 +297,11 @@ class PlayerHandler:
         
         # 检查是否有贷款
         try:
-            from ...infrastructure.repositories.bank_repo import BankRepository
-            
             # 使用注入的容器获取仓储
             bank_repo = None
             if self.container:
-                bank_repo = BankRepository(self.container.database().create_session())
+                from ...infrastructure.repositories.bank_repo import BankRepository
+                bank_repo = BankRepository(self.container.json_storage())
             
             active_loans = bank_repo.get_active_loans(user_id) if bank_repo else []
             if active_loans:
