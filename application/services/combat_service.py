@@ -118,16 +118,16 @@ class CombatService:
         bonus = {"atk": 0, "defense": 0}
         
         # 武器
-        if player.weapon_id:
-            weapon_data = self.config_manager.get_weapon_data(player.weapon_id)
+        if player.weapon:
+            weapon_data = self.config_manager.get_weapon_data(player.weapon)
             if weapon_data:
                 bonus["atk"] += weapon_data.get("atk", 0)
                 bonus["atk"] += weapon_data.get("physical_damage", 0)
                 bonus["atk"] += weapon_data.get("magic_damage", 0)
         
         # 防具
-        if player.armor_id:
-            armor_data = self.config_manager.get_item_data(player.armor_id)
+        if player.armor:
+            armor_data = self.config_manager.get_item_data(player.armor)
             if armor_data:
                 bonus["defense"] += armor_data.get("physical_defense", 0)
                 bonus["defense"] += armor_data.get("magic_defense", 0)

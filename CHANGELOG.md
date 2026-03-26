@@ -20,12 +20,19 @@
 - 自动排除艾特bot的情况，只识别真正的对战目标
 - 修复了"对方还未踏入修仙之路"的错误提示
 
+**修复战斗系统装备属性访问错误**
+
+- 修复 CombatService 中使用不存在的 `weapon_id` 和 `armor_id` 属性
+- 改为使用 Player 模型中正确的 `weapon` 和 `armor` 字段
+- 修复了"'Player' object has no attribute 'weapon_id'"错误
+
 ### 📝 技术说明
 
 - 仓储层（Repository）使用同步方法，服务层（Service）使用 async/await 处理异步流程
 - 只有真正的异步操作（如网络请求）才需要 await
 - JSON 文件读写是同步的，不需要 await
 - 在群聊中使用命令时，消息链中第一个At通常是bot自己，需要跳过
+- Player 模型使用 `weapon` 和 `armor` 字段存储装备名称（字符串类型）
 
 ## [3.4.5] - 2026-03-26 (平衡性调整)
 
