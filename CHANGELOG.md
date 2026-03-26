@@ -22,8 +22,8 @@
 
 **修复战斗系统装备属性访问错误**
 
-- 修复 CombatService 中使用不存在的 `weapon_id` 和 `armor_id` 属性
-- 改为使用 Player 模型中正确的 `weapon` 和 `armor` 字段
+- 修复 CombatService 中访问不存在的 `weapon_id` 和 `armor_id` 属性
+- Player 模型使用 `weapon` 和 `armor` 属性（字符串类型）
 - 修复了"'Player' object has no attribute 'weapon_id'"错误
 
 ### 📝 技术说明
@@ -32,7 +32,6 @@
 - 只有真正的异步操作（如网络请求）才需要 await
 - JSON 文件读写是同步的，不需要 await
 - 在群聊中使用命令时，消息链中第一个At通常是bot自己，需要跳过
-- Player 模型使用 `weapon` 和 `armor` 字段存储装备名称（字符串类型）
 
 ## [3.4.5] - 2026-03-26 (平衡性调整)
 
@@ -48,6 +47,7 @@
 ### 📝 技术说明
 
 修改的文件：
+
 - `domain/factories.py` - 体修初始法防范围
 - `config/body_level_config.json` - 所有36个境界的法防增长值
 - `domain/models/player.py` - 更新注释说明
@@ -85,6 +85,7 @@
 ### 📝 技术说明
 
 这些 Bug 是数据库迁移后遗留的问题：
+
 - 旧代码使用字符串比较状态，但 Player 模型使用 PlayerState 枚举
 - PlayerState.IDLE 的值是 "空闲"（中文），不是 "idle"（英文）
 - 状态管理方法在迁移时未实现，导致运行时错误
