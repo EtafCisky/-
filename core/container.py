@@ -259,7 +259,8 @@ class Container:
         return AdventureService(
             self.player_repository(),
             self.storage_ring_repository(),
-            self.config_manager()
+            self.config_manager(),
+            self.bounty_repository()  # 添加悬赏仓储
         )
     
     def rift_service(self):

@@ -20,11 +20,13 @@ class AdventureService:
         self,
         player_repo: PlayerRepository,
         storage_ring_repo: StorageRingRepository,
-        config_manager: ConfigManager
+        config_manager: ConfigManager,
+        bounty_repo=None  # 添加可选的悬赏仓储
     ):
         self.player_repo = player_repo
         self.storage_ring_repo = storage_ring_repo
         self.config_manager = config_manager
+        self.bounty_repo = bounty_repo  # 保存悬赏仓储引用
         self.routes: Dict[str, Dict] = {}  # 存储原始路线配置
         self.route_alias_index: Dict[str, str] = {}  # 别名索引
         self.event_groups: Dict[str, List[Dict]] = {}  # 事件组
@@ -219,6 +221,14 @@ class AdventureService:
         # 重置状态
         self.player_repo.update_player_state(user_id, state=PlayerState.IDLE, extra_data=None)
         
+        # 更新悬赏进度
+        if self.bounty_repo:
+            try:
+                self._update_bounty_progress(user_id, route, result)
+            except Exception as e:
+                # 悬赏更新失败不影响历练完成
+                pass
+        
         return result
     
     def _trigger_route_event(self, route: Dict) -> Dict:
@@ -327,3 +337,58 @@ class AdventureService:
             event_description=event_description,
             fatigue_cost=route.get("fatigue_cooldown", 0)
         )
+    
+    def _update_bounty_progress(self, user_id: str, route: Dict, result: AdventureResult):
+        """更新悬赏进度"""
+        # 获取路线的悬赏标签
+        bounty_tag = route.get("bounty_tag")
+        if not bounty_tag:
+            return
+        
+        # 获取进行中的悬赏任务
+        active_bounty = self.bounty_repo.get_active_bounty(user_id)
+        if not active_bounty:
+            return
+        
+        # 检查任务是否已过期
+        if int(time.time()) > active_bounty.expire_time:
+            return
+        
+        # 检查标签是否匹配（从配置加载悬赏模板）
+        try:
+            import json
+            from pathlib import Path
+            config_file = self.config_manager.config_dir / "bounty_templates.json"
+            if not config_file.exists():
+                return
+            
+            with open(config_file, 'r', encoding='utf-8') as f:
+                bounty_config = json.load(f)
+            
+            templates = bounty_config.get("templates", [])
+            template = next((t for t in templates if t["id"] == active_bounty.bounty_id), None)
+            
+            if not template:
+                return
+            
+            progress_tags = template.get("progress_tags", [])
+            if bounty_tag not in progress_tags:
+                return
+            
+            # 计算进度增加量
+            base_progress = route.get("bounty_progress", 1)
+            # 事件可能提供额外进度
+            # 这里简化处理，直接使用基础进度
+            progress_to_add = base_progress
+            
+            # 更新进度
+            new_progress = min(
+                active_bounty.current_progress + progress_to_add,
+                active_bounty.target_count
+            )
+            
+            self.bounty_repo.update_progress(user_id, new_progress)
+            
+        except Exception:
+            # 静默失败
+            pass
