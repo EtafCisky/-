@@ -144,15 +144,9 @@ class CombatService:
         Returns:
             战斗属性，如果玩家不存在返回None
         """
-        from astrbot.api import logger
-        logger.debug(f"【战斗系统】准备战斗属性，user_id={user_id}, type={type(user_id)}")
-        
         player = self.player_repo.get_by_id(user_id)
         if not player:
-            logger.warning(f"【战斗系统】玩家不存在，user_id={user_id}")
             return None
-        
-        logger.debug(f"【战斗系统】找到玩家：{player.nickname}, 修为={player.experience}")
         
         # 计算基础属性
         # TODO: 获取传承加成（需要传承系统）
