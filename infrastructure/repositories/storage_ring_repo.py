@@ -2,48 +2,58 @@
 import json
 import time
 from typing import Optional, Dict, List, Tuple
-from sqlalchemy.orm import Session
 
-from ..database.schema import PlayerTable, PendingGiftTable
+from ..storage import JSONStorage, TimestampConverter
 
 
 class StorageRingRepository:
     """储物戒仓储"""
     
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self, storage: JSONStorage):
+        """
+        初始化储物戒仓储
+        
+        Args:
+            storage: JSON存储管理器
+        """
+        self.storage = storage
+        self.players_filename = "players.json"
+        self.gifts_filename = "pending_gifts.json"
     
     def get_storage_ring_items(self, user_id: str) -> Dict[str, int]:
         """获取储物戒物品"""
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        if not player or not player.storage_ring_items:
+        player_data = self.storage.get(self.players_filename, user_id)
+        if not player_data or not player_data.get("storage_ring_items"):
             return {}
         
         try:
-            return json.loads(player.storage_ring_items)
+            items = player_data.get("storage_ring_items", {})
+            if isinstance(items, str):
+                return json.loads(items)
+            return items
         except (json.JSONDecodeError, TypeError):
             return {}
     
     def set_storage_ring_items(self, user_id: str, items: Dict[str, int]) -> None:
         """设置储物戒物品"""
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        if player:
-            player.storage_ring_items = json.dumps(items, ensure_ascii=False)
-            player.updated_at = int(time.time())
-            self.session.commit()
+        player_data = self.storage.get(self.players_filename, user_id)
+        if player_data:
+            player_data["storage_ring_items"] = items
+            player_data["updated_at"] = TimestampConverter.to_iso8601(int(time.time()))
+            self.storage.set(self.players_filename, user_id, player_data)
     
     def get_storage_ring_name(self, user_id: str) -> str:
         """获取储物戒名称"""
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        return player.storage_ring if player else "基础储物戒"
+        player_data = self.storage.get(self.players_filename, user_id)
+        return player_data.get("storage_ring", "基础储物戒") if player_data else "基础储物戒"
     
     def set_storage_ring_name(self, user_id: str, ring_name: str) -> None:
         """设置储物戒名称"""
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        if player:
-            player.storage_ring = ring_name
-            player.updated_at = int(time.time())
-            self.session.commit()
+        player_data = self.storage.get(self.players_filename, user_id)
+        if player_data:
+            player_data["storage_ring"] = ring_name
+            player_data["updated_at"] = TimestampConverter.to_iso8601(int(time.time()))
+            self.storage.set(self.players_filename, user_id, player_data)
     
     # ===== 赠予系统 =====
     
@@ -60,59 +70,76 @@ class StorageRingRepository:
         current_time = int(time.time())
         expires_at = current_time + (expires_hours * 3600)
         
-        gift = PendingGiftTable(
-            receiver_id=receiver_id,
-            sender_id=sender_id,
-            sender_name=sender_name,
-            item_name=item_name,
-            count=count,
-            created_at=current_time,
-            expires_at=expires_at
-        )
+        # 生成新的礼物ID
+        all_gifts = self.storage.load(self.gifts_filename)
+        if all_gifts:
+            max_id = max(int(gid) for gid in all_gifts.keys())
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        self.session.add(gift)
-        self.session.commit()
-        return gift.id
+        gift_data = {
+            "id": new_id,
+            "receiver_id": receiver_id,
+            "sender_id": sender_id,
+            "sender_name": sender_name,
+            "item_name": item_name,
+            "count": count,
+            "created_at": TimestampConverter.to_iso8601(current_time),
+            "expires_at": TimestampConverter.to_iso8601(expires_at)
+        }
+        
+        self.storage.set(self.gifts_filename, str(new_id), gift_data)
+        return new_id
     
     def get_pending_gift(self, receiver_id: str) -> Optional[Dict]:
         """获取待处理赠予（最早的一个）"""
         current_time = int(time.time())
+        current_time_iso = TimestampConverter.to_iso8601(current_time)
         
         # 先删除过期的赠予
-        self.session.query(PendingGiftTable).filter(
-            PendingGiftTable.expires_at < current_time
-        ).delete()
-        self.session.commit()
+        all_gifts = self.storage.load(self.gifts_filename)
+        for gift_id, gift_data in list(all_gifts.items()):
+            if gift_data.get("expires_at") and gift_data.get("expires_at") < current_time_iso:
+                self.storage.delete(self.gifts_filename, gift_id)
         
         # 获取最早的待处理赠予
-        gift = self.session.query(PendingGiftTable).filter_by(
-            receiver_id=receiver_id
-        ).order_by(PendingGiftTable.created_at).first()
+        results = self.storage.query(
+            self.gifts_filename,
+            filter_fn=lambda data: data.get("receiver_id") == receiver_id,
+            sort_key=lambda data: data.get("created_at", "")
+        )
         
-        if not gift:
+        if not results:
             return None
         
+        gift_data = results[0]
         return {
-            "id": gift.id,
-            "receiver_id": gift.receiver_id,
-            "sender_id": gift.sender_id,
-            "sender_name": gift.sender_name,
-            "item_name": gift.item_name,
-            "count": gift.count,
-            "created_at": gift.created_at,
-            "expires_at": gift.expires_at
+            "id": gift_data["id"],
+            "receiver_id": gift_data["receiver_id"],
+            "sender_id": gift_data["sender_id"],
+            "sender_name": gift_data["sender_name"],
+            "item_name": gift_data["item_name"],
+            "count": gift_data["count"],
+            "created_at": TimestampConverter.from_iso8601(gift_data["created_at"]),
+            "expires_at": TimestampConverter.from_iso8601(gift_data["expires_at"])
         }
     
     def delete_pending_gift(self, gift_id: int) -> None:
         """删除待处理赠予"""
-        self.session.query(PendingGiftTable).filter_by(id=gift_id).delete()
-        self.session.commit()
+        self.storage.delete(self.gifts_filename, str(gift_id))
     
     def cleanup_expired_gifts(self) -> int:
         """清理过期赠予，返回清理数量"""
         current_time = int(time.time())
-        count = self.session.query(PendingGiftTable).filter(
-            PendingGiftTable.expires_at < current_time
-        ).delete()
-        self.session.commit()
+        current_time_iso = TimestampConverter.to_iso8601(current_time)
+        
+        all_gifts = self.storage.load(self.gifts_filename)
+        count = 0
+        
+        for gift_id, gift_data in list(all_gifts.items()):
+            if gift_data.get("expires_at") and gift_data.get("expires_at") < current_time_iso:
+                self.storage.delete(self.gifts_filename, gift_id)
+                count += 1
+        
         return count

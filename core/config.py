@@ -79,6 +79,14 @@ class DatabaseConfig(BaseModel):
     max_overflow: int = 10
 
 
+class JSONStorageConfig(BaseModel):
+    """JSON 存储配置"""
+    data_dir: str = "data/json"
+    enable_cache: bool = True
+    lock_timeout: int = 30
+    max_backups: int = 3
+
+
 class Settings(BaseModel):
     """全局配置"""
     access_control: AccessControlConfig = Field(default_factory=AccessControlConfig)
@@ -87,6 +95,7 @@ class Settings(BaseModel):
     spirit_root_weights: SpiritRootWeightsConfig = Field(default_factory=SpiritRootWeightsConfig)
     files: FilesConfig = Field(default_factory=FilesConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    json_storage: JSONStorageConfig = Field(default_factory=JSONStorageConfig)
 
 
 class ConfigManager:
@@ -208,6 +217,16 @@ class ConfigManager:
                 f = self._astrbot_config["FILES"]
                 settings_data["files"] = {
                     "database_file": f.get("DATABASE_FILE", "astrbot_plugin_monixiuxianv3.db")
+                }
+            
+            # JSON 存储配置
+            if "JSON_STORAGE" in self._astrbot_config:
+                js = self._astrbot_config["JSON_STORAGE"]
+                settings_data["json_storage"] = {
+                    "data_dir": js.get("DATA_DIR", "data/json"),
+                    "enable_cache": js.get("ENABLE_CACHE", True),
+                    "lock_timeout": js.get("LOCK_TIMEOUT", 30),
+                    "max_backups": js.get("MAX_BACKUPS", 3)
                 }
             
             result = Settings(**settings_data)

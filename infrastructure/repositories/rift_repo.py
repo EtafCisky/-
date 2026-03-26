@@ -1,70 +1,104 @@
 """秘境仓储"""
-from typing import List, Optional
-from sqlalchemy.orm import Session
+from typing import List, Optional, Dict, Any
 
-from ..database.schema import RiftTable
+from .base import BaseRepository
+from ..storage import JSONStorage
 from ...domain.models.rift import Rift
 
 
-class RiftRepository:
+class RiftRepository(BaseRepository[Rift]):
     """秘境仓储"""
     
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self, storage: JSONStorage):
+        """
+        初始化秘境仓储
+        
+        Args:
+            storage: JSON存储管理器
+        """
+        super().__init__(storage, "rifts.json")
+    
+    def get_by_id(self, rift_id: str) -> Optional[Rift]:
+        """根据ID获取秘境"""
+        return self.get_rift_by_id(int(rift_id))
+    
+    def save(self, entity: Rift) -> None:
+        """保存秘境"""
+        rift_dict = self._to_dict(entity)
+        self.storage.set(self.filename, str(entity.rift_id), rift_dict)
+    
+    def delete(self, rift_id: str) -> None:
+        """删除秘境"""
+        self.storage.delete(self.filename, rift_id)
+    
+    def exists(self, rift_id: str) -> bool:
+        """检查秘境是否存在"""
+        return self.storage.exists(self.filename, rift_id)
     
     def get_all_rifts(self) -> List[Rift]:
         """获取所有秘境"""
-        rows = self.session.query(RiftTable).all()
-        return [self._to_domain(row) for row in rows]
+        results = self.storage.query(self.filename)
+        return [self._to_domain(data) for data in results]
     
     def get_rift_by_id(self, rift_id: int) -> Optional[Rift]:
         """根据ID获取秘境"""
-        row = self.session.query(RiftTable).filter(
-            RiftTable.rift_id == rift_id
-        ).first()
+        data = self.storage.get(self.filename, str(rift_id))
         
-        if not row:
+        if not data:
             return None
         
-        return self._to_domain(row)
+        return self._to_domain(data)
     
     def get_rifts_by_level(self, rift_level: int) -> List[Rift]:
         """根据等级获取秘境"""
-        rows = self.session.query(RiftTable).filter(
-            RiftTable.rift_level == rift_level
-        ).all()
+        results = self.storage.query(
+            self.filename,
+            filter_fn=lambda data: data.get("rift_level") == rift_level
+        )
         
-        return [self._to_domain(row) for row in rows]
+        return [self._to_domain(data) for data in results]
     
     def create_rift(self, rift: Rift) -> int:
         """创建秘境"""
-        row = RiftTable(
-            rift_name=rift.rift_name,
-            rift_level=rift.rift_level,
-            required_level=rift.required_level,
-            exp_reward_min=rift.exp_reward_min,
-            exp_reward_max=rift.exp_reward_max,
-            gold_reward_min=rift.gold_reward_min,
-            gold_reward_max=rift.gold_reward_max,
-            description=rift.description
-        )
+        # 生成新的 rift_id
+        all_data = self.storage.load(self.filename)
+        if all_data:
+            max_id = max(int(rid) for rid in all_data.keys())
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        self.session.add(row)
-        self.session.commit()
-        self.session.refresh(row)
+        rift.rift_id = new_id
         
-        return row.rift_id
+        rift_dict = self._to_dict(rift)
+        self.storage.set(self.filename, str(new_id), rift_dict)
+        
+        return new_id
     
-    def _to_domain(self, row: RiftTable) -> Rift:
+    def _to_domain(self, data: Dict[str, Any]) -> Rift:
         """转换为领域模型"""
         return Rift(
-            rift_id=row.rift_id,
-            rift_name=row.rift_name,
-            rift_level=row.rift_level,
-            required_level=row.required_level,
-            exp_reward_min=row.exp_reward_min,
-            exp_reward_max=row.exp_reward_max,
-            gold_reward_min=row.gold_reward_min,
-            gold_reward_max=row.gold_reward_max,
-            description=row.description or ""
+            rift_id=data["rift_id"],
+            rift_name=data["rift_name"],
+            rift_level=data["rift_level"],
+            required_level=data["required_level"],
+            exp_reward_min=data["exp_reward_min"],
+            exp_reward_max=data["exp_reward_max"],
+            gold_reward_min=data["gold_reward_min"],
+            gold_reward_max=data["gold_reward_max"],
+            description=data.get("description", "")
         )
+    
+    def _to_dict(self, rift: Rift) -> Dict[str, Any]:
+        """转换为字典数据"""
+        return {
+            "rift_id": rift.rift_id,
+            "rift_name": rift.rift_name,
+            "rift_level": rift.rift_level,
+            "required_level": rift.required_level,
+            "exp_reward_min": rift.exp_reward_min,
+            "exp_reward_max": rift.exp_reward_max,
+            "gold_reward_min": rift.gold_reward_min,
+            "gold_reward_max": rift.gold_reward_max,
+            "description": rift.description
+        }

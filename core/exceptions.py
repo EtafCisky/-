@@ -117,3 +117,37 @@ class ConfigurationException(XiuxianException):
     """配置异常"""
     def __init__(self, message: str):
         super().__init__(f"配置错误: {message}")
+
+
+# ============================================================================
+# 存储层异常
+# ============================================================================
+
+class StorageException(XiuxianException):
+    """存储层异常基类"""
+    def __init__(self, message: str):
+        super().__init__(f"存储错误: {message}")
+
+
+class FileReadException(StorageException):
+    """文件读取异常"""
+    def __init__(self, message: str):
+        super().__init__(f"文件读取失败: {message}")
+
+
+class FileWriteException(StorageException):
+    """文件写入异常"""
+    def __init__(self, message: str):
+        super().__init__(f"文件写入失败: {message}")
+
+
+class FileLockException(StorageException):
+    """文件锁异常"""
+    def __init__(self, message: str):
+        super().__init__(f"文件锁错误: {message}")
+
+
+class DataValidationException(StorageException):
+    """数据验证异常"""
+    def __init__(self, message: str):
+        super().__init__(f"数据验证失败: {message}")

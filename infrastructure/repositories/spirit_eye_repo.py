@@ -1,52 +1,74 @@
 """天地灵眼仓储"""
-from typing import Optional, List
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from typing import Optional, List, Dict, Any
 
-from ..database.schema import SpiritEyeTable
+from .base import BaseRepository
+from ..storage import JSONStorage, TimestampConverter
 from ...domain.models.spirit_eye import SpiritEye
 
 
-class SpiritEyeRepository:
+class SpiritEyeRepository(BaseRepository[SpiritEye]):
     """天地灵眼仓储"""
     
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self, storage: JSONStorage):
+        """
+        初始化天地灵眼仓储
+        
+        Args:
+            storage: JSON存储管理器
+        """
+        super().__init__(storage, "spirit_eyes.json")
+    
+    def get_by_id(self, eye_id: str) -> Optional[SpiritEye]:
+        """根据ID获取灵眼"""
+        return self.get_spirit_eye(int(eye_id))
+    
+    def save(self, entity: SpiritEye) -> None:
+        """保存灵眼"""
+        eye_dict = self._to_dict(entity)
+        self.storage.set(self.filename, str(entity.eye_id), eye_dict)
+    
+    def delete(self, eye_id: str) -> None:
+        """删除灵眼"""
+        self.storage.delete(self.filename, eye_id)
+    
+    def exists(self, eye_id: str) -> bool:
+        """检查灵眼是否存在"""
+        return self.storage.exists(self.filename, eye_id)
     
     def get_spirit_eye(self, eye_id: int) -> Optional[SpiritEye]:
         """获取灵眼"""
-        row = self.session.query(SpiritEyeTable).filter(
-            SpiritEyeTable.eye_id == eye_id
-        ).first()
+        data = self.storage.get(self.filename, str(eye_id))
         
-        if not row:
+        if not data:
             return None
         
-        return self._to_domain(row)
+        return self._to_domain(data)
     
     def get_user_spirit_eye(self, user_id: str) -> Optional[SpiritEye]:
         """获取用户占领的灵眼"""
-        row = self.session.query(SpiritEyeTable).filter(
-            SpiritEyeTable.owner_id == user_id
-        ).first()
+        results = self.storage.query(
+            self.filename,
+            filter_fn=lambda data: data.get("owner_id") == user_id
+        )
         
-        if not row:
+        if not results:
             return None
         
-        return self._to_domain(row)
+        return self._to_domain(results[0])
     
     def get_available_spirit_eyes(self) -> List[SpiritEye]:
         """获取所有可占领的灵眼"""
-        rows = self.session.query(SpiritEyeTable).filter(
-            SpiritEyeTable.owner_id.is_(None)
-        ).all()
+        results = self.storage.query(
+            self.filename,
+            filter_fn=lambda data: data.get("owner_id") is None
+        )
         
-        return [self._to_domain(row) for row in rows]
+        return [self._to_domain(data) for data in results]
     
     def get_all_spirit_eyes(self) -> List[SpiritEye]:
         """获取所有灵眼"""
-        rows = self.session.query(SpiritEyeTable).all()
-        return [self._to_domain(row) for row in rows]
+        results = self.storage.query(self.filename)
+        return [self._to_domain(data) for data in results]
     
     def create_spirit_eye(
         self,
@@ -56,22 +78,28 @@ class SpiritEyeRepository:
         spawn_time: int
     ) -> int:
         """创建灵眼"""
-        row = SpiritEyeTable(
-            eye_type=eye_type,
-            eye_name=eye_name,
-            exp_per_hour=exp_per_hour,
-            spawn_time=spawn_time,
-            owner_id=None,
-            owner_name=None,
-            claim_time=None,
-            last_collect_time=0
-        )
+        # 生成新的 eye_id
+        all_data = self.storage.load(self.filename)
+        if all_data:
+            max_id = max(int(eid) for eid in all_data.keys())
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        self.session.add(row)
-        self.session.commit()
-        self.session.refresh(row)
+        eye_data = {
+            "eye_id": new_id,
+            "eye_type": eye_type,
+            "eye_name": eye_name,
+            "exp_per_hour": exp_per_hour,
+            "spawn_time": TimestampConverter.to_iso8601(spawn_time),
+            "owner_id": None,
+            "owner_name": None,
+            "claim_time": None,
+            "last_collect_time": TimestampConverter.to_iso8601(0)
+        }
         
-        return row.eye_id
+        self.storage.set(self.filename, str(new_id), eye_data)
+        return new_id
     
     def claim_spirit_eye(
         self,
@@ -81,51 +109,65 @@ class SpiritEyeRepository:
         claim_time: int
     ) -> bool:
         """占领灵眼（原子操作）"""
-        # 使用乐观锁确保原子性
-        result = self.session.query(SpiritEyeTable).filter(
-            and_(
-                SpiritEyeTable.eye_id == eye_id,
-                SpiritEyeTable.owner_id.is_(None)
-            )
-        ).update({
-            'owner_id': user_id,
-            'owner_name': user_name,
-            'claim_time': claim_time,
-            'last_collect_time': claim_time
-        })
+        data = self.storage.get(self.filename, str(eye_id))
         
-        self.session.commit()
-        return result > 0
+        if not data or data.get("owner_id") is not None:
+            return False
+        
+        data["owner_id"] = user_id
+        data["owner_name"] = user_name
+        data["claim_time"] = TimestampConverter.to_iso8601(claim_time)
+        data["last_collect_time"] = TimestampConverter.to_iso8601(claim_time)
+        
+        self.storage.set(self.filename, str(eye_id), data)
+        return True
     
     def release_spirit_eye(self, eye_id: int):
         """释放灵眼"""
-        self.session.query(SpiritEyeTable).filter(
-            SpiritEyeTable.eye_id == eye_id
-        ).update({
-            'owner_id': None,
-            'owner_name': None,
-            'claim_time': None,
-            'last_collect_time': 0
-        })
-        self.session.commit()
+        data = self.storage.get(self.filename, str(eye_id))
+        if not data:
+            return
+        
+        data["owner_id"] = None
+        data["owner_name"] = None
+        data["claim_time"] = None
+        data["last_collect_time"] = TimestampConverter.to_iso8601(0)
+        
+        self.storage.set(self.filename, str(eye_id), data)
     
     def update_collect_time(self, eye_id: int, collect_time: int):
         """更新收取时间"""
-        self.session.query(SpiritEyeTable).filter(
-            SpiritEyeTable.eye_id == eye_id
-        ).update({'last_collect_time': collect_time})
-        self.session.commit()
+        data = self.storage.get(self.filename, str(eye_id))
+        if not data:
+            return
+        
+        data["last_collect_time"] = TimestampConverter.to_iso8601(collect_time)
+        self.storage.set(self.filename, str(eye_id), data)
     
-    def _to_domain(self, row: SpiritEyeTable) -> SpiritEye:
+    def _to_domain(self, data: Dict[str, Any]) -> SpiritEye:
         """转换为领域模型"""
         return SpiritEye(
-            eye_id=row.eye_id,
-            eye_type=row.eye_type,
-            eye_name=row.eye_name,
-            exp_per_hour=row.exp_per_hour,
-            spawn_time=row.spawn_time,
-            owner_id=row.owner_id,
-            owner_name=row.owner_name,
-            claim_time=row.claim_time,
-            last_collect_time=row.last_collect_time
+            eye_id=data["eye_id"],
+            eye_type=data["eye_type"],
+            eye_name=data["eye_name"],
+            exp_per_hour=data["exp_per_hour"],
+            spawn_time=TimestampConverter.from_iso8601(data["spawn_time"]),
+            owner_id=data.get("owner_id"),
+            owner_name=data.get("owner_name"),
+            claim_time=TimestampConverter.from_iso8601(data.get("claim_time")) if data.get("claim_time") else None,
+            last_collect_time=TimestampConverter.from_iso8601(data["last_collect_time"])
         )
+    
+    def _to_dict(self, eye: SpiritEye) -> Dict[str, Any]:
+        """转换为字典数据"""
+        return {
+            "eye_id": eye.eye_id,
+            "eye_type": eye.eye_type,
+            "eye_name": eye.eye_name,
+            "exp_per_hour": eye.exp_per_hour,
+            "spawn_time": TimestampConverter.to_iso8601(eye.spawn_time),
+            "owner_id": eye.owner_id,
+            "owner_name": eye.owner_name,
+            "claim_time": TimestampConverter.to_iso8601(eye.claim_time) if eye.claim_time else None,
+            "last_collect_time": TimestampConverter.to_iso8601(eye.last_collect_time)
+        }

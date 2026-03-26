@@ -1,19 +1,24 @@
 """玩家仓储"""
-from typing import Optional, List
-from sqlalchemy.orm import Session
-from sqlalchemy import select
+import json
+from typing import Optional, List, Dict, Any
 
 from ...domain.models.player import Player
 from ...domain.enums import CultivationType, PlayerState
-from ..database.schema import PlayerTable
+from ..storage import JSONStorage, TimestampConverter
 from .base import BaseRepository
 
 
 class PlayerRepository(BaseRepository[Player]):
     """玩家仓储实现"""
     
-    def __init__(self, session: Session):
-        super().__init__(session)
+    def __init__(self, storage: JSONStorage):
+        """
+        初始化玩家仓储
+        
+        Args:
+            storage: JSON 存储管理器
+        """
+        super().__init__(storage, "players.json")
     
     def get_by_id(self, user_id: str) -> Optional[Player]:
         """
@@ -25,13 +30,10 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             玩家对象，不存在则返回None
         """
-        stmt = select(PlayerTable).where(PlayerTable.user_id == user_id)
-        result = self.session.execute(stmt).scalar_one_or_none()
-        
-        if result is None:
+        data = self.storage.get(self.filename, user_id)
+        if data is None:
             return None
-        
-        return self._to_domain(result)
+        return self._to_domain(data)
     
     def get_by_nickname(self, nickname: str) -> Optional[Player]:
         """
@@ -43,13 +45,17 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             玩家对象，不存在则返回None
         """
-        stmt = select(PlayerTable).where(PlayerTable.nickname == nickname)
-        result = self.session.execute(stmt).scalar_one_or_none()
+        # 查询所有玩家，找到匹配的道号
+        results = self.storage.query(
+            self.filename,
+            filter_fn=lambda x: x.get('nickname') == nickname,
+            limit=1
+        )
         
-        if result is None:
+        if not results:
             return None
         
-        return self._to_domain(result)
+        return self._to_domain(results[0])
     
     def save(self, player: Player) -> None:
         """
@@ -58,18 +64,8 @@ class PlayerRepository(BaseRepository[Player]):
         Args:
             player: 玩家对象
         """
-        # 检查是否已存在
-        existing = self.session.get(PlayerTable, player.user_id)
-        
-        if existing:
-            # 更新
-            self._update_from_domain(existing, player)
-        else:
-            # 创建
-            table_obj = self._to_table(player)
-            self.session.add(table_obj)
-        
-        self.session.flush()
+        data = self._to_dict(player)
+        self.storage.set(self.filename, player.user_id, data)
     
     def delete(self, user_id: str) -> None:
         """
@@ -78,10 +74,7 @@ class PlayerRepository(BaseRepository[Player]):
         Args:
             user_id: 用户ID
         """
-        player = self.session.get(PlayerTable, user_id)
-        if player:
-            self.session.delete(player)
-            self.session.flush()
+        self.storage.delete(self.filename, user_id)
     
     def exists(self, user_id: str) -> bool:
         """
@@ -93,9 +86,7 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             是否存在
         """
-        stmt = select(PlayerTable.user_id).where(PlayerTable.user_id == user_id)
-        result = self.session.execute(stmt).scalar_one_or_none()
-        return result is not None
+        return self.storage.exists(self.filename, user_id)
     
     def get_top_by_level(self, limit: int = 10) -> List[Player]:
         """
@@ -107,13 +98,13 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             玩家列表
         """
-        stmt = (
-            select(PlayerTable)
-            .order_by(PlayerTable.level_index.desc(), PlayerTable.experience.desc())
-            .limit(limit)
+        results = self.storage.query(
+            self.filename,
+            sort_key=lambda x: (x['level_index'], x['experience']),
+            reverse=True,
+            limit=limit
         )
-        results = self.session.execute(stmt).scalars().all()
-        return [self._to_domain(r) for r in results]
+        return [self._to_domain(data) for data in results]
     
     def get_top_by_gold(self, limit: int = 10) -> List[Player]:
         """
@@ -125,13 +116,13 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             玩家列表
         """
-        stmt = (
-            select(PlayerTable)
-            .order_by(PlayerTable.gold.desc())
-            .limit(limit)
+        results = self.storage.query(
+            self.filename,
+            sort_key=lambda x: x['gold'],
+            reverse=True,
+            limit=limit
         )
-        results = self.session.execute(stmt).scalars().all()
-        return [self._to_domain(r) for r in results]
+        return [self._to_domain(data) for data in results]
     
     def get_player(self, user_id: str) -> Optional[Player]:
         """
@@ -163,8 +154,6 @@ class PlayerRepository(BaseRepository[Player]):
             player.consume_gold(-amount)
         
         self.save(player)
-        self.session.commit()
-        self.session.close()
     
     def add_experience(self, user_id: str, exp: int) -> None:
         """
@@ -180,8 +169,6 @@ class PlayerRepository(BaseRepository[Player]):
         
         player.add_experience(exp)
         self.save(player)
-        self.session.commit()
-        self.session.close()
     
     def get_player_state(self, user_id: str):
         """
@@ -204,113 +191,112 @@ class PlayerRepository(BaseRepository[Player]):
         Returns:
             玩家列表
         """
-        stmt = select(PlayerTable)
-        results = self.session.execute(stmt).scalars().all()
-        return [self._to_domain(r) for r in results]
+        results = self.storage.query(self.filename)
+        return [self._to_domain(data) for data in results]
     
-    def _to_domain(self, table_obj: PlayerTable) -> Player:
-        """将数据库对象转换为领域对象"""
-        import json
+    def _to_domain(self, data: Dict[str, Any]) -> Player:
+        """
+        将字典数据转换为领域对象
+        
+        Args:
+            data: 字典数据
+            
+        Returns:
+            Player 对象
+        """
+        # 转换时间戳
+        created_at = TimestampConverter.from_iso8601(data.get('created_at'))
+        updated_at = TimestampConverter.from_iso8601(data.get('updated_at'))
+        cultivation_start_time = TimestampConverter.from_iso8601(data.get('cultivation_start_time'))
+        
+        # 如果时间戳为 None，使用默认值
+        if created_at is None:
+            created_at = 0
+        if updated_at is None:
+            updated_at = 0
+        if cultivation_start_time is None:
+            cultivation_start_time = 0
         
         # 解析丹药背包
-        pills_inventory = {}
-        if table_obj.pills_inventory:
+        pills_inventory = data.get('pills_inventory', {})
+        if isinstance(pills_inventory, str):
             try:
-                pills_inventory = json.loads(table_obj.pills_inventory)
+                pills_inventory = json.loads(pills_inventory)
             except:
                 pills_inventory = {}
         
         return Player(
-            user_id=table_obj.user_id,
-            nickname=table_obj.nickname,
-            cultivation_type=CultivationType(table_obj.cultivation_type),
-            spiritual_root=table_obj.spiritual_root,
-            level_index=table_obj.level_index,
-            experience=table_obj.experience,
-            gold=table_obj.gold,
-            state=PlayerState.from_string(table_obj.state),
-            spiritual_qi=table_obj.mp,
-            max_spiritual_qi=table_obj.max_mp,
-            blood_qi=table_obj.hp,
-            max_blood_qi=table_obj.max_hp,
-            lifespan=table_obj.created_at,  # 临时映射
-            mental_power=table_obj.mental_power,
-            physical_damage=table_obj.physical_damage,
-            magic_damage=table_obj.magic_damage,
-            physical_defense=table_obj.physical_defense,
-            magic_defense=table_obj.magic_defense,
-            weapon=table_obj.equipped_weapon,
-            armor=table_obj.equipped_armor,
-            main_technique=table_obj.equipped_main_technique,
+            user_id=data['user_id'],
+            nickname=data['nickname'],
+            cultivation_type=CultivationType(data['cultivation_type']),
+            spiritual_root=data['spiritual_root'],
+            level_index=data.get('level_index', 0),
+            experience=data.get('experience', 0),
+            gold=data.get('gold', 0),
+            state=PlayerState.from_string(data.get('state', 'idle')),
+            spiritual_qi=data.get('spiritual_qi', 0),
+            max_spiritual_qi=data.get('max_spiritual_qi', 0),
+            blood_qi=data.get('blood_qi', 0),
+            max_blood_qi=data.get('max_blood_qi', 0),
+            lifespan=data.get('lifespan', 100),
+            mental_power=data.get('mental_power', 100),
+            physical_damage=data.get('physical_damage', 5),
+            magic_damage=data.get('magic_damage', 5),
+            physical_defense=data.get('physical_defense', 5),
+            magic_defense=data.get('magic_defense', 0),
+            weapon=data.get('weapon'),
+            armor=data.get('armor'),
+            main_technique=data.get('main_technique'),
             pills_inventory=pills_inventory,
-            sect_id=int(table_obj.sect_id) if table_obj.sect_id else None,
-            sect_position=int(table_obj.sect_position) if table_obj.sect_position else None,
-            level_up_rate=0,  # 需要从其他地方获取
-            created_at=table_obj.created_at,
-            updated_at=table_obj.updated_at,
-            last_check_in_date=None,  # 需要从时间戳转换
-            cultivation_start_time=table_obj.cultivation_start_time,
-            user_name=table_obj.nickname
+            sect_id=data.get('sect_id'),
+            sect_position=data.get('sect_position'),
+            level_up_rate=data.get('level_up_rate', 0),
+            created_at=created_at,
+            updated_at=updated_at,
+            last_check_in_date=data.get('last_check_in_date'),
+            cultivation_start_time=cultivation_start_time,
+            user_name=data.get('user_name')
         )
     
-    def _to_table(self, player: Player) -> PlayerTable:
-        """将领域对象转换为数据库对象"""
-        import json
+    def _to_dict(self, player: Player) -> Dict[str, Any]:
+        """
+        将领域对象转换为字典数据
         
-        return PlayerTable(
-            user_id=player.user_id,
-            nickname=player.nickname,
-            cultivation_type=player.cultivation_type.value,
-            spiritual_root=player.spiritual_root,
-            level_index=player.level_index,
-            experience=player.experience,
-            gold=player.gold,
-            state=player.state.value,
-            cultivation_start_time=player.cultivation_start_time,
-            hp=player.blood_qi,
-            max_hp=player.max_blood_qi,
-            mp=player.spiritual_qi,
-            max_mp=player.max_spiritual_qi,
-            physical_damage=player.physical_damage,
-            magic_damage=player.magic_damage,
-            physical_defense=player.physical_defense,
-            magic_defense=player.magic_defense,
-            mental_power=player.mental_power,
-            equipped_weapon=player.weapon,
-            equipped_armor=player.armor,
-            equipped_main_technique=player.main_technique,
-            pills_inventory=json.dumps(player.pills_inventory, ensure_ascii=False) if player.pills_inventory else None,
-            sect_id=str(player.sect_id) if player.sect_id else None,
-            sect_position=str(player.sect_position) if player.sect_position else None,
-            created_at=player.created_at,
-            updated_at=player.updated_at
-        )
-    
-    def _update_from_domain(self, table_obj: PlayerTable, player: Player) -> None:
-        """用领域对象更新数据库对象"""
-        import json
-        
-        table_obj.nickname = player.nickname
-        table_obj.cultivation_type = player.cultivation_type.value
-        table_obj.spiritual_root = player.spiritual_root
-        table_obj.level_index = player.level_index
-        table_obj.experience = player.experience
-        table_obj.gold = player.gold
-        table_obj.state = player.state.value
-        table_obj.cultivation_start_time = player.cultivation_start_time
-        table_obj.hp = player.blood_qi
-        table_obj.max_hp = player.max_blood_qi
-        table_obj.mp = player.spiritual_qi
-        table_obj.max_mp = player.max_spiritual_qi
-        table_obj.physical_damage = player.physical_damage
-        table_obj.magic_damage = player.magic_damage
-        table_obj.physical_defense = player.physical_defense
-        table_obj.magic_defense = player.magic_defense
-        table_obj.mental_power = player.mental_power
-        table_obj.equipped_weapon = player.weapon
-        table_obj.equipped_armor = player.armor
-        table_obj.equipped_main_technique = player.main_technique
-        table_obj.pills_inventory = json.dumps(player.pills_inventory, ensure_ascii=False) if player.pills_inventory else None
-        table_obj.sect_id = str(player.sect_id) if player.sect_id else None
-        table_obj.sect_position = str(player.sect_position) if player.sect_position else None
-        table_obj.updated_at = player.updated_at
+        Args:
+            player: Player 对象
+            
+        Returns:
+            字典数据
+        """
+        return {
+            'user_id': player.user_id,
+            'nickname': player.nickname,
+            'cultivation_type': player.cultivation_type.value,
+            'spiritual_root': player.spiritual_root,
+            'level_index': player.level_index,
+            'experience': player.experience,
+            'gold': player.gold,
+            'state': player.state.value,
+            'spiritual_qi': player.spiritual_qi,
+            'max_spiritual_qi': player.max_spiritual_qi,
+            'blood_qi': player.blood_qi,
+            'max_blood_qi': player.max_blood_qi,
+            'lifespan': player.lifespan,
+            'mental_power': player.mental_power,
+            'physical_damage': player.physical_damage,
+            'magic_damage': player.magic_damage,
+            'physical_defense': player.physical_defense,
+            'magic_defense': player.magic_defense,
+            'weapon': player.weapon,
+            'armor': player.armor,
+            'main_technique': player.main_technique,
+            'pills_inventory': player.pills_inventory,
+            'sect_id': player.sect_id,
+            'sect_position': player.sect_position,
+            'level_up_rate': player.level_up_rate,
+            'created_at': TimestampConverter.to_iso8601(player.created_at),
+            'updated_at': TimestampConverter.to_iso8601(player.updated_at),
+            'last_check_in_date': player.last_check_in_date,
+            'cultivation_start_time': TimestampConverter.to_iso8601(player.cultivation_start_time),
+            'user_name': player.user_name
+        }

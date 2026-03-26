@@ -44,13 +44,8 @@ class CultivationService:
         # 开始闭关
         player.start_cultivation()
         
-        # 保存玩家状态
-        try:
-            self.player_repo.save(player)
-            self.player_repo.session.commit()
-        except Exception as e:
-            self.player_repo.session.rollback()
-            raise
+        # 保存玩家状态（JSONStorage 自动处理原子写入）
+        self.player_repo.save(player)
     
     def end_cultivation(self, player: Player) -> CultivationResult:
         """
@@ -91,20 +86,15 @@ class CultivationService:
         # 更新玩家修为
         player.add_experience(gained_exp)
         
-        # 保存玩家状态
-        try:
-            self.player_repo.save(player)
-            self.player_repo.session.commit()
-            
-            return CultivationResult(
-                duration_minutes=duration_minutes,
-                gained_exp=gained_exp,
-                is_overtime=is_overtime,
-                max_minutes=max_minutes
-            )
-        except Exception as e:
-            self.player_repo.session.rollback()
-            raise
+        # 保存玩家状态（JSONStorage 自动处理原子写入）
+        self.player_repo.save(player)
+        
+        return CultivationResult(
+            duration_minutes=duration_minutes,
+            gained_exp=gained_exp,
+            is_overtime=is_overtime,
+            max_minutes=max_minutes
+        )
     
     def _get_max_cultivation_minutes(self, level_index: int) -> int:
         """

@@ -3,25 +3,24 @@
 
 处理商店数据的持久化。
 """
-import json
-from typing import Optional, Tuple, List, Dict
-from sqlalchemy.orm import Session
+from typing import Optional, Tuple, List, Dict, Any
 
 from ...domain.models.shop import Shop, ShopItem
-from ..database.schema import ShopTable
+from ..storage import JSONStorage, TimestampConverter
 
 
 class ShopRepository:
     """商店仓储"""
     
-    def __init__(self, session: Session):
+    def __init__(self, storage: JSONStorage):
         """
         初始化商店仓储
         
         Args:
-            session: 数据库会话
+            storage: JSON 存储管理器
         """
-        self.session = session
+        self.storage = storage
+        self.filename = "shops.json"
     
     def get_shop_data(self, shop_id: str) -> Tuple[int, List[Dict]]:
         """
@@ -33,17 +32,19 @@ class ShopRepository:
         Returns:
             (上次刷新时间, 商品列表)
         """
-        shop_record = self.session.query(ShopTable).filter_by(shop_id=shop_id).first()
+        data = self.storage.get(self.filename, shop_id)
         
-        if not shop_record:
+        if not data:
             return 0, []
         
-        try:
-            items = json.loads(shop_record.items_json) if shop_record.items_json else []
-        except json.JSONDecodeError:
-            items = []
+        # 转换时间戳
+        last_refresh_time = TimestampConverter.from_iso8601(data.get('last_refresh_time'))
+        if last_refresh_time is None:
+            last_refresh_time = 0
         
-        return shop_record.last_refresh_time, items
+        items = data.get('items', [])
+        
+        return last_refresh_time, items
     
     def update_shop_data(self, shop_id: str, last_refresh_time: int, items: List[Dict]) -> None:
         """
@@ -54,22 +55,13 @@ class ShopRepository:
             last_refresh_time: 刷新时间
             items: 商品列表
         """
-        shop_record = self.session.query(ShopTable).filter_by(shop_id=shop_id).first()
+        data = {
+            'shop_id': shop_id,
+            'last_refresh_time': TimestampConverter.to_iso8601(last_refresh_time),
+            'items': items
+        }
         
-        items_json = json.dumps(items, ensure_ascii=False)
-        
-        if shop_record:
-            shop_record.last_refresh_time = last_refresh_time
-            shop_record.items_json = items_json
-        else:
-            shop_record = ShopTable(
-                shop_id=shop_id,
-                last_refresh_time=last_refresh_time,
-                items_json=items_json
-            )
-            self.session.add(shop_record)
-        
-        self.session.commit()
+        self.storage.set(self.filename, shop_id, data)
     
     def decrement_item_stock(
         self, 

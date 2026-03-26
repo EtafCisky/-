@@ -1,178 +1,229 @@
 """银行仓储"""
-from typing import Optional, List
-from sqlalchemy.orm import Session
-import time
+from typing import Optional, List, Dict, Any
 
-from ..database.schema import BankAccountTable, LoanTable, BankTransactionTable
+from .base import BaseRepository
+from ..storage import JSONStorage, TimestampConverter
 from ...domain.models.bank import BankAccount, Loan, BankTransaction
 
 
-class BankRepository:
+class BankRepository(BaseRepository[BankAccount]):
     """银行仓储"""
     
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self, storage: JSONStorage):
+        """
+        初始化银行仓储
+        
+        Args:
+            storage: JSON存储管理器
+        """
+        super().__init__(storage, "bank_accounts.json")
+        self.loans_filename = "loans.json"
+        self.transactions_filename = "bank_transactions.json"
+    
+    def get_by_id(self, user_id: str) -> Optional[BankAccount]:
+        """根据用户ID获取银行账户"""
+        return self.get_bank_account(user_id)
+    
+    def save(self, entity: BankAccount) -> None:
+        """保存银行账户"""
+        account_dict = self._to_dict(entity)
+        self.storage.set(self.filename, entity.user_id, account_dict)
+    
+    def delete(self, user_id: str) -> None:
+        """删除银行账户"""
+        self.storage.delete(self.filename, user_id)
+    
+    def exists(self, user_id: str) -> bool:
+        """检查银行账户是否存在"""
+        return self.storage.exists(self.filename, user_id)
     
     # ===== 银行账户相关 =====
     
     def get_bank_account(self, user_id: str) -> Optional[BankAccount]:
         """获取银行账户"""
-        row = self.session.query(BankAccountTable).filter(
-            BankAccountTable.user_id == user_id
-        ).first()
+        data = self.storage.get(self.filename, user_id)
         
-        if not row:
+        if not data:
             return None
         
         return BankAccount(
-            user_id=row.user_id,
-            balance=row.balance,
-            last_interest_time=row.last_interest_time
+            user_id=data["user_id"],
+            balance=data["balance"],
+            last_interest_time=TimestampConverter.from_iso8601(data["last_interest_time"])
         )
     
     def create_or_update_bank_account(self, user_id: str, balance: int, last_interest_time: int):
         """创建或更新银行账户"""
-        row = self.session.query(BankAccountTable).filter(
-            BankAccountTable.user_id == user_id
-        ).first()
-        
-        if row:
-            row.balance = balance
-            row.last_interest_time = last_interest_time
-        else:
-            row = BankAccountTable(
-                user_id=user_id,
-                balance=balance,
-                last_interest_time=last_interest_time
-            )
-            self.session.add(row)
-        
-        self.session.commit()
+        account_data = {
+            "user_id": user_id,
+            "balance": balance,
+            "last_interest_time": TimestampConverter.to_iso8601(last_interest_time)
+        }
+        self.storage.set(self.filename, user_id, account_data)
     
     # ===== 贷款相关 =====
     
     def get_active_loan(self, user_id: str) -> Optional[Loan]:
         """获取进行中的贷款"""
-        row = self.session.query(LoanTable).filter(
-            LoanTable.user_id == user_id,
-            LoanTable.status == 1
-        ).first()
+        results = self.storage.query(
+            self.loans_filename,
+            filter_fn=lambda data: data.get("user_id") == user_id and data.get("status") == 1
+        )
         
-        if not row:
+        if not results:
             return None
         
-        return self._loan_to_domain(row)
+        return self._loan_to_domain(results[0])
     
     def create_loan(self, user_id: str, principal: int, interest_rate: float,
                     borrowed_at: int, due_at: int, loan_type: str) -> int:
         """创建贷款"""
-        row = LoanTable(
-            user_id=user_id,
-            principal=principal,
-            interest_rate=interest_rate,
-            borrowed_at=borrowed_at,
-            due_at=due_at,
-            loan_type=loan_type,
-            status=1
-        )
+        # 生成新的贷款ID
+        all_loans = self.storage.load(self.loans_filename)
+        if all_loans:
+            max_id = max(int(lid) for lid in all_loans.keys())
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        self.session.add(row)
-        self.session.commit()
-        self.session.refresh(row)
+        loan_data = {
+            "id": new_id,
+            "user_id": user_id,
+            "principal": principal,
+            "interest_rate": interest_rate,
+            "borrowed_at": TimestampConverter.to_iso8601(borrowed_at),
+            "due_at": TimestampConverter.to_iso8601(due_at),
+            "loan_type": loan_type,
+            "status": 1
+        }
         
-        return row.id
+        self.storage.set(self.loans_filename, str(new_id), loan_data)
+        return new_id
     
     def close_loan(self, loan_id: int):
         """关闭贷款（还清）"""
-        self.session.query(LoanTable).filter(
-            LoanTable.id == loan_id
-        ).update({
-            "status": 2
-        })
-        self.session.commit()
+        data = self.storage.get(self.loans_filename, str(loan_id))
+        if data:
+            data["status"] = 2
+            self.storage.set(self.loans_filename, str(loan_id), data)
     
     def mark_loan_overdue(self, loan_id: int):
         """标记贷款逾期"""
-        self.session.query(LoanTable).filter(
-            LoanTable.id == loan_id
-        ).update({
-            "status": 3
-        })
-        self.session.commit()
+        data = self.storage.get(self.loans_filename, str(loan_id))
+        if data:
+            data["status"] = 3
+            self.storage.set(self.loans_filename, str(loan_id), data)
     
     def get_overdue_loans(self, current_time: int) -> List[Loan]:
         """获取所有逾期贷款"""
-        rows = self.session.query(LoanTable).filter(
-            LoanTable.status == 1,
-            LoanTable.due_at < current_time
-        ).all()
+        current_time_iso = TimestampConverter.to_iso8601(current_time)
         
-        return [self._loan_to_domain(row) for row in rows]
+        results = self.storage.query(
+            self.loans_filename,
+            filter_fn=lambda data: (
+                data.get("status") == 1 and 
+                data.get("due_at") and 
+                data.get("due_at") < current_time_iso
+            )
+        )
+        
+        return [self._loan_to_domain(data) for data in results]
     
     # ===== 交易记录相关 =====
     
     def add_transaction(self, user_id: str, trans_type: str, amount: int,
                        balance_after: int, description: str, created_at: int):
         """添加交易记录"""
-        row = BankTransactionTable(
-            user_id=user_id,
-            trans_type=trans_type,
-            amount=amount,
-            balance_after=balance_after,
-            description=description,
-            created_at=created_at
-        )
+        # 生成新的交易ID
+        all_transactions = self.storage.load(self.transactions_filename)
+        if all_transactions:
+            max_id = max(int(tid) for tid in all_transactions.keys())
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        self.session.add(row)
-        self.session.commit()
+        transaction_data = {
+            "id": new_id,
+            "user_id": user_id,
+            "trans_type": trans_type,
+            "amount": amount,
+            "balance_after": balance_after,
+            "description": description,
+            "created_at": TimestampConverter.to_iso8601(created_at)
+        }
+        
+        self.storage.set(self.transactions_filename, str(new_id), transaction_data)
     
     def get_transactions(self, user_id: str, limit: int = 20) -> List[BankTransaction]:
         """获取交易记录"""
-        rows = self.session.query(BankTransactionTable).filter(
-            BankTransactionTable.user_id == user_id
-        ).order_by(BankTransactionTable.created_at.desc()).limit(limit).all()
+        results = self.storage.query(
+            self.transactions_filename,
+            filter_fn=lambda data: data.get("user_id") == user_id,
+            sort_key=lambda data: data.get("created_at", ""),
+            reverse=True,
+            limit=limit
+        )
         
-        return [self._transaction_to_domain(row) for row in rows]
+        return [self._transaction_to_domain(data) for data in results]
     
     # ===== 排行榜相关 =====
     
     def get_deposit_ranking(self, limit: int = 10) -> List[dict]:
         """获取存款排行榜"""
-        rows = self.session.query(BankAccountTable).order_by(
-            BankAccountTable.balance.desc()
-        ).limit(limit).all()
+        results = self.storage.query(
+            self.filename,
+            sort_key=lambda data: data.get("balance", 0),
+            reverse=True,
+            limit=limit
+        )
         
         return [
             {
-                "user_id": row.user_id,
-                "balance": row.balance
+                "user_id": data["user_id"],
+                "balance": data["balance"]
             }
-            for row in rows
+            for data in results
         ]
     
     # ===== 辅助方法 =====
     
-    def _loan_to_domain(self, row: LoanTable) -> Loan:
+    def _to_domain(self, data: Dict[str, Any]) -> BankAccount:
         """转换为领域模型"""
-        return Loan(
-            id=row.id,
-            user_id=row.user_id,
-            principal=row.principal,
-            interest_rate=row.interest_rate,
-            borrowed_at=row.borrowed_at,
-            due_at=row.due_at,
-            loan_type=row.loan_type,
-            status=row.status
+        return BankAccount(
+            user_id=data["user_id"],
+            balance=data["balance"],
+            last_interest_time=TimestampConverter.from_iso8601(data["last_interest_time"])
         )
     
-    def _transaction_to_domain(self, row: BankTransactionTable) -> BankTransaction:
+    def _to_dict(self, account: BankAccount) -> Dict[str, Any]:
+        """转换为字典数据"""
+        return {
+            "user_id": account.user_id,
+            "balance": account.balance,
+            "last_interest_time": TimestampConverter.to_iso8601(account.last_interest_time)
+        }
+    
+    def _loan_to_domain(self, data: Dict[str, Any]) -> Loan:
+        """转换为领域模型"""
+        return Loan(
+            id=data["id"],
+            user_id=data["user_id"],
+            principal=data["principal"],
+            interest_rate=data["interest_rate"],
+            borrowed_at=TimestampConverter.from_iso8601(data["borrowed_at"]),
+            due_at=TimestampConverter.from_iso8601(data["due_at"]),
+            loan_type=data["loan_type"],
+            status=data["status"]
+        )
+    
+    def _transaction_to_domain(self, data: Dict[str, Any]) -> BankTransaction:
         """转换为领域模型"""
         return BankTransaction(
-            id=row.id,
-            user_id=row.user_id,
-            trans_type=row.trans_type,
-            amount=row.amount,
-            balance_after=row.balance_after,
-            description=row.description,
-            created_at=row.created_at
+            id=data["id"],
+            user_id=data["user_id"],
+            trans_type=data["trans_type"],
+            amount=data["amount"],
+            balance_after=data["balance_after"],
+            description=data["description"],
+            created_at=TimestampConverter.from_iso8601(data["created_at"])
         )

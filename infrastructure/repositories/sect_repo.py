@@ -3,25 +3,25 @@
 
 处理宗门数据的持久化。
 """
-from typing import Optional, List, Tuple
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from typing import Optional, List, Dict, Any
 
 from ...domain.models.sect import Sect, SectMember, SectPosition
-from ..database.schema import SectTable, PlayerTable
+from ..storage import JSONStorage, TimestampConverter
 
 
 class SectRepository:
     """宗门仓储"""
     
-    def __init__(self, session: Session):
+    def __init__(self, storage: JSONStorage):
         """
         初始化宗门仓储
         
         Args:
-            session: 数据库会话
+            storage: JSON 存储管理器
         """
-        self.session = session
+        self.storage = storage
+        self.filename = "sects.json"
+        self.players_filename = "players.json"
     
     def get_by_id(self, sect_id: int) -> Optional[Sect]:
         """
@@ -33,21 +33,10 @@ class SectRepository:
         Returns:
             宗门对象，如果不存在则返回None
         """
-        sect_record = self.session.query(SectTable).filter_by(sect_id=sect_id).first()
-        
-        if not sect_record:
+        data = self.storage.get(self.filename, str(sect_id))
+        if data is None:
             return None
-        
-        return Sect(
-            sect_id=sect_record.sect_id,
-            name=sect_record.name,
-            leader_id=sect_record.leader_id,
-            scale=sect_record.level,  # 使用level字段存储建设度
-            funds=sect_record.funds,
-            materials=sect_record.experience,  # 使用experience字段存储资材
-            elixir_room_level=0,  # 暂时固定为0
-            created_at=sect_record.created_at
-        )
+        return self._to_domain(data)
     
     def get_sect(self, sect_id: int) -> Optional[Sect]:
         """
@@ -71,21 +60,16 @@ class SectRepository:
         Returns:
             宗门对象，如果不存在则返回None
         """
-        sect_record = self.session.query(SectTable).filter_by(name=name).first()
+        results = self.storage.query(
+            self.filename,
+            filter_fn=lambda x: x.get('name') == name,
+            limit=1
+        )
         
-        if not sect_record:
+        if not results:
             return None
         
-        return Sect(
-            sect_id=sect_record.sect_id,
-            name=sect_record.name,
-            leader_id=sect_record.leader_id,
-            scale=sect_record.level,
-            funds=sect_record.funds,
-            materials=sect_record.experience,
-            elixir_room_level=0,
-            created_at=sect_record.created_at
-        )
+        return self._to_domain(results[0])
     
     def create(self, sect: Sect) -> int:
         """
@@ -98,22 +82,19 @@ class SectRepository:
             宗门ID
         """
         # 生成新的宗门ID
-        max_id = self.session.query(func.max(SectTable.sect_id)).scalar() or 0
-        new_id = max_id + 1
+        all_sects = self.storage.query(self.filename)
+        if all_sects:
+            max_id = max(int(s.get('sect_id', 0)) for s in all_sects)
+            new_id = max_id + 1
+        else:
+            new_id = 1
         
-        sect_record = SectTable(
-            sect_id=new_id,
-            name=sect.name,
-            leader_id=sect.leader_id,
-            level=sect.scale,
-            experience=sect.materials,
-            funds=sect.funds,
-            max_members=50,
-            created_at=sect.created_at
-        )
+        # 设置新ID
+        sect.sect_id = new_id
         
-        self.session.add(sect_record)
-        self.session.commit()
+        # 保存
+        data = self._to_dict(sect)
+        self.storage.set(self.filename, str(new_id), data)
         
         return new_id
     
@@ -124,16 +105,8 @@ class SectRepository:
         Args:
             sect: 宗门对象
         """
-        sect_record = self.session.query(SectTable).filter_by(sect_id=sect.sect_id).first()
-        
-        if sect_record:
-            sect_record.name = sect.name
-            sect_record.leader_id = sect.leader_id
-            sect_record.level = sect.scale
-            sect_record.experience = sect.materials
-            sect_record.funds = sect.funds
-            
-            self.session.commit()
+        data = self._to_dict(sect)
+        self.storage.set(self.filename, str(sect.sect_id), data)
     
     def delete(self, sect_id: int) -> None:
         """
@@ -142,8 +115,7 @@ class SectRepository:
         Args:
             sect_id: 宗门ID
         """
-        self.session.query(SectTable).filter_by(sect_id=sect_id).delete()
-        self.session.commit()
+        self.storage.delete(self.filename, str(sect_id))
     
     def get_all(self, limit: int = 100) -> List[Sect]:
         """
@@ -155,24 +127,14 @@ class SectRepository:
         Returns:
             宗门列表
         """
-        sect_records = self.session.query(SectTable).order_by(
-            SectTable.level.desc()
-        ).limit(limit).all()
+        results = self.storage.query(
+            self.filename,
+            sort_key=lambda x: x.get('scale', 0),
+            reverse=True,
+            limit=limit
+        )
         
-        sects = []
-        for record in sect_records:
-            sects.append(Sect(
-                sect_id=record.sect_id,
-                name=record.name,
-                leader_id=record.leader_id,
-                scale=record.level,
-                funds=record.funds,
-                materials=record.experience,
-                elixir_room_level=0,
-                created_at=record.created_at
-            ))
-        
-        return sects
+        return [self._to_domain(data) for data in results]
     
     def get_all_sects(self, limit: int = 100) -> List[Sect]:
         """
@@ -196,25 +158,24 @@ class SectRepository:
         Returns:
             成员列表
         """
-        # 将sect_id转换为字符串进行比较
-        members = self.session.query(PlayerTable).filter(
-            PlayerTable.sect_id == str(sect_id)
-        ).all()
+        # 查询所有玩家，找到属于该宗门的成员
+        all_players = self.storage.query(
+            self.players_filename,
+            filter_fn=lambda x: x.get('sect_id') == sect_id
+        )
         
         result = []
-        for member in members:
-            # 将字符串职位转换为整数
-            try:
-                position_value = int(member.sect_position) if member.sect_position else 4
-            except (ValueError, TypeError):
+        for player_data in all_players:
+            position_value = player_data.get('sect_position', 4)
+            if position_value is None:
                 position_value = 4
             
             result.append(SectMember(
-                user_id=member.user_id,
-                user_name=member.nickname or member.user_id,
+                user_id=player_data['user_id'],
+                user_name=player_data.get('nickname', player_data['user_id']),
                 position=SectPosition(position_value),
                 contribution=0,  # 暂时固定为0，后续可以从player表读取
-                level_index=member.level_index
+                level_index=player_data.get('level_index', 0)
             ))
         
         return result
@@ -241,9 +202,11 @@ class SectRepository:
         Returns:
             成员数量
         """
-        return self.session.query(PlayerTable).filter(
-            PlayerTable.sect_id == str(sect_id)
-        ).count()
+        members = self.storage.query(
+            self.players_filename,
+            filter_fn=lambda x: x.get('sect_id') == sect_id
+        )
+        return len(members)
     
     def update_player_sect(
         self, 
@@ -259,9 +222,61 @@ class SectRepository:
             sect_id: 宗门ID（0表示无宗门）
             position: 职位
         """
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
+        player_data = self.storage.get(self.players_filename, user_id)
         
-        if player:
-            player.sect_id = str(sect_id) if sect_id > 0 else None
-            player.sect_position = str(position.value) if sect_id > 0 else None
-            self.session.commit()
+        if player_data:
+            if sect_id > 0:
+                player_data['sect_id'] = sect_id
+                player_data['sect_position'] = position.value
+            else:
+                player_data['sect_id'] = None
+                player_data['sect_position'] = None
+            
+            self.storage.set(self.players_filename, user_id, player_data)
+    
+    def _to_domain(self, data: Dict[str, Any]) -> Sect:
+        """
+        将字典数据转换为领域对象
+        
+        Args:
+            data: 字典数据
+            
+        Returns:
+            Sect 对象
+        """
+        # 转换时间戳
+        created_at = TimestampConverter.from_iso8601(data.get('created_at'))
+        if created_at is None:
+            created_at = 0
+        
+        return Sect(
+            sect_id=data['sect_id'],
+            name=data['name'],
+            leader_id=data['leader_id'],
+            scale=data.get('scale', 0),
+            funds=data.get('funds', 0),
+            materials=data.get('materials', 0),
+            elixir_room_level=data.get('elixir_room_level', 0),
+            created_at=created_at
+        )
+    
+    def _to_dict(self, sect: Sect) -> Dict[str, Any]:
+        """
+        将领域对象转换为字典数据
+        
+        Args:
+            sect: Sect 对象
+            
+        Returns:
+            字典数据
+        """
+        return {
+            'sect_id': sect.sect_id,
+            'name': sect.name,
+            'leader_id': sect.leader_id,
+            'scale': sect.scale,
+            'funds': sect.funds,
+            'materials': sect.materials,
+            'elixir_room_level': sect.elixir_room_level,
+            'created_at': TimestampConverter.to_iso8601(sect.created_at)
+        }

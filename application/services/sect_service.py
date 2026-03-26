@@ -541,10 +541,12 @@ class SectService:
         
         try:
             from ...infrastructure.repositories.system_config_repo import SystemConfigRepository
-            from ...core.container import Container
+            from ...infrastructure.storage.json_storage import JSONStorage
+            from pathlib import Path
             
-            temp_container = Container()
-            config_repo = SystemConfigRepository(temp_container.database().create_session())
+            # 创建临时的 JSONStorage（使用默认数据目录）
+            storage = JSONStorage(data_dir=Path("data"), enable_cache=True)
+            config_repo = SystemConfigRepository(storage)
             
             last_task_str = config_repo.get_config(cooldown_key)
             if last_task_str:

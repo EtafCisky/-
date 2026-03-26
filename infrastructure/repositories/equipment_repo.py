@@ -6,26 +6,25 @@
 import json
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-from sqlalchemy.orm import Session
 
 from .base import BaseRepository
-from ..database.schema import PlayerTable
+from ..storage import JSONStorage
 from ...domain.models.equipment import Equipment, EquippedItems
 from ...domain.enums import ItemType, ItemRarity
 
 
-class EquipmentRepository(BaseRepository):
+class EquipmentRepository(BaseRepository[Equipment]):
     """装备仓储"""
     
-    def __init__(self, session: Session, config_dir: Path):
+    def __init__(self, storage: JSONStorage, config_dir: Path):
         """
         初始化装备仓储
         
         Args:
-            session: 数据库会话
+            storage: JSON存储管理器
             config_dir: 配置文件目录
         """
-        super().__init__(session)
+        super().__init__(storage, "equipped_items.json")
         self.config_dir = config_dir
         self._weapons_cache: Optional[Dict[str, Equipment]] = None
         self._items_cache: Optional[Dict[str, Equipment]] = None
@@ -46,6 +45,14 @@ class EquipmentRepository(BaseRepository):
     def exists(self, id: str) -> bool:
         """检查装备是否存在"""
         return self.get_equipment_by_id(id) is not None
+    
+    def _to_domain(self, data: Dict[str, Any]) -> Equipment:
+        """转换为领域模型（不使用）"""
+        raise NotImplementedError("装备数据从配置文件加载")
+    
+    def _to_dict(self, entity: Equipment) -> Dict[str, Any]:
+        """转换为字典数据（不使用）"""
+        raise NotImplementedError("装备数据从配置文件加载")
     
     def _load_weapons(self) -> Dict[str, Equipment]:
         """加载武器配置"""
@@ -194,33 +201,17 @@ class EquipmentRepository(BaseRepository):
         Returns:
             已装备物品对象，如果玩家不存在则返回None
         """
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        if not player:
+        data = self.storage.get(self.filename, user_id)
+        if not data:
             return None
         
         # 解析装备数据
         equipped_data = {
-            "weapon": None,
-            "armor": None,
-            "main_technique": None,
-            "techniques": [],
+            "weapon": data.get("weapon"),
+            "armor": data.get("armor"),
+            "main_technique": data.get("main_technique"),
+            "techniques": data.get("techniques", []),
         }
-        
-        if player.equipped_weapon:
-            weapon_data = json.loads(player.equipped_weapon)
-            equipped_data["weapon"] = weapon_data
-        
-        if player.equipped_armor:
-            armor_data = json.loads(player.equipped_armor)
-            equipped_data["armor"] = armor_data
-        
-        if player.equipped_main_technique:
-            main_technique_data = json.loads(player.equipped_main_technique)
-            equipped_data["main_technique"] = main_technique_data
-        
-        if player.equipped_techniques:
-            techniques_data = json.loads(player.equipped_techniques)
-            equipped_data["techniques"] = techniques_data
         
         return EquippedItems.from_dict(equipped_data)
     
@@ -235,28 +226,15 @@ class EquipmentRepository(BaseRepository):
         Returns:
             是否保存成功
         """
-        player = self.session.query(PlayerTable).filter_by(user_id=user_id).first()
-        if not player:
-            return False
+        equipped_data = {
+            "user_id": user_id,
+            "weapon": equipped_items.weapon.to_dict() if equipped_items.weapon else None,
+            "armor": equipped_items.armor.to_dict() if equipped_items.armor else None,
+            "main_technique": equipped_items.main_technique.to_dict() if equipped_items.main_technique else None,
+            "techniques": [t.to_dict() for t in equipped_items.techniques] if equipped_items.techniques else []
+        }
         
-        # 序列化装备数据
-        player.equipped_weapon = json.dumps(
-            equipped_items.weapon.to_dict(), ensure_ascii=False
-        ) if equipped_items.weapon else None
-        
-        player.equipped_armor = json.dumps(
-            equipped_items.armor.to_dict(), ensure_ascii=False
-        ) if equipped_items.armor else None
-        
-        player.equipped_main_technique = json.dumps(
-            equipped_items.main_technique.to_dict(), ensure_ascii=False
-        ) if equipped_items.main_technique else None
-        
-        player.equipped_techniques = json.dumps(
-            [t.to_dict() for t in equipped_items.techniques], ensure_ascii=False
-        ) if equipped_items.techniques else None
-        
-        self.session.commit()
+        self.storage.set(self.filename, user_id, equipped_data)
         return True
     
     def equip_item(self, user_id: str, equipment: Equipment, slot: str) -> bool:

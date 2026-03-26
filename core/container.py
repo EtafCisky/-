@@ -26,7 +26,7 @@ class Container:
         
         # 单例组件
         self._config_manager: Optional[ConfigManager] = config_manager
-        self._database = None
+        self._json_storage = None
         
         # 仓储层（每次创建新实例）
         # 将在后续实现
@@ -40,114 +40,123 @@ class Container:
             raise RuntimeError("配置管理器未初始化，请在创建 Container 时传入 config_manager 参数")
         return self._config_manager
     
-    def database(self):
-        """获取数据库连接（单例）"""
-        if self._database is None:
-            from ..infrastructure.database.connection import DatabaseConnection
+    def json_storage(self):
+        """获取 JSON 存储（单例）"""
+        if self._json_storage is None:
+            from ..infrastructure.storage.json_storage import JSONStorage
             
-            # 从配置管理器读取数据库路径
-            db_filename = self.config_manager().settings.database.path
+            # 从配置管理器获取 JSON 存储配置
+            config = self.config_manager()
+            json_config = config.settings.json_storage
             
-            # 如果有 data_dir，使用 data_dir 下的路径
+            # 如果有 data_dir，使用 data_dir 下的路径，否则使用配置中的路径
             if self.data_dir:
-                db_path = self.data_dir / db_filename
+                storage_dir = self.data_dir / json_config.data_dir
             else:
-                db_path = db_filename
+                storage_dir = Path(json_config.data_dir)
             
-            self._database = DatabaseConnection(str(db_path), echo=False)
-        return self._database
+            logger.info(f"【修仙V3】初始化 JSON 存储: {storage_dir}")
+            logger.info(f"【修仙V3】缓存启用: {json_config.enable_cache}, 锁超时: {json_config.lock_timeout}秒, 最大备份: {json_config.max_backups}")
+            
+            self._json_storage = JSONStorage(
+                data_dir=storage_dir,
+                enable_cache=json_config.enable_cache,
+                lock_timeout=json_config.lock_timeout,
+                max_backups=json_config.max_backups
+            )
+        return self._json_storage
     
     # 仓储层工厂方法
     def player_repository(self):
         """获取玩家仓储"""
         from ..infrastructure.repositories.player_repo import PlayerRepository
-        session = self.database().create_session()
-        return PlayerRepository(session)
+        storage = self.json_storage()
+        return PlayerRepository(storage)
     
     def combat_repository(self):
         """获取战斗仓储"""
         from ..infrastructure.repositories.combat_repo import CombatRepository
-        session = self.database().create_session()
-        return CombatRepository(session)
+        storage = self.json_storage()
+        return CombatRepository(storage)
     
     def storage_ring_repository(self):
         """获取储物戒仓储"""
         from ..infrastructure.repositories.storage_ring_repo import StorageRingRepository
-        session = self.database().create_session()
-        return StorageRingRepository(session)
+        storage = self.json_storage()
+        return StorageRingRepository(storage)
     
     def equipment_repository(self):
         """获取装备仓储"""
         from ..infrastructure.repositories.equipment_repo import EquipmentRepository
-        session = self.database().create_session()
+        storage = self.json_storage()
         config_dir = self.data_dir / "config" if self.data_dir else Path("config")
-        return EquipmentRepository(session, config_dir)
+        return EquipmentRepository(storage, config_dir)
     
     def shop_repository(self):
         """获取商店仓储"""
         from ..infrastructure.repositories.shop_repo import ShopRepository
-        session = self.database().create_session()
-        return ShopRepository(session)
+        storage = self.json_storage()
+        return ShopRepository(storage)
     
     def sect_repository(self):
         """获取宗门仓储"""
         from ..infrastructure.repositories.sect_repo import SectRepository
-        session = self.database().create_session()
-        return SectRepository(session)
+        storage = self.json_storage()
+        return SectRepository(storage)
     
     def rift_repository(self):
         """获取秘境仓储"""
         from ..infrastructure.repositories.rift_repo import RiftRepository
-        session = self.database().create_session()
-        return RiftRepository(session)
+        storage = self.json_storage()
+        return RiftRepository(storage)
     
     def boss_repository(self):
         """获取Boss仓储"""
         from ..infrastructure.repositories.boss_repo import BossRepository
-        session = self.database().create_session()
-        return BossRepository(session)
+        storage = self.json_storage()
+        return BossRepository(storage)
     
     def bounty_repository(self):
         """获取悬赏仓储"""
         from ..infrastructure.repositories.bounty_repo import BountyRepository
-        session = self.database().create_session()
-        return BountyRepository(session)
+        storage = self.json_storage()
+        return BountyRepository(storage)
     
     def bank_repository(self):
         """获取银行仓储"""
         from ..infrastructure.repositories.bank_repo import BankRepository
-        session = self.database().create_session()
-        return BankRepository(session)
+        storage = self.json_storage()
+        return BankRepository(storage)
     
     def blessed_land_repository(self):
         """获取洞天福地仓储"""
         from ..infrastructure.repositories.blessed_land_repo import BlessedLandRepository
-        session = self.database().create_session()
-        return BlessedLandRepository(session)
+        storage = self.json_storage()
+        return BlessedLandRepository(storage)
     
     def spirit_farm_repository(self):
         """获取灵田仓储"""
         from ..infrastructure.repositories.spirit_farm_repo import SpiritFarmRepository
-        session = self.database().create_session()
-        return SpiritFarmRepository(session)
+        storage = self.json_storage()
+        return SpiritFarmRepository(storage)
     
     def spirit_eye_repository(self):
         """获取天地灵眼仓储"""
         from ..infrastructure.repositories.spirit_eye_repo import SpiritEyeRepository
-        session = self.database().create_session()
-        return SpiritEyeRepository(session)
+        storage = self.json_storage()
+        return SpiritEyeRepository(storage)
     
     def dual_cultivation_repository(self):
         """获取双修仓储"""
         from ..infrastructure.repositories.dual_cultivation_repo import DualCultivationRepository
-        session = self.database().create_session()
-        return DualCultivationRepository(session)
+        storage = self.json_storage()
+        return DualCultivationRepository(storage)
     
     def impart_repository(self):
         """获取传承仓储"""
         from ..infrastructure.repositories.impart_repo import ImpartRepository
-        session = self.database().create_session()
-        return ImpartRepository(session)
+        storage = self.json_storage()
+        return ImpartRepository(storage)
     
     # 工具类工厂方法
     def spirit_root_generator(self):
@@ -349,12 +358,9 @@ class Container:
     
     def cleanup(self):
         """清理资源"""
-        if self._database:
-            # 关闭数据库连接
-            try:
-                self._database.close()
-                logger.info("【修仙V3】数据库连接已关闭")
-            except Exception as e:
-                logger.error(f"【修仙V3】关闭数据库连接失败: {e}")
-            finally:
-                self._database = None
+        # JSON 存储不需要显式关闭连接
+        # 清理缓存引用
+        if self._json_storage:
+            self._json_storage = None
+            logger.info("【修仙V3】JSON 存储已清理")
+
