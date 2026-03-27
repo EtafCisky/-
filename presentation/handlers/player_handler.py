@@ -330,7 +330,7 @@ class PlayerHandler:
             yield event.plain_result("❌ 系统错误：容器未初始化")
             return
         
-        config_manager = self.container.config_manager
+        config_manager = self.container.config_manager()
         admin_list = config_manager.settings.access_control.admins
         
         # 检查是否为管理员
