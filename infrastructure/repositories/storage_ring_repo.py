@@ -64,6 +64,21 @@ class StorageRingRepository:
         items = self.get_storage_ring_items(user_id)
         return items.get(item_name, 0)
     
+    def has_item(self, user_id: str, item_name: str, count: int = 1) -> bool:
+        """
+        检查是否拥有指定数量的物品
+        
+        Args:
+            user_id: 用户ID
+            item_name: 物品名称
+            count: 需要的数量
+            
+        Returns:
+            是否拥有足够数量的物品
+        """
+        current_count = self.get_item_count(user_id, item_name)
+        return current_count >= count
+    
     def add_item(self, user_id: str, item_name: str, count: int = 1) -> Tuple[bool, Optional[str]]:
         """
         添加物品到储物戒，自动检测功法残篇合成

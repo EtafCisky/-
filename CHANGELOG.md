@@ -1,5 +1,16 @@
 # 更新日志
 
+## [3.5.10] - 2026-03-27 (Bug修复)
+
+### 🐛 Bug修复
+
+**StorageRingRepository 缺失方法修复**
+
+- 修复 `StorageRingRepository` 缺少 `has_item()` 方法导致装备系统报错的问题
+- 添加 `has_item(user_id, item_name, count)` 方法，用于检查玩家是否拥有指定数量的物品
+- 修复了使用"装备"命令时出现 "'StorageRingRepository' object has no attribute 'has_item'" 错误
+- 该方法返回布尔值，表示玩家是否拥有足够数量的指定物品
+
 ## [3.5.9] - 2026-03-27 (历练掉落物品修复)
 
 ### 🐛 Bug修复
