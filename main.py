@@ -267,8 +267,8 @@ class XiuxianV3Plugin(Star):
                     rift_id=0,  # 会被自动分配
                     rift_name="幽暗森林",
                     rift_level=1,
-                    required_level=3,  # 筑基期（最低要求）
-                    recommended_level=5,  # 筑基末期（推荐境界，死亡率5%）
+                    required_level=3,  # 炼气期四层（最低要求）
+                    recommended_level=10,  # 筑基期初期（推荐境界，死亡率5%）
                     exp_reward_min=5000,
                     exp_reward_max=15000,
                     gold_reward_min=1000,
@@ -280,8 +280,8 @@ class XiuxianV3Plugin(Star):
                     rift_id=0,
                     rift_name="玄冰洞窟",
                     rift_level=2,
-                    required_level=6,  # 金丹期（最低要求）
-                    recommended_level=8,  # 金丹末期（推荐境界，死亡率5%）
+                    required_level=6,  # 炼气期七层（最低要求）
+                    recommended_level=13,  # 金丹期初期（推荐境界，死亡率5%）
                     exp_reward_min=20000,
                     exp_reward_max=50000,
                     gold_reward_min=5000,
@@ -293,8 +293,8 @@ class XiuxianV3Plugin(Star):
                     rift_id=0,
                     rift_name="天火禁地",
                     rift_level=3,
-                    required_level=9,  # 元婴期（最低要求）
-                    recommended_level=11,  # 元婴末期（推荐境界，死亡率5%）
+                    required_level=9,  # 炼气期十层（最低要求）
+                    recommended_level=16,  # 元婴期初期（推荐境界，死亡率5%）
                     exp_reward_min=80000,
                     exp_reward_max=150000,
                     gold_reward_min=15000,

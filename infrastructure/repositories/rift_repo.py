@@ -77,16 +77,31 @@ class RiftRepository(BaseRepository[Rift]):
     
     def _to_domain(self, data: Dict[str, Any]) -> Rift:
         """转换为领域模型"""
+        # 获取 required_level，如果缺失则默认为 0
+        required_level = data.get("required_level", 0)
+        
+        # 获取 recommended_level
+        # 如果缺失，根据秘境等级设置合理的默认推荐境界
+        if "recommended_level" not in data:
+            rift_level = data.get("rift_level", 1)
+            # 低级秘境推荐筑基期(10)，中级推荐金丹期(13)，高级推荐元婴期(16)
+            default_recommended = {1: 10, 2: 13, 3: 16}.get(rift_level, required_level + 7)
+            recommended_level = default_recommended
+        else:
+            recommended_level = data["recommended_level"]
+        
         return Rift(
             rift_id=data["rift_id"],
             rift_name=data["rift_name"],
             rift_level=data["rift_level"],
-            required_level=data["required_level"],
+            required_level=required_level,
+            recommended_level=recommended_level,
             exp_reward_min=data["exp_reward_min"],
             exp_reward_max=data["exp_reward_max"],
             gold_reward_min=data["gold_reward_min"],
             gold_reward_max=data["gold_reward_max"],
-            description=data.get("description", "")
+            description=data.get("description", ""),
+            bounty_tag=data.get("bounty_tag", "")
         )
     
     def _to_dict(self, rift: Rift) -> Dict[str, Any]:
@@ -96,9 +111,11 @@ class RiftRepository(BaseRepository[Rift]):
             "rift_name": rift.rift_name,
             "rift_level": rift.rift_level,
             "required_level": rift.required_level,
+            "recommended_level": rift.recommended_level,
             "exp_reward_min": rift.exp_reward_min,
             "exp_reward_max": rift.exp_reward_max,
             "gold_reward_min": rift.gold_reward_min,
             "gold_reward_max": rift.gold_reward_max,
-            "description": rift.description
+            "description": rift.description,
+            "bounty_tag": rift.bounty_tag
         }
