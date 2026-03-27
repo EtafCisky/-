@@ -20,6 +20,12 @@
         "type": "list",
         "default": [],
         "hint": "可以手动生成Boss的用户ID（字符串）。为空则不允许任何人手动生成Boss。"
+      },
+      "ADMINS": {
+        "description": "全局管理员名单",
+        "type": "list",
+        "default": [],
+        "hint": "拥有所有管理员权限的用户ID列表（字符串）。可以使用所有管理员命令，如生成Boss、增加灵石等。"
       }
     }
   },
