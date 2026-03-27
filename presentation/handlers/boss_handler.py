@@ -4,13 +4,16 @@ from astrbot.api.event import AstrMessageEvent
 
 from ...application.services.boss_service import BossService
 from ...core.exceptions import GameException
+from ...core.config import ConfigManager
+from ..decorators import require_admin
 
 
 class BossHandler:
     """Boss命令处理器"""
     
-    def __init__(self, boss_service: BossService):
+    def __init__(self, boss_service: BossService, config_manager: ConfigManager):
         self.boss_service = boss_service
+        self.config_manager = config_manager
     
     async def handle_boss_info(self, event: AstrMessageEvent) -> AsyncGenerator:
         """处理查看Boss信息命令"""
@@ -106,6 +109,7 @@ class BossHandler:
         except Exception as e:
             yield event.plain_result(f"挑战Boss失败：{e}")
     
+    @require_admin
     async def handle_spawn_boss(self, event: AstrMessageEvent) -> AsyncGenerator:
         """处理生成Boss命令（管理员）"""
         try:

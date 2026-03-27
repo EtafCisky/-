@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.4.9"
+    "3.5.0"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -182,7 +182,8 @@ class XiuxianV3Plugin(Star):
             self.container.rift_service()
         )
         self.boss_handler = BossHandler(
-            self.container.boss_service()
+            self.container.boss_service(),
+            self.config_manager
         )
         self.bounty_handler = BountyHandler(
             self.container.bounty_service()

@@ -20,7 +20,15 @@
   "ACCESS_CONTROL": {
     "WHITELIST_GROUPS": [],
     "SHOP_MANAGERS": [],
-    "BOSS_ADMINS": []
+    "BOSS_ADMINS": [],
+    "ADMINS": []
+  },
+
+  "ACCESS_CONTROL_DESCRIPTION": {
+    "WHITELIST_GROUPS": "白名单群组列表（群组ID），留空则不限制",
+    "SHOP_MANAGERS": "商店管理员列表（用户ID），可以管理商店",
+    "BOSS_ADMINS": "Boss管理员列表（用户ID），可以生成世界Boss",
+    "ADMINS": "全局管理员列表（用户ID），可以使用所有管理员命令"
   },
 
   "JSON_STORAGE": {

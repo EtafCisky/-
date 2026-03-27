@@ -220,7 +220,7 @@ class PlayerHandler:
             )
             return
         
-        # 检查7天冷却
+        # 检查3天冷却
         current_time = int(time.time())
         cooldown_key = f"rebirth_cooldown_{user_id}"
         

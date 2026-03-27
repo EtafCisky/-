@@ -14,6 +14,7 @@ class AccessControlConfig(BaseModel):
     whitelist_groups: List[str] = Field(default_factory=list)
     shop_managers: List[str] = Field(default_factory=list)
     boss_admins: List[str] = Field(default_factory=list)
+    admins: List[str] = Field(default_factory=list)  # 全局管理员列表
 
 
 class ValuesConfig(BaseModel):
@@ -171,7 +172,8 @@ class ConfigManager:
                 settings_data["access_control"] = {
                     "whitelist_groups": ac.get("WHITELIST_GROUPS", []),
                     "shop_managers": ac.get("SHOP_MANAGERS", []),
-                    "boss_admins": ac.get("BOSS_ADMINS", [])
+                    "boss_admins": ac.get("BOSS_ADMINS", []),
+                    "admins": ac.get("ADMINS", [])
                 }
             
             # 灵根速度
