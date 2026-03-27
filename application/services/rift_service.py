@@ -38,7 +38,32 @@ class RiftService:
             {"name": "星辰石", "weight": 20, "min": 2, "max": 4},
             {"name": "灵兽内丹", "weight": 20, "min": 1, "max": 2},
             {"name": "功法残页", "weight": 20, "min": 1, "max": 2},
-            {"name": "天材地宝", "weight": 15, "min": 1, "max": 1},
+            {"name": "天材地宝", "weight": 15, "min": 1, "max": 1},  # 这是类别，会触发二级掉落
+        ],
+    }
+    
+    # 天材地宝子类别（按秘境等级分组，不同等级掉落不同品质）
+    TREASURE_SUBTYPES = {
+        1: [  # 低级秘境 - 凡品天材地宝
+            {"name": "百年灵芝", "weight": 35, "description": "生长百年的灵芝，蕴含微弱灵气"},
+            {"name": "紫玉参", "weight": 30, "description": "紫色的人参，药效温和"},
+            {"name": "青莲子", "weight": 25, "description": "青色莲子，可炼制基础丹药"},
+            {"name": "赤血果", "weight": 10, "description": "鲜红如血的果实，略有补气之效"},
+        ],
+        2: [  # 中级秘境 - 珍品天材地宝
+            {"name": "千年灵芝", "weight": 30, "description": "千年灵芝，药力充沛"},
+            {"name": "九转仙草", "weight": 25, "description": "传说中的仙草，可起死回生"},
+            {"name": "龙血果", "weight": 20, "description": "沾染真龙之血的果实，蕴含龙威"},
+            {"name": "凤凰羽", "weight": 15, "description": "凤凰遗落的羽毛，炙热如火"},
+            {"name": "玄冰莲", "weight": 10, "description": "生长于极寒之地的冰莲，寒气逼人"},
+        ],
+        3: [  # 高级秘境 - 圣品/帝品天材地宝
+            {"name": "万年灵芝王", "weight": 25, "description": "万年灵芝之王，可延寿千年"},
+            {"name": "九天息壤", "weight": 20, "description": "传说中的神土，可生万物"},
+            {"name": "太阳神果", "weight": 18, "description": "吸收太阳精华凝成的神果"},
+            {"name": "太阴神花", "weight": 18, "description": "吸收太阴之力的神花"},
+            {"name": "混沌青莲", "weight": 12, "description": "开天辟地时诞生的混沌灵物"},
+            {"name": "不死神药", "weight": 7, "description": "传说中的不死神药，可令人长生不老"},
         ],
     }
     
@@ -177,7 +202,7 @@ class RiftService:
                 death_occurred = True
                 
                 # 死亡惩罚：直接删除角色（销号）
-                self.player_repo.delete_player(user_id)
+                self.player_repo.delete(user_id)
                 
                 death_penalty = {
                     "account_deleted": True
@@ -280,7 +305,9 @@ class RiftService:
             current_weight += item["weight"]
             if roll <= current_weight:
                 count = random.randint(item["min"], item["max"])
-                dropped_items.append((item["name"], count))
+                # 检查是否为类别物品（需要二级掉落）
+                item_name = self._resolve_item_category(item["name"], rift_level)
+                dropped_items.append((item_name, count))
                 break
         
         # 高级秘境有50%概率额外掉落一件
@@ -291,7 +318,9 @@ class RiftService:
                 current_weight += item["weight"]
                 if roll <= current_weight:
                     count = random.randint(item["min"], item["max"])
-                    dropped_items.append((item["name"], count))
+                    # 检查是否为类别物品（需要二级掉落）
+                    item_name = self._resolve_item_category(item["name"], rift_level)
+                    dropped_items.append((item_name, count))
                     break
         
         # 稀有丹药掉落检测
@@ -333,6 +362,50 @@ class RiftService:
         """检查物品是否为丹药"""
         # 简单判断：包含"丹"字的为丹药
         return "丹" in item_name
+    
+    def _resolve_item_category(self, item_name: str, rift_level: int) -> str:
+        """
+        解析物品类别，如果是类别物品则进行二级掉落
+        
+        Args:
+            item_name: 物品名称（可能是类别）
+            rift_level: 秘境等级
+            
+        Returns:
+            具体的物品名称
+        """
+        # 检查是否为"天材地宝"类别
+        if item_name == "天材地宝":
+            return self._roll_treasure_subtype(rift_level)
+        
+        # 其他物品直接返回
+        return item_name
+    
+    def _roll_treasure_subtype(self, rift_level: int) -> str:
+        """
+        从天材地宝子类别中随机选择一种
+        
+        Args:
+            rift_level: 秘境等级（决定掉落品质）
+            
+        Returns:
+            具体的天材地宝名称
+        """
+        # 获取对应等级的天材地宝掉落表
+        treasure_table = self.TREASURE_SUBTYPES.get(rift_level, self.TREASURE_SUBTYPES[1])
+        
+        # 加权随机选择
+        total_weight = sum(item["weight"] for item in treasure_table)
+        roll = random.randint(1, total_weight)
+        
+        current_weight = 0
+        for treasure in treasure_table:
+            current_weight += treasure["weight"]
+            if roll <= current_weight:
+                return treasure["name"]
+        
+        # 兜底：返回第一个
+        return treasure_table[0]["name"]
     
     def _calculate_death_rate(self, player_level: int, rift: Rift) -> float:
         """

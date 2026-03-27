@@ -16,6 +16,31 @@ from ...infrastructure.repositories.storage_ring_repo import StorageRingReposito
 class AdventureService:
     """历练服务"""
     
+    # 天材地宝子类别（按掉落等级分组）
+    TREASURE_SUBTYPES = {
+        "low": [  # 低级掉落 - 凡品天材地宝
+            {"name": "百年灵芝", "weight": 35},
+            {"name": "紫玉参", "weight": 30},
+            {"name": "青莲子", "weight": 25},
+            {"name": "赤血果", "weight": 10},
+        ],
+        "mid": [  # 中级掉落 - 珍品天材地宝
+            {"name": "千年灵芝", "weight": 30},
+            {"name": "九转仙草", "weight": 25},
+            {"name": "龙血果", "weight": 20},
+            {"name": "凤凰羽", "weight": 15},
+            {"name": "玄冰莲", "weight": 10},
+        ],
+        "high": [  # 高级掉落 - 圣品/帝品天材地宝
+            {"name": "万年灵芝王", "weight": 25},
+            {"name": "九天息壤", "weight": 20},
+            {"name": "太阳神果", "weight": 18},
+            {"name": "太阴神花", "weight": 18},
+            {"name": "混沌青莲", "weight": 12},
+            {"name": "不死神药", "weight": 7},
+        ],
+    }
+    
     def __init__(
         self,
         player_repo: PlayerRepository,
@@ -322,8 +347,10 @@ class AdventureService:
                         min_count = drop_data.get("min", 1)
                         max_count = drop_data.get("max", 1)
                         count = random.randint(min_count, max_count)
+                        # 检查是否为类别物品（需要二级掉落）
+                        item_name = self._resolve_item_category(drop_data["name"], drop_tier)
                         items_gained.append({
-                            "name": drop_data["name"],
+                            "name": item_name,
                             "count": count
                         })
                         break
@@ -392,3 +419,47 @@ class AdventureService:
         except Exception:
             # 静默失败
             pass
+    
+    def _resolve_item_category(self, item_name: str, drop_tier: str) -> str:
+        """
+        解析物品类别，如果是类别物品则进行二级掉落
+        
+        Args:
+            item_name: 物品名称（可能是类别）
+            drop_tier: 掉落等级（low/mid/high）
+            
+        Returns:
+            具体的物品名称
+        """
+        # 检查是否为"天材地宝"类别
+        if item_name == "天材地宝":
+            return self._roll_treasure_subtype(drop_tier)
+        
+        # 其他物品直接返回
+        return item_name
+    
+    def _roll_treasure_subtype(self, drop_tier: str) -> str:
+        """
+        从天材地宝子类别中随机选择一种
+        
+        Args:
+            drop_tier: 掉落等级（决定掉落品质）
+            
+        Returns:
+            具体的天材地宝名称
+        """
+        # 获取对应等级的天材地宝掉落表
+        treasure_table = self.TREASURE_SUBTYPES.get(drop_tier, self.TREASURE_SUBTYPES["low"])
+        
+        # 加权随机选择
+        total_weight = sum(item["weight"] for item in treasure_table)
+        roll = random.randint(1, total_weight)
+        
+        current_weight = 0
+        for treasure in treasure_table:
+            current_weight += treasure["weight"]
+            if roll <= current_weight:
+                return treasure["name"]
+        
+        # 兜底：返回第一个
+        return treasure_table[0]["name"]
