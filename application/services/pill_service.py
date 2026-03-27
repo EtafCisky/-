@@ -244,10 +244,13 @@ class PillService:
             player.physical_defense += def_gain
             message_parts.append(f"🛡️ 防御力：+{def_gain}")
         
-        # 突破加成（临时效果，需要在突破时检查）
+        # 突破加成（临时效果，保存到玩家数据）
         if "add_breakthrough_bonus" in effects:
             bonus = effects["add_breakthrough_bonus"]
-            message_parts.append(f"🎯 突破成功率：+{bonus * 100:.0f}%（临时）")
+            # 保存到玩家的 level_up_rate 字段
+            player.level_up_rate = int(bonus * 100)  # 转换为百分比整数
+            message_parts.append(f"🎯 突破成功率：+{bonus * 100:.0f}%")
+            message_parts.append(f"💡 当前突破加成：{player.level_up_rate}%")
         
         # 负面效果
         if "add_gold" in effects and effects["add_gold"] < 0:

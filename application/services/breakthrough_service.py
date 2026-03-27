@@ -151,6 +151,9 @@ class BreakthroughService:
             # 突破成功 - 提升境界并更新属性
             attribute_gains = self._apply_breakthrough_success(player, next_level_data)
             
+            # 清除突破加成（一次性效果）
+            player.level_up_rate = 0
+            
             # 保存
             self.player_repo.save(player)
             
@@ -196,6 +199,9 @@ class BreakthroughService:
                 # 突破失败但未死亡 - 扣除部分修为
                 exp_penalty = int(player.experience * 0.1)  # 扣除10%修为
                 player.experience = max(0, player.experience - exp_penalty)
+                
+                # 清除突破加成（一次性效果）
+                player.level_up_rate = 0
                 
                 # 保存
                 self.player_repo.save(player)
@@ -250,8 +256,29 @@ class BreakthroughService:
         final_rate = base_success_rate
         max_rate = 1.0  # 默认最大100%
         
-        # TODO: 如果使用了破境丹，添加丹药加成
-        # 这部分需要在实现丹药系统后完善
+        # 添加玩家已有的突破加成（来自之前服用的破境丹）
+        if player.level_up_rate > 0:
+            bonus_rate = player.level_up_rate / 100.0  # 转换为小数
+            final_rate += bonus_rate
+            info_lines.append(f"破境丹加成：+{player.level_up_rate}%")
+        
+        # 如果使用了破境丹，添加丹药加成
+        if pill_name:
+            pills_config = self.config_manager.get_config("pills")
+            if pills_config:
+                for pill_id, pill_data in pills_config.items():
+                    if pill_data.get("name") == pill_name and pill_data.get("subtype") == "breakthrough":
+                        pill_bonus = pill_data.get("breakthrough_bonus", 0)
+                        pill_max_rate = pill_data.get("max_success_rate", 1.0)
+                        
+                        if pill_bonus > 0:
+                            final_rate += pill_bonus
+                            info_lines.append(f"使用【{pill_name}】：+{pill_bonus:.1%}")
+                        
+                        # 更新最大成功率限制
+                        max_rate = pill_max_rate
+                        info_lines.append(f"最大成功率：{max_rate:.1%}")
+                        break
         
         final_rate = max(0.0, min(final_rate, max_rate))
         info_lines.append(f"最终成功率：{final_rate:.1%}")
