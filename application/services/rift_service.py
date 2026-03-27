@@ -175,21 +175,13 @@ class RiftService:
             # 判断是否死亡
             if random.random() * 100 < death_rate:
                 death_occurred = True
-                # 计算死亡惩罚
-                exp_penalty = int(player.exp * 0.1)  # 损失10%修为
-                gold_penalty = int(player.gold * 0.1)  # 损失10%灵石
                 
-                # 应用惩罚
-                self.player_repo.add_experience(user_id, -exp_penalty)
-                self.player_repo.add_gold(user_id, -gold_penalty)
+                # 死亡惩罚：直接删除角色（销号）
+                self.player_repo.delete_player(user_id)
                 
                 death_penalty = {
-                    "exp_lost": exp_penalty,
-                    "gold_lost": gold_penalty
+                    "account_deleted": True
                 }
-                
-                # 重置状态
-                self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)
                 
                 return RiftResult(
                     success=False,
@@ -197,7 +189,7 @@ class RiftService:
                     exp_gained=0,
                     gold_gained=0,
                     items_gained=[],
-                    event_description=f"你在秘境中遭遇不测，身受重伤！（死亡率：{death_rate:.1f}%）",
+                    event_description=f"💀 你在『{rift_name}』中遭遇不测，道消身陨！（死亡率：{death_rate:.1f}%）\n你的修仙之路就此终结...",
                     death_occurred=True,
                     death_penalty=death_penalty
                 )
