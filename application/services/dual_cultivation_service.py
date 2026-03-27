@@ -5,6 +5,7 @@ from typing import Tuple
 from ...infrastructure.repositories.dual_cultivation_repo import DualCultivationRepository
 from ...infrastructure.repositories.player_repo import PlayerRepository
 from ...core.exceptions import GameException
+from ...domain.enums import PlayerState
 
 
 # 双修配置
@@ -36,8 +37,8 @@ class DualCultivationService:
             return False, "❌ 你还未踏入修仙之路！"
         
         # 检查发起者状态
-        if initiator.state != "idle":
-            return False, f"❌ 你当前正{initiator.state}，无法发起双修！"
+        if initiator.state != PlayerState.IDLE:
+            return False, f"❌ 你当前正{initiator.state.value}，无法发起双修！"
         
         # 检查目标是否存在
         target = self.player_repo.get_player(target_id)
@@ -50,7 +51,7 @@ class DualCultivationService:
             return False, f"❌ 双方修为差距过大（最大{DUAL_CULT_MAX_EXP_RATIO}倍），无法双修。"
         
         # 检查目标状态
-        if target.state != "idle":
+        if target.state != PlayerState.IDLE:
             return False, "❌ 对方正忙，无法接受双修请求。"
         
         # 检查发起者冷却
