@@ -46,7 +46,7 @@ class PillHandler:
             yield event.plain_result(f"查看丹药背包失败：{str(e)}")
     
     @require_player
-    async def handle_use_pill(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
+    async def handle_use_pill(self, event: AstrMessageEvent, player, pill_name: str = "") -> AsyncGenerator[str, None]:
         """
         服用丹药
         
@@ -54,15 +54,13 @@ class PillHandler:
         """
         try:
             user_id = event.get_sender_id()
-            message_text = event.get_message_plain()
             
-            # 解析命令参数
-            parts = message_text.strip().split(maxsplit=1)
-            if len(parts) < 2:
-                yield event.plain_result("请指定要服用的丹药名称\n格式：服用丹药 <丹药名称>\n例如：服用丹药 一品气血丹")
+            # 检查参数
+            if not pill_name or pill_name.strip() == "":
+                yield event.plain_result("❌ 请指定要服用的丹药名称\n💡 格式：服用丹药 <丹药名称>\n例如：服用丹药 一品气血丹")
                 return
             
-            pill_name = parts[1].strip()
+            pill_name = pill_name.strip()
             
             # 使用丹药
             success, message = self.pill_service.use_pill(user_id, pill_name)
@@ -70,12 +68,12 @@ class PillHandler:
             yield event.plain_result(message)
             
         except BusinessException as e:
-            yield event.plain_result(str(e))
+            yield event.plain_result(f"❌ {str(e)}")
         except Exception as e:
-            yield event.plain_result(f"服用丹药失败：{str(e)}")
+            yield event.plain_result(f"❌ 服用丹药失败：{str(e)}")
     
     @require_player
-    async def handle_search_pills(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
+    async def handle_search_pills(self, event: AstrMessageEvent, player, keyword: str = "") -> AsyncGenerator[str, None]:
         """
         搜索丹药
         
@@ -83,25 +81,23 @@ class PillHandler:
         """
         try:
             user_id = event.get_sender_id()
-            message_text = event.get_message_plain()
             
-            # 解析命令参数
-            parts = message_text.strip().split(maxsplit=1)
-            if len(parts) < 2:
-                yield event.plain_result("请指定搜索关键词\n格式：搜索丹药 <关键词>")
+            # 检查参数
+            if not keyword or keyword.strip() == "":
+                yield event.plain_result("❌ 请指定搜索关键词\n💡 格式：搜索丹药 <关键词>")
                 return
             
-            keyword = parts[1].strip()
+            keyword = keyword.strip()
             
             # 搜索丹药
             results = self.pill_service.search_pills(user_id, keyword)
             
             if not results:
-                yield event.plain_result(f"没有找到包含「{keyword}」的丹药")
+                yield event.plain_result(f"❌ 没有找到包含「{keyword}」的丹药")
                 return
             
             # 格式化结果
-            lines = [f"搜索结果（关键词：{keyword}）"]
+            lines = [f"🔍 搜索结果（关键词：{keyword}）"]
             for pill_name, count in results:
                 pill_config = self.pill_service.get_pill_config(pill_name)
                 if pill_config:
@@ -113,6 +109,6 @@ class PillHandler:
             yield event.plain_result("\n".join(lines))
             
         except BusinessException as e:
-            yield event.plain_result(str(e))
+            yield event.plain_result(f"❌ {str(e)}")
         except Exception as e:
-            yield event.plain_result(f"搜索丹药失败：{str(e)}")
+            yield event.plain_result(f"❌ 搜索丹药失败：{str(e)}")

@@ -267,34 +267,40 @@ class XiuxianV3Plugin(Star):
                     rift_id=0,  # 会被自动分配
                     rift_name="幽暗森林",
                     rift_level=1,
-                    required_level=3,  # 筑基期
+                    required_level=3,  # 筑基期（最低要求）
+                    recommended_level=5,  # 筑基末期（推荐境界，死亡率5%）
                     exp_reward_min=5000,
                     exp_reward_max=15000,
                     gold_reward_min=1000,
                     gold_reward_max=3000,
-                    description="低级秘境，适合筑基期修士探索"
+                    description="低级秘境，适合筑基期修士探索",
+                    bounty_tag="rift_dark_forest"
                 ),
                 Rift(
                     rift_id=0,
                     rift_name="玄冰洞窟",
                     rift_level=2,
-                    required_level=6,  # 金丹期
+                    required_level=6,  # 金丹期（最低要求）
+                    recommended_level=8,  # 金丹末期（推荐境界，死亡率5%）
                     exp_reward_min=20000,
                     exp_reward_max=50000,
                     gold_reward_min=5000,
                     gold_reward_max=10000,
-                    description="中级秘境，适合金丹期修士探索"
+                    description="中级秘境，适合金丹期修士探索",
+                    bounty_tag="rift_ice_cave"
                 ),
                 Rift(
                     rift_id=0,
                     rift_name="天火禁地",
                     rift_level=3,
-                    required_level=9,  # 元婴期
+                    required_level=9,  # 元婴期（最低要求）
+                    recommended_level=11,  # 元婴末期（推荐境界，死亡率5%）
                     exp_reward_min=80000,
                     exp_reward_max=150000,
                     gold_reward_min=15000,
                     gold_reward_max=30000,
-                    description="高级秘境，适合元婴期修士探索"
+                    description="高级秘境，适合元婴期修士探索",
+                    bounty_tag="rift_fire_land"
                 ),
             ]
             
@@ -474,15 +480,15 @@ class XiuxianV3Plugin(Star):
             yield result
     
     @filter.command(Commands.EQUIP)
-    async def cmd_equip_item(self, event: AstrMessageEvent):
+    async def cmd_equip_item(self, event: AstrMessageEvent, item_name: str = ""):
         """装备"""
-        async for result in self.equipment_handler.handle_equip_item(event):
+        async for result in self.equipment_handler.handle_equip_item(event, item_name):
             yield result
     
     @filter.command(Commands.UNEQUIP)
-    async def cmd_unequip_item(self, event: AstrMessageEvent):
+    async def cmd_unequip_item(self, event: AstrMessageEvent, item_name: str = ""):
         """卸下"""
-        async for result in self.equipment_handler.handle_unequip_item(event):
+        async for result in self.equipment_handler.handle_unequip_item(event, item_name):
             yield result
     
     # ===== 丹药系统命令 =====
@@ -494,15 +500,15 @@ class XiuxianV3Plugin(Star):
             yield result
     
     @filter.command(Commands.USE_PILL)
-    async def cmd_use_pill(self, event: AstrMessageEvent):
+    async def cmd_use_pill(self, event: AstrMessageEvent, pill_name: str = ""):
         """服用丹药"""
-        async for result in self.pill_handler.handle_use_pill(event):
+        async for result in self.pill_handler.handle_use_pill(event, pill_name):
             yield result
     
     @filter.command(Commands.SEARCH_PILL)
-    async def cmd_search_pills(self, event: AstrMessageEvent):
+    async def cmd_search_pills(self, event: AstrMessageEvent, keyword: str = ""):
         """搜索丹药"""
-        async for result in self.pill_handler.handle_search_pills(event):
+        async for result in self.pill_handler.handle_search_pills(event, keyword):
             yield result
     
     # ===== 炼丹系统命令 =====

@@ -270,7 +270,8 @@ class Container:
             self.player_repository(),
             self.rift_repository(),
             self.storage_ring_repository(),
-            self.config_manager()
+            self.config_manager(),
+            self.bounty_repository()
         )
     
     def boss_service(self):

@@ -81,12 +81,14 @@ class RiftService:
         player_repo: PlayerRepository,
         rift_repo: RiftRepository,
         storage_ring_repo: StorageRingRepository,
-        config_manager: ConfigManager
+        config_manager: ConfigManager,
+        bounty_repo=None  # 添加可选的悬赏仓储
     ):
         self.player_repo = player_repo
         self.rift_repo = rift_repo
         self.storage_ring_repo = storage_ring_repo
         self.config_manager = config_manager
+        self.bounty_repo = bounty_repo  # 保存悬赏仓储引用
         self.explore_duration = self.DEFAULT_DURATION
     
     def get_all_rifts(self) -> List[Rift]:
@@ -163,6 +165,43 @@ class RiftService:
         rift = self.rift_repo.get_rift_by_id(rift_id) if rift_id else None
         rift_name = rift.rift_name if rift else "未知秘境"
         
+        # 计算死亡率
+        death_occurred = False
+        death_penalty = None
+        
+        if rift:
+            death_rate = self._calculate_death_rate(player.level_index, rift)
+            
+            # 判断是否死亡
+            if random.random() * 100 < death_rate:
+                death_occurred = True
+                # 计算死亡惩罚
+                exp_penalty = int(player.exp * 0.1)  # 损失10%修为
+                gold_penalty = int(player.gold * 0.1)  # 损失10%灵石
+                
+                # 应用惩罚
+                self.player_repo.add_experience(user_id, -exp_penalty)
+                self.player_repo.add_gold(user_id, -gold_penalty)
+                
+                death_penalty = {
+                    "exp_lost": exp_penalty,
+                    "gold_lost": gold_penalty
+                }
+                
+                # 重置状态
+                self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)
+                
+                return RiftResult(
+                    success=False,
+                    rift_name=rift_name,
+                    exp_gained=0,
+                    gold_gained=0,
+                    items_gained=[],
+                    event_description=f"你在秘境中遭遇不测，身受重伤！（死亡率：{death_rate:.1f}%）",
+                    death_occurred=True,
+                    death_penalty=death_penalty
+                )
+        
         # 计算奖励
         if rift:
             exp_reward = random.randint(rift.exp_reward_min, rift.exp_reward_max)
@@ -196,13 +235,23 @@ class RiftService:
         # 重置状态
         self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)
         
+        # 更新悬赏进度
+        if self.bounty_repo and rift:
+            try:
+                self._update_bounty_progress(user_id, rift)
+            except Exception as e:
+                # 悬赏更新失败不影响秘境完成
+                pass
+        
         return RiftResult(
             success=True,
             rift_name=rift_name,
             exp_gained=exp_reward,
             gold_gained=gold_reward,
             items_gained=items_gained,
-            event_description=event["desc"]
+            event_description=event["desc"],
+            death_occurred=False,
+            death_penalty=None
         )
     
     def exit_rift(self, user_id: str) -> str:
@@ -293,6 +342,41 @@ class RiftService:
         # 简单判断：包含"丹"字的为丹药
         return "丹" in item_name
     
+    def _calculate_death_rate(self, player_level: int, rift: Rift) -> float:
+        """
+        计算秘境死亡率
+        
+        规则：
+        - 达到推荐境界时死亡率为5%
+        - 高于推荐境界2个境界时死亡率为0%
+        - 低于推荐境界时死亡率快速增长
+        
+        Args:
+            player_level: 玩家当前境界索引
+            rift: 秘境对象
+            
+        Returns:
+            死亡率（百分比，0-100）
+        """
+        level_diff = player_level - rift.recommended_level
+        
+        # 高于推荐境界2个境界，死亡率为0
+        if level_diff >= 2:
+            return 0.0
+        
+        # 达到推荐境界，死亡率5%
+        if level_diff >= 0:
+            # 推荐境界到推荐+2境界之间，线性递减：5% → 0%
+            return max(0.0, 5.0 - (level_diff * 2.5))
+        
+        # 低于推荐境界，死亡率快速增长
+        # 每低1个境界，死亡率增加10%（指数增长）
+        # 例如：推荐6，实际5 → 15%，实际4 → 25%，实际3 → 35%
+        death_rate = 5.0 + (abs(level_diff) * 10.0)
+        
+        # 最高死亡率不超过95%
+        return min(95.0, death_rate)
+    
     def _get_level_name(self, level_index: int) -> str:
         """获取境界名称"""
         # 从配置管理器获取境界名称
@@ -300,3 +384,55 @@ class RiftService:
         if 0 <= level_index < len(level_data):
             return level_data[level_index].get("level_name", f"境界{level_index}")
         return f"境界{level_index}"
+
+    def _update_bounty_progress(self, user_id: str, rift: Rift):
+        """更新悬赏进度"""
+        # 获取秘境的悬赏标签
+        bounty_tag = rift.bounty_tag
+        if not bounty_tag:
+            return
+        
+        # 获取进行中的悬赏任务
+        active_bounty = self.bounty_repo.get_active_bounty(user_id)
+        if not active_bounty:
+            return
+        
+        # 检查任务是否已过期
+        if int(time.time()) > active_bounty.expire_time:
+            return
+        
+        # 检查标签是否匹配（从配置加载悬赏模板）
+        try:
+            import json
+            from pathlib import Path
+            config_file = self.config_manager.config_dir / "bounty_templates.json"
+            if not config_file.exists():
+                return
+            
+            with open(config_file, 'r', encoding='utf-8') as f:
+                bounty_config = json.load(f)
+            
+            templates = bounty_config.get("templates", [])
+            template = next((t for t in templates if t["id"] == active_bounty.bounty_id), None)
+            
+            if not template:
+                return
+            
+            progress_tags = template.get("progress_tags", [])
+            if bounty_tag not in progress_tags:
+                return
+            
+            # 秘境探索每次完成增加1点进度
+            progress_to_add = 1
+            
+            # 更新进度
+            new_progress = min(
+                active_bounty.current_progress + progress_to_add,
+                active_bounty.target_count
+            )
+            
+            self.bounty_repo.update_progress(user_id, new_progress)
+            
+        except Exception:
+            # 静默失败
+            pass

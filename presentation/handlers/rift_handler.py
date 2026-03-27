@@ -21,6 +21,11 @@ class RiftHandler:
                 yield event.plain_result("暂无可用的秘境")
                 return
             
+            # 获取玩家境界（用于显示死亡率）
+            user_id = event.get_sender_id()
+            player = self.rift_service.player_repo.get_player(user_id)
+            player_level = player.level_index if player else 0
+            
             # 构建秘境列表
             lines = ["🌌 秘境列表", "━━━━━━━━━━━━━━━"]
             
@@ -41,10 +46,17 @@ class RiftHandler:
                     config_mgr = self.rift_service.config_manager
                     level_data = config_mgr.level_data
                     required_level_name = level_data[rift.required_level].get("name", f"境界{rift.required_level}") if rift.required_level < len(level_data) else f"境界{rift.required_level}"
+                    recommended_level_name = level_data[rift.recommended_level].get("name", f"境界{rift.recommended_level}") if rift.recommended_level < len(level_data) else f"境界{rift.recommended_level}"
+                    
+                    # 计算当前玩家的死亡率
+                    death_rate = self.rift_service._calculate_death_rate(player_level, rift) if player else 0
+                    death_rate_str = f"{death_rate:.1f}%" if death_rate > 0 else "0%"
                     
                     lines.append(
                         f"· ID {rift.rift_id}: {rift.rift_name}"
-                        f"\n  - 需求境界：{required_level_name}"
+                        f"\n  - 最低境界：{required_level_name}"
+                        f"\n  - 推荐境界：{recommended_level_name}"
+                        f"\n  - 你的死亡率：{death_rate_str}"
                         f"\n  - 修为奖励：{rift.exp_reward_min:,} ~ {rift.exp_reward_max:,}"
                         f"\n  - 灵石奖励：{rift.gold_reward_min:,} ~ {rift.gold_reward_max:,}"
                     )
@@ -99,7 +111,29 @@ class RiftHandler:
             # 直接从 rift_service 的 player_repo 获取玩家信息
             player = self.rift_service.player_repo.get_player(user_id)
             
-            # 构建结果消息
+            # 检查是否死亡
+            if result.death_occurred:
+                lines = [
+                    f"💀 秘境探索失败",
+                    "━━━━━━━━━━━━━━━",
+                    f"秘境：{result.rift_name}\n",
+                    f"⚠️ {result.event_description}\n"
+                ]
+                
+                if result.death_penalty:
+                    lines.append(f"💔 死亡惩罚：")
+                    lines.append(f"  · 损失修为：-{result.death_penalty['exp_lost']:,}")
+                    lines.append(f"  · 损失灵石：-{result.death_penalty['gold_lost']:,}")
+                
+                lines.append("\n━━━━━━━━━━━━━━━")
+                if player:
+                    lines.append(f"当前修为：{player.exp:,}")
+                    lines.append(f"当前灵石：{player.gold:,}")
+                
+                yield event.plain_result("\n".join(lines))
+                return
+            
+            # 构建成功结果消息
             lines = [
                 f"🌌 秘境探索完成",
                 "━━━━━━━━━━━━━━━",
@@ -124,7 +158,7 @@ class RiftHandler:
             # 当前状态
             lines.append("\n━━━━━━━━━━━━━━━")
             if player:
-                lines.append(f"当前修为：{player.experience:,}")
+                lines.append(f"当前修为：{player.exp:,}")
                 lines.append(f"当前灵石：{player.gold:,}")
             
             yield event.plain_result("\n".join(lines))

@@ -49,7 +49,7 @@ class EquipmentHandler:
             yield event.plain_result(f"查看装备失败：{str(e)}")
     
     @require_player
-    async def handle_equip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
+    async def handle_equip_item(self, event: AstrMessageEvent, player, item_name: str = "") -> AsyncGenerator[str, None]:
         """
         装备物品
         
@@ -57,21 +57,19 @@ class EquipmentHandler:
         """
         try:
             user_id = event.get_sender_id()
-            message_text = event.get_message_plain()
             
-            # 解析命令参数
-            parts = message_text.strip().split(maxsplit=1)
-            if len(parts) < 2:
-                yield event.plain_result("请指定要装备的物品名称\n格式：装备 <物品名称>")
+            # 检查参数
+            if not item_name or item_name.strip() == "":
+                yield event.plain_result("❌ 请指定要装备的物品名称\n💡 格式：装备 <物品名称>")
                 return
             
-            item_name = parts[1].strip()
+            item_name = item_name.strip()
             
             # 装备物品
             equipment, old_equipment = self.equipment_service.equip_item(user_id, item_name)
             
             # 构建消息
-            message_parts = [f"成功装备【{equipment.name}】"]
+            message_parts = [f"✅ 成功装备【{equipment.name}】"]
             
             if old_equipment:
                 message_parts.append(f"卸下了【{old_equipment.name}】并放入储物戒")
@@ -84,12 +82,12 @@ class EquipmentHandler:
             yield event.plain_result("\n".join(message_parts))
             
         except BusinessException as e:
-            yield event.plain_result(str(e))
+            yield event.plain_result(f"❌ {str(e)}")
         except Exception as e:
-            yield event.plain_result(f"装备失败：{str(e)}")
+            yield event.plain_result(f"❌ 装备失败：{str(e)}")
     
     @require_player
-    async def handle_unequip_item(self, event: AstrMessageEvent, player) -> AsyncGenerator[str, None]:
+    async def handle_unequip_item(self, event: AstrMessageEvent, player, item_name: str = "") -> AsyncGenerator[str, None]:
         """
         卸下装备
         
@@ -102,15 +100,13 @@ class EquipmentHandler:
         """
         try:
             user_id = event.get_sender_id()
-            message_text = event.get_message_plain()
             
-            # 解析命令参数
-            parts = message_text.strip().split(maxsplit=1)
-            if len(parts) < 2:
-                yield event.plain_result("请指定要卸下的装备\n格式：卸下 <物品名称> 或 卸下 <槽位>")
+            # 检查参数
+            if not item_name or item_name.strip() == "":
+                yield event.plain_result("❌ 请指定要卸下的装备\n💡 格式：卸下 <物品名称> 或 卸下 <槽位>")
                 return
             
-            param = parts[1].strip()
+            param = item_name.strip()
             
             # 确定是槽位还是物品名称
             slot_map = {
@@ -127,9 +123,9 @@ class EquipmentHandler:
                 # 按名称卸下
                 equipment = self.equipment_service.unequip_item(user_id, item_name=param)
             
-            yield event.plain_result(f"成功卸下【{equipment.name}】并放入储物戒")
+            yield event.plain_result(f"✅ 成功卸下【{equipment.name}】并放入储物戒")
             
         except BusinessException as e:
-            yield event.plain_result(str(e))
+            yield event.plain_result(f"❌ {str(e)}")
         except Exception as e:
-            yield event.plain_result(f"卸下装备失败：{str(e)}")
+            yield event.plain_result(f"❌ 卸下装备失败：{str(e)}")
