@@ -394,6 +394,13 @@ class PlayerHandler:
                         text = getattr(component, "text", "")
                         if "增加灵石" in text:
                             found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            # 例如："增加灵石 10000 123456789"
+                            import re
+                            match = re.search(r'增加灵石\s+\d+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
                             continue
                     
                     # 如果已经找到命令，且当前是At组件
@@ -412,7 +419,7 @@ class PlayerHandler:
             if not target_user_id:
                 yield event.plain_result(
                     "❌ 未找到目标用户！\n"
-                    "💡 使用方法：增加灵石 数量 @用户"
+                    "💡 使用方法：增加灵石 数量 @用户 或 增加灵石 数量 用户ID"
                 )
                 return
             
