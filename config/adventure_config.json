@@ -233,8 +233,7 @@
       { "name": "玄铁", "weight": 30, "min": 2, "max": 4 },
       { "name": "星辰石", "weight": 25, "min": 1, "max": 2 },
       { "name": "灵兽内丹", "weight": 20, "min": 1, "max": 1 },
-      { "name": "功法残页", "weight": 15, "min": 1, "max": 1 },
-      { "name": "稀有掉落", "weight": 10, "min": 1, "max": 1 }
+      { "name": "珍品", "weight": 25, "min": 1, "max": 1 }
     ]
   }
 }
