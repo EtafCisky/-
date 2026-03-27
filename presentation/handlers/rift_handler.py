@@ -127,7 +127,7 @@ class RiftHandler:
                 
                 lines.append("\n━━━━━━━━━━━━━━━")
                 if player:
-                    lines.append(f"当前修为：{player.exp:,}")
+                    lines.append(f"当前修为：{player.experience:,}")
                     lines.append(f"当前灵石：{player.gold:,}")
                 
                 yield event.plain_result("\n".join(lines))
@@ -158,7 +158,7 @@ class RiftHandler:
             # 当前状态
             lines.append("\n━━━━━━━━━━━━━━━")
             if player:
-                lines.append(f"当前修为：{player.exp:,}")
+                lines.append(f"当前修为：{player.experience:,}")
                 lines.append(f"当前灵石：{player.gold:,}")
             
             yield event.plain_result("\n".join(lines))

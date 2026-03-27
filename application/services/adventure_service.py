@@ -16,29 +16,95 @@ from ...infrastructure.repositories.storage_ring_repo import StorageRingReposito
 class AdventureService:
     """历练服务"""
     
-    # 天材地宝子类别（按掉落等级分组）
-    TREASURE_SUBTYPES = {
-        "low": [  # 低级掉落 - 凡品天材地宝
-            {"name": "百年灵芝", "weight": 35},
-            {"name": "紫玉参", "weight": 30},
-            {"name": "青莲子", "weight": 25},
-            {"name": "赤血果", "weight": 10},
-        ],
-        "mid": [  # 中级掉落 - 珍品天材地宝
-            {"name": "千年灵芝", "weight": 30},
-            {"name": "九转仙草", "weight": 25},
-            {"name": "龙血果", "weight": 20},
-            {"name": "凤凰羽", "weight": 15},
-            {"name": "玄冰莲", "weight": 10},
-        ],
-        "high": [  # 高级掉落 - 圣品/帝品天材地宝
-            {"name": "万年灵芝王", "weight": 25},
-            {"name": "九天息壤", "weight": 20},
-            {"name": "太阳神果", "weight": 18},
-            {"name": "太阴神花", "weight": 18},
-            {"name": "混沌青莲", "weight": 12},
-            {"name": "不死神药", "weight": 7},
-        ],
+    # 稀有掉落子类别（按掉落等级分组）
+    # 包含：天材地宝、炼器材料、法器、功法
+    RARE_DROP_SUBTYPES = {
+        "low": {  # 低级掉落 - 凡品
+            "天材地宝": [
+                {"name": "百年灵芝", "weight": 35},
+                {"name": "紫玉参", "weight": 30},
+                {"name": "青莲子", "weight": 25},
+                {"name": "赤血果", "weight": 10},
+            ],
+            "炼器材料": [
+                {"name": "寒铁精", "weight": 40},
+                {"name": "赤铜矿", "weight": 35},
+                {"name": "灵木芯", "weight": 25},
+            ],
+            "法器": [
+                {"name": "青锋剑", "weight": 50},
+                {"name": "玄铁甲", "weight": 50},
+            ],
+            "功法": [
+                {"name": "长春功残篇", "weight": 70},
+                {"name": "御风诀残篇", "weight": 25},
+                {"name": "龟息功", "weight": 5},  # 完整功法，极低概率
+            ],
+        },
+        "mid": {  # 中级掉落 - 珍品
+            "天材地宝": [
+                {"name": "千年灵芝", "weight": 30},
+                {"name": "九转仙草", "weight": 25},
+                {"name": "龙血果", "weight": 20},
+                {"name": "凤凰羽", "weight": 15},
+                {"name": "玄冰莲", "weight": 10},
+            ],
+            "炼器材料": [
+                {"name": "紫金沙", "weight": 35},
+                {"name": "星辉晶砂", "weight": 30},
+                {"name": "赤炎石", "weight": 25},
+                {"name": "月光粉尘", "weight": 10},
+            ],
+            "法器": [
+                {"name": "烈阳刀", "weight": 40},
+                {"name": "月华袍", "weight": 40},
+                {"name": "镇魂幡", "weight": 20},
+            ],
+            "功法": [
+                {"name": "不动明王经残篇", "weight": 50},
+                {"name": "北冥神功残篇", "weight": 30},
+                {"name": "九阳神功残篇", "weight": 15},
+                {"name": "不动明王经", "weight": 5},  # 完整功法
+            ],
+        },
+        "high": {  # 高级掉落 - 圣品/帝品
+            "天材地宝": [
+                {"name": "万年灵芝王", "weight": 25},
+                {"name": "九天息壤", "weight": 20},
+                {"name": "太阳神果", "weight": 18},
+                {"name": "太阴神花", "weight": 18},
+                {"name": "混沌青莲", "weight": 12},
+                {"name": "不死神药", "weight": 7},
+            ],
+            "炼器材料": [
+                {"name": "玄冰之核", "weight": 30},
+                {"name": "龙骨髓", "weight": 25},
+                {"name": "凤凰真羽", "weight": 20},
+                {"name": "星辰陨铁", "weight": 15},
+                {"name": "混沌神石", "weight": 10},
+            ],
+            "法器": [
+                {"name": "寒霜剑", "weight": 35},
+                {"name": "泰坦之铠", "weight": 30},
+                {"name": "妖精之弓", "weight": 25},
+                {"name": "戮仙剑阵", "weight": 8},
+                {"name": "弑神枪", "weight": 2},
+            ],
+            "功法": [
+                {"name": "焚天诀上卷", "weight": 40},
+                {"name": "道经残篇", "weight": 30},
+                {"name": "吞天魔功残篇", "weight": 20},
+                {"name": "他化自在大法残篇", "weight": 8},
+                {"name": "道经", "weight": 2},  # 完整帝品功法，极低概率
+            ],
+        },
+    }
+    
+    # 稀有掉落类别权重（决定掉落哪个类别）
+    RARE_DROP_CATEGORY_WEIGHTS = {
+        "low": {"天材地宝": 40, "炼器材料": 35, "法器": 20, "功法": 5},
+        "mid": {"天材地宝": 35, "炼器材料": 30, "法器": 25, "功法": 10},
+        "high": {"天材地宝": 30, "炼器材料": 25, "法器": 30, "功法": 15},
     }
     
     def __init__(
@@ -431,35 +497,58 @@ class AdventureService:
         Returns:
             具体的物品名称
         """
-        # 检查是否为"天材地宝"类别
-        if item_name == "天材地宝":
-            return self._roll_treasure_subtype(drop_tier)
+        # 检查是否为"稀有掉落"类别
+        if item_name == "稀有掉落":
+            return self._roll_rare_drop(drop_tier)
         
         # 其他物品直接返回
         return item_name
     
-    def _roll_treasure_subtype(self, drop_tier: str) -> str:
+    def _roll_rare_drop(self, drop_tier: str) -> str:
         """
-        从天材地宝子类别中随机选择一种
+        从稀有掉落中随机选择一种物品（二级掉落）
+        
+        流程：
+        1. 根据掉落等级选择类别（天材地宝、炼器材料、法器、功法）
+        2. 从选中的类别中随机选择具体物品
         
         Args:
-            drop_tier: 掉落等级（决定掉落品质）
+            drop_tier: 掉落等级（决定掉落品质和类别权重）
             
         Returns:
-            具体的天材地宝名称
+            具体的物品名称
         """
-        # 获取对应等级的天材地宝掉落表
-        treasure_table = self.TREASURE_SUBTYPES.get(drop_tier, self.TREASURE_SUBTYPES["low"])
-        
-        # 加权随机选择
-        total_weight = sum(item["weight"] for item in treasure_table)
+        # 第一步：选择类别
+        category_weights = self.RARE_DROP_CATEGORY_WEIGHTS.get(drop_tier, self.RARE_DROP_CATEGORY_WEIGHTS["low"])
+        total_weight = sum(category_weights.values())
         roll = random.randint(1, total_weight)
         
         current_weight = 0
-        for treasure in treasure_table:
-            current_weight += treasure["weight"]
+        selected_category = None
+        for category, weight in category_weights.items():
+            current_weight += weight
             if roll <= current_weight:
-                return treasure["name"]
+                selected_category = category
+                break
+        
+        if not selected_category:
+            selected_category = "天材地宝"  # 兜底
+        
+        # 第二步：从选中的类别中选择具体物品
+        item_table = self.RARE_DROP_SUBTYPES.get(drop_tier, {}).get(selected_category, [])
+        if not item_table:
+            # 兜底：返回默认物品
+            return "灵草"
+        
+        # 加权随机选择
+        total_weight = sum(item["weight"] for item in item_table)
+        roll = random.randint(1, total_weight)
+        
+        current_weight = 0
+        for item in item_table:
+            current_weight += item["weight"]
+            if roll <= current_weight:
+                return item["name"]
         
         # 兜底：返回第一个
-        return treasure_table[0]["name"]
+        return item_table[0]["name"]

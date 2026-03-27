@@ -38,33 +38,99 @@ class RiftService:
             {"name": "星辰石", "weight": 20, "min": 2, "max": 4},
             {"name": "灵兽内丹", "weight": 20, "min": 1, "max": 2},
             {"name": "功法残页", "weight": 20, "min": 1, "max": 2},
-            {"name": "天材地宝", "weight": 15, "min": 1, "max": 1},  # 这是类别，会触发二级掉落
+            {"name": "稀有掉落", "weight": 15, "min": 1, "max": 1},  # 这是类别，会触发二级掉落
         ],
     }
     
-    # 天材地宝子类别（按秘境等级分组，不同等级掉落不同品质）
-    TREASURE_SUBTYPES = {
-        1: [  # 低级秘境 - 凡品天材地宝
-            {"name": "百年灵芝", "weight": 35, "description": "生长百年的灵芝，蕴含微弱灵气"},
-            {"name": "紫玉参", "weight": 30, "description": "紫色的人参，药效温和"},
-            {"name": "青莲子", "weight": 25, "description": "青色莲子，可炼制基础丹药"},
-            {"name": "赤血果", "weight": 10, "description": "鲜红如血的果实，略有补气之效"},
-        ],
-        2: [  # 中级秘境 - 珍品天材地宝
-            {"name": "千年灵芝", "weight": 30, "description": "千年灵芝，药力充沛"},
-            {"name": "九转仙草", "weight": 25, "description": "传说中的仙草，可起死回生"},
-            {"name": "龙血果", "weight": 20, "description": "沾染真龙之血的果实，蕴含龙威"},
-            {"name": "凤凰羽", "weight": 15, "description": "凤凰遗落的羽毛，炙热如火"},
-            {"name": "玄冰莲", "weight": 10, "description": "生长于极寒之地的冰莲，寒气逼人"},
-        ],
-        3: [  # 高级秘境 - 圣品/帝品天材地宝
-            {"name": "万年灵芝王", "weight": 25, "description": "万年灵芝之王，可延寿千年"},
-            {"name": "九天息壤", "weight": 20, "description": "传说中的神土，可生万物"},
-            {"name": "太阳神果", "weight": 18, "description": "吸收太阳精华凝成的神果"},
-            {"name": "太阴神花", "weight": 18, "description": "吸收太阴之力的神花"},
-            {"name": "混沌青莲", "weight": 12, "description": "开天辟地时诞生的混沌灵物"},
-            {"name": "不死神药", "weight": 7, "description": "传说中的不死神药，可令人长生不老"},
-        ],
+    # 稀有掉落子类别（按秘境等级分组）
+    # 包含：天材地宝、炼器材料、法器、功法
+    RARE_DROP_SUBTYPES = {
+        1: {  # 低级秘境 - 凡品
+            "天材地宝": [
+                {"name": "百年灵芝", "weight": 35},
+                {"name": "紫玉参", "weight": 30},
+                {"name": "青莲子", "weight": 25},
+                {"name": "赤血果", "weight": 10},
+            ],
+            "炼器材料": [
+                {"name": "寒铁精", "weight": 40},
+                {"name": "赤铜矿", "weight": 35},
+                {"name": "灵木芯", "weight": 25},
+            ],
+            "法器": [
+                {"name": "青锋剑", "weight": 50},
+                {"name": "玄铁甲", "weight": 50},
+            ],
+            "功法": [
+                {"name": "长春功残篇", "weight": 70},
+                {"name": "御风诀残篇", "weight": 25},
+                {"name": "龟息功", "weight": 5},  # 完整功法，极低概率
+            ],
+        },
+        2: {  # 中级秘境 - 珍品
+            "天材地宝": [
+                {"name": "千年灵芝", "weight": 30},
+                {"name": "九转仙草", "weight": 25},
+                {"name": "龙血果", "weight": 20},
+                {"name": "凤凰羽", "weight": 15},
+                {"name": "玄冰莲", "weight": 10},
+            ],
+            "炼器材料": [
+                {"name": "紫金沙", "weight": 35},
+                {"name": "星辉晶砂", "weight": 30},
+                {"name": "赤炎石", "weight": 25},
+                {"name": "月光粉尘", "weight": 10},
+            ],
+            "法器": [
+                {"name": "烈阳刀", "weight": 40},
+                {"name": "月华袍", "weight": 40},
+                {"name": "镇魂幡", "weight": 20},
+            ],
+            "功法": [
+                {"name": "不动明王经残篇", "weight": 50},
+                {"name": "北冥神功残篇", "weight": 30},
+                {"name": "九阳神功残篇", "weight": 15},
+                {"name": "不动明王经", "weight": 5},  # 完整功法
+            ],
+        },
+        3: {  # 高级秘境 - 圣品/帝品
+            "天材地宝": [
+                {"name": "万年灵芝王", "weight": 25},
+                {"name": "九天息壤", "weight": 20},
+                {"name": "太阳神果", "weight": 18},
+                {"name": "太阴神花", "weight": 18},
+                {"name": "混沌青莲", "weight": 12},
+                {"name": "不死神药", "weight": 7},
+            ],
+            "炼器材料": [
+                {"name": "玄冰之核", "weight": 30},
+                {"name": "龙骨髓", "weight": 25},
+                {"name": "凤凰真羽", "weight": 20},
+                {"name": "星辰陨铁", "weight": 15},
+                {"name": "混沌神石", "weight": 10},
+            ],
+            "法器": [
+                {"name": "寒霜剑", "weight": 35},
+                {"name": "泰坦之铠", "weight": 30},
+                {"name": "妖精之弓", "weight": 25},
+                {"name": "戮仙剑阵", "weight": 8},
+                {"name": "弑神枪", "weight": 2},
+            ],
+            "功法": [
+                {"name": "焚天诀上卷", "weight": 40},
+                {"name": "道经残篇", "weight": 30},
+                {"name": "吞天魔功残篇", "weight": 20},
+                {"name": "他化自在大法残篇", "weight": 8},
+                {"name": "道经", "weight": 2},  # 完整帝品功法，极低概率
+            ],
+        },
+    }
+    
+    # 稀有掉落类别权重（决定掉落哪个类别）
+    RARE_DROP_CATEGORY_WEIGHTS = {
+        1: {"天材地宝": 40, "炼器材料": 35, "法器": 20, "功法": 5},
+        2: {"天材地宝": 35, "炼器材料": 30, "法器": 25, "功法": 10},
+        3: {"天材地宝": 30, "炼器材料": 25, "法器": 30, "功法": 15},
     }
     
     # 秘境稀有丹药掉落表（按秘境等级分组）
@@ -374,38 +440,61 @@ class RiftService:
         Returns:
             具体的物品名称
         """
-        # 检查是否为"天材地宝"类别
-        if item_name == "天材地宝":
-            return self._roll_treasure_subtype(rift_level)
+        # 检查是否为"稀有掉落"类别
+        if item_name == "稀有掉落":
+            return self._roll_rare_drop(rift_level)
         
         # 其他物品直接返回
         return item_name
     
-    def _roll_treasure_subtype(self, rift_level: int) -> str:
+    def _roll_rare_drop(self, rift_level: int) -> str:
         """
-        从天材地宝子类别中随机选择一种
+        从稀有掉落中随机选择一种物品（二级掉落）
+        
+        流程：
+        1. 根据秘境等级选择类别（天材地宝、炼器材料、法器、功法）
+        2. 从选中的类别中随机选择具体物品
         
         Args:
-            rift_level: 秘境等级（决定掉落品质）
+            rift_level: 秘境等级（决定掉落品质和类别权重）
             
         Returns:
-            具体的天材地宝名称
+            具体的物品名称
         """
-        # 获取对应等级的天材地宝掉落表
-        treasure_table = self.TREASURE_SUBTYPES.get(rift_level, self.TREASURE_SUBTYPES[1])
-        
-        # 加权随机选择
-        total_weight = sum(item["weight"] for item in treasure_table)
+        # 第一步：选择类别
+        category_weights = self.RARE_DROP_CATEGORY_WEIGHTS.get(rift_level, self.RARE_DROP_CATEGORY_WEIGHTS[1])
+        total_weight = sum(category_weights.values())
         roll = random.randint(1, total_weight)
         
         current_weight = 0
-        for treasure in treasure_table:
-            current_weight += treasure["weight"]
+        selected_category = None
+        for category, weight in category_weights.items():
+            current_weight += weight
             if roll <= current_weight:
-                return treasure["name"]
+                selected_category = category
+                break
+        
+        if not selected_category:
+            selected_category = "天材地宝"  # 兜底
+        
+        # 第二步：从选中的类别中选择具体物品
+        item_table = self.RARE_DROP_SUBTYPES.get(rift_level, {}).get(selected_category, [])
+        if not item_table:
+            # 兜底：返回默认物品
+            return "灵草"
+        
+        # 加权随机选择
+        total_weight = sum(item["weight"] for item in item_table)
+        roll = random.randint(1, total_weight)
+        
+        current_weight = 0
+        for item in item_table:
+            current_weight += item["weight"]
+            if roll <= current_weight:
+                return item["name"]
         
         # 兜底：返回第一个
-        return treasure_table[0]["name"]
+        return item_table[0]["name"]
     
     def _calculate_death_rate(self, player_level: int, rift: Rift) -> float:
         """
