@@ -9,6 +9,22 @@ from ..storage import JSONStorage, TimestampConverter
 class StorageRingRepository:
     """储物戒仓储"""
     
+    # 功法残篇合成配置
+    TECHNIQUE_SYNTHESIS = {
+        # 凡品功法 - 5个残篇合成
+        "长春功": {"fragment": "长春功残篇", "required": 5, "tier": "凡品"},
+        "御风诀": {"fragment": "御风诀残篇", "required": 5, "tier": "凡品"},
+        # 珍品功法 - 10个残篇合成
+        "不动明王经": {"fragment": "不动明王经残篇", "required": 10, "tier": "珍品"},
+        "北冥神功": {"fragment": "北冥神功残篇", "required": 10, "tier": "珍品"},
+        "九阳神功": {"fragment": "九阳神功残篇", "required": 10, "tier": "珍品"},
+        # 圣品/帝品功法 - 15个残篇合成
+        "焚天诀": {"fragment": "焚天诀残篇", "required": 15, "tier": "圣品"},
+        "道经": {"fragment": "道经残篇", "required": 15, "tier": "帝品"},
+        "吞天魔功": {"fragment": "吞天魔功残篇", "required": 15, "tier": "圣品"},
+        "他化自在大法": {"fragment": "他化自在大法残篇", "required": 15, "tier": "圣品"},
+    }
+    
     def __init__(self, storage: JSONStorage):
         """
         初始化储物戒仓储
@@ -48,18 +64,46 @@ class StorageRingRepository:
         items = self.get_storage_ring_items(user_id)
         return items.get(item_name, 0)
     
-    def add_item(self, user_id: str, item_name: str, count: int = 1) -> None:
+    def add_item(self, user_id: str, item_name: str, count: int = 1) -> Tuple[bool, Optional[str]]:
         """
-        添加物品到储物戒
+        添加物品到储物戒，自动检测功法残篇合成
         
         Args:
             user_id: 用户ID
             item_name: 物品名称
             count: 数量
+            
+        Returns:
+            (是否触发合成, 合成的功法名称)
         """
         items = self.get_storage_ring_items(user_id)
         items[item_name] = items.get(item_name, 0) + count
+        
+        # 检查是否为功法残篇，并尝试合成
+        synthesized_technique = None
+        for technique_name, config in self.TECHNIQUE_SYNTHESIS.items():
+            fragment_name = config["fragment"]
+            required_count = config["required"]
+            
+            # 如果添加的是这个功法的残篇
+            if item_name == fragment_name:
+                current_count = items.get(fragment_name, 0)
+                
+                # 检查是否可以合成
+                if current_count >= required_count:
+                    # 消耗残篇
+                    items[fragment_name] = current_count - required_count
+                    if items[fragment_name] == 0:
+                        del items[fragment_name]
+                    
+                    # 添加完整功法
+                    items[technique_name] = items.get(technique_name, 0) + 1
+                    synthesized_technique = technique_name
+                    break
+        
         self.set_storage_ring_items(user_id, items)
+        
+        return (synthesized_technique is not None, synthesized_technique)
     
     def remove_item(self, user_id: str, item_name: str, count: int = 1) -> bool:
         """

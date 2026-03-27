@@ -37,8 +37,9 @@ class AdventureService:
             ],
             "功法": [
                 {"name": "长春功残篇", "weight": 70},
-                {"name": "御风诀残篇", "weight": 25},
-                {"name": "龟息功", "weight": 5},  # 完整功法，极低概率
+                {"name": "御风诀残篇", "weight": 28},
+                {"name": "长春功", "weight": 1},  # 完整功法，极低概率（5个残篇合成）
+                {"name": "御风诀", "weight": 1},  # 完整功法，极低概率（5个残篇合成）
             ],
         },
         "mid": {  # 中级掉落 - 珍品
@@ -63,8 +64,10 @@ class AdventureService:
             "功法": [
                 {"name": "不动明王经残篇", "weight": 50},
                 {"name": "北冥神功残篇", "weight": 30},
-                {"name": "九阳神功残篇", "weight": 15},
-                {"name": "不动明王经", "weight": 5},  # 完整功法
+                {"name": "九阳神功残篇", "weight": 17},
+                {"name": "不动明王经", "weight": 1},  # 完整功法（10个残篇合成）
+                {"name": "北冥神功", "weight": 1},  # 完整功法（10个残篇合成）
+                {"name": "九阳神功", "weight": 1},  # 完整功法（10个残篇合成）
             ],
         },
         "high": {  # 高级掉落 - 圣品/帝品
@@ -91,13 +94,32 @@ class AdventureService:
                 {"name": "弑神枪", "weight": 2},
             ],
             "功法": [
-                {"name": "焚天诀上卷", "weight": 40},
+                {"name": "焚天诀残篇", "weight": 40},
                 {"name": "道经残篇", "weight": 30},
                 {"name": "吞天魔功残篇", "weight": 20},
-                {"name": "他化自在大法残篇", "weight": 8},
-                {"name": "道经", "weight": 2},  # 完整帝品功法，极低概率
+                {"name": "他化自在大法残篇", "weight": 9},
+                {"name": "焚天诀", "weight": 0.4},  # 完整功法（15个残篇合成）
+                {"name": "道经", "weight": 0.3},  # 完整帝品功法（15个残篇合成）
+                {"name": "吞天魔功", "weight": 0.2},  # 完整功法（15个残篇合成）
+                {"name": "他化自在大法", "weight": 0.1},  # 完整功法（15个残篇合成）
             ],
         },
+    }
+    
+    # 功法残篇合成配置
+    TECHNIQUE_SYNTHESIS = {
+        # 凡品功法 - 5个残篇合成
+        "长春功": {"fragment": "长春功残篇", "required": 5, "tier": "凡品"},
+        "御风诀": {"fragment": "御风诀残篇", "required": 5, "tier": "凡品"},
+        # 珍品功法 - 10个残篇合成
+        "不动明王经": {"fragment": "不动明王经残篇", "required": 10, "tier": "珍品"},
+        "北冥神功": {"fragment": "北冥神功残篇", "required": 10, "tier": "珍品"},
+        "九阳神功": {"fragment": "九阳神功残篇", "required": 10, "tier": "珍品"},
+        # 圣品/帝品功法 - 15个残篇合成
+        "焚天诀": {"fragment": "焚天诀残篇", "required": 15, "tier": "圣品"},
+        "道经": {"fragment": "道经残篇", "required": 15, "tier": "帝品"},
+        "吞天魔功": {"fragment": "吞天魔功残篇", "required": 15, "tier": "圣品"},
+        "他化自在大法": {"fragment": "他化自在大法残篇", "required": 15, "tier": "圣品"},
     }
     
     # 稀有掉落类别权重（决定掉落哪个类别）
@@ -302,12 +324,21 @@ class AdventureService:
         self.player_repo.add_experience(user_id, result.exp_gained)
         
         # 发放物品
+        synthesis_messages = []
         for item in result.items_gained:
-            self.storage_ring_repo.add_item(
+            synthesized, technique_name = self.storage_ring_repo.add_item(
                 user_id,
                 item["name"],
                 item["count"]
             )
+            if synthesized:
+                # 获取功法品质
+                tier = self.storage_ring_repo.TECHNIQUE_SYNTHESIS.get(technique_name, {}).get("tier", "未知")
+                synthesis_messages.append(f"✨ 恭喜！你集齐了残篇，自动合成了【{tier}】功法《{technique_name}》！")
+        
+        # 如果有合成信息，添加到结果描述中
+        if synthesis_messages:
+            result.event_description += "\n\n" + "\n".join(synthesis_messages)
         
         # 重置状态
         self.player_repo.update_player_state(user_id, state=PlayerState.IDLE, extra_data=None)
