@@ -142,6 +142,9 @@ class Commands:
     RANK_SECT = "宗门排行"
     RANK_DEPOSIT = "存款排行"
     RANK_CONTRIBUTION = "贡献排行"
+    
+    # 管理员命令
+    ADMIN_ADD_GOLD = "增加灵石"
 
 
 class GameConstants:

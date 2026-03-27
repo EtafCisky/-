@@ -309,3 +309,111 @@ class PlayerHandler:
             
         except Exception as e:
             yield event.plain_result(f"❌ 弃道重修失败：{str(e)}")
+
+    async def handle_admin_add_gold(
+        self,
+        event: AstrMessageEvent,
+        args: str = ""
+    ):
+        """
+        处理管理员增加灵石命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+            args: 参数字符串，格式："数量 @用户" 或 "数量 用户ID"
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        # 解析参数
+        if not args or args.strip() == "":
+            yield event.plain_result(
+                "❌ 参数错误！\n"
+                "💡 使用方法：增加灵石 数量 @用户\n"
+                "示例：增加灵石 10000 @张三"
+            )
+            return
+        
+        try:
+            # 解析参数：数量和目标用户
+            parts = args.strip().split()
+            if len(parts) < 2:
+                yield event.plain_result(
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：增加灵石 数量 @用户"
+                )
+                return
+            
+            # 获取数量
+            try:
+                amount = int(parts[0])
+                if amount <= 0:
+                    yield event.plain_result("❌ 数量必须大于0！")
+                    return
+            except ValueError:
+                yield event.plain_result("❌ 数量必须是有效的数字！")
+                return
+            
+            # 获取目标用户ID
+            # 尝试从消息中提取艾特的用户
+            target_user_id = None
+            
+            # 检查消息链中是否有At组件
+            message_chain = event.message_obj.message
+            for component in message_chain:
+                if hasattr(component, 'type') and component.type == 'At':
+                    target_user_id = str(component.data.get('qq', ''))
+                    break
+            
+            # 如果没有艾特，尝试从参数中获取用户ID
+            if not target_user_id and len(parts) >= 2:
+                target_user_id = parts[1].strip()
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 请艾特目标用户或提供用户ID"
+                )
+                return
+            
+            # 检查目标玩家是否存在
+            target_player = self.player_service.get_player(target_user_id)
+            if not target_player:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_user_id}）还未踏入修仙之路！"
+                )
+                return
+            
+            # 增加灵石
+            old_gold = target_player.gold
+            target_player.gold += amount
+            self.player_service.player_repo.save(target_player)
+            
+            # 格式化输出
+            yield event.plain_result(
+                "✅ 灵石增加成功！\n"
+                "━━━━━━━━━━━━━━━\n"
+                f"目标用户：{target_player.nickname}\n"
+                f"增加数量：{amount:,} 灵石\n"
+                f"原有灵石：{old_gold:,}\n"
+                f"当前灵石：{target_player.gold:,}"
+            )
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 增加灵石失败：{str(e)}")

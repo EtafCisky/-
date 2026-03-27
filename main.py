@@ -679,6 +679,14 @@ class XiuxianV3Plugin(Star):
         async for result in self.boss_handler.handle_spawn_boss(event):
             yield result
     
+    # ===== 管理员命令 =====
+    
+    @filter.command(Commands.ADMIN_ADD_GOLD)
+    async def cmd_admin_add_gold(self, event: AstrMessageEvent, args: str = ""):
+        """增加灵石（管理员）"""
+        async for result in self.player_handler.handle_admin_add_gold(event, args):
+            yield result
+    
     # ===== 悬赏系统命令 =====
     
     @filter.command(Commands.BOUNTY_LIST)
