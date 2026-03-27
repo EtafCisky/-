@@ -1,5 +1,6 @@
 """玩家命令处理器"""
 from astrbot.api.event import AstrMessageEvent
+from astrbot.api.message_components import At
 
 from ...application.services.player_service import PlayerService
 from ...core.exceptions import (
@@ -351,9 +352,9 @@ class PlayerHandler:
             return
         
         try:
-            # 解析参数：数量和目标用户
+            # 解析参数：数量
             parts = args.strip().split()
-            if len(parts) < 2:
+            if len(parts) < 1:
                 yield event.plain_result(
                     "❌ 参数不足！\n"
                     "💡 使用方法：增加灵石 数量 @用户"
@@ -370,25 +371,48 @@ class PlayerHandler:
                 yield event.plain_result("❌ 数量必须是有效的数字！")
                 return
             
-            # 获取目标用户ID
-            # 尝试从消息中提取艾特的用户
+            # 获取目标用户ID（参考combat_handler的_get_target_id方法）
             target_user_id = None
             
-            # 检查消息链中是否有At组件
-            message_chain = event.message_obj.message
-            for component in message_chain:
-                if hasattr(component, 'type') and component.type == 'At':
-                    target_user_id = str(component.data.get('qq', ''))
-                    break
+            # 优先从参数获取数字ID
+            if len(parts) >= 2:
+                cleaned = parts[1].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
             
-            # 如果没有艾特，尝试从参数中获取用户ID
-            if not target_user_id and len(parts) >= 2:
-                target_user_id = parts[1].strip()
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "增加灵石" in text:
+                            found_command = True
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
             
             if not target_user_id:
                 yield event.plain_result(
                     "❌ 未找到目标用户！\n"
-                    "💡 请艾特目标用户或提供用户ID"
+                    "💡 使用方法：增加灵石 数量 @用户"
                 )
                 return
             
