@@ -265,8 +265,8 @@ class BreakthroughService:
         # 如果使用了破境丹，添加丹药加成
         if pill_name:
             pills_config = self.config_manager.get_config("pills")
-            if pills_config:
-                for pill_id, pill_data in pills_config.items():
+            if pills_config and isinstance(pills_config, list):
+                for pill_data in pills_config:
                     if pill_data.get("name") == pill_name and pill_data.get("subtype") == "breakthrough":
                         pill_bonus = pill_data.get("breakthrough_bonus", 0)
                         pill_max_rate = pill_data.get("max_success_rate", 1.0)

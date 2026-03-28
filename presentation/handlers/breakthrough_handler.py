@@ -84,16 +84,16 @@ class BreakthroughHandler:
             pill_name: 破境丹名称（可选）
         """
         try:
-            # TODO: 当实现丹药系统后，添加破境丹验证和效果
-            # 目前先忽略 pill_name 参数
+            # 清理丹药名称
+            pill_name_clean = pill_name.strip() if pill_name else ""
             
-            if pill_name and pill_name.strip():
-                yield event.plain_result(f"使用【{pill_name.strip()}】进行突破...")
+            if pill_name_clean:
+                yield event.plain_result(f"使用【{pill_name_clean}】进行突破...")
             else:
                 yield event.plain_result("开始尝试突破...")
             
-            # 执行突破
-            result = self.breakthrough_service.execute_breakthrough(player)
+            # 执行突破，传递丹药名称
+            result = self.breakthrough_service.execute_breakthrough(player, pill_name_clean if pill_name_clean else None)
             
             if result.success:
                 # 突破成功

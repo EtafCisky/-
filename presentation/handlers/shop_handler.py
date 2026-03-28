@@ -137,12 +137,16 @@ class ShopHandler:
         """
         user_id = event.get_sender_id()
         
+        print(f"[DEBUG] handle_buy 接收到的参数: args='{args}'")
+        
         if not args or args.strip() == "":
-            yield event.plain_result("请指定要购买的物品名称，例如：购买 青铜剑")
+            yield event.plain_result("请指定要购买的物品名称，例如：购买 青铜剑 或 购买 一品凝气丹 10")
             return
         
         # 解析物品名和数量
         item_name, quantity = self._parse_buy_args(args)
+        
+        print(f"[DEBUG] 解析结果: item_name='{item_name}', quantity={quantity}")
         
         if not item_name:
             yield event.plain_result("请指定要购买的物品名称")
@@ -156,6 +160,7 @@ class ShopHandler:
                 return
             
             # 购买物品
+            print(f"[DEBUG] 调用 buy_item: user_id={user_id}, shop_id={shop_id}, item_name={item_name}, quantity={quantity}")
             success, message = self.shop_service.buy_item(
                 user_id, shop_id, item_name, quantity
             )
@@ -175,23 +180,32 @@ class ShopHandler:
         Returns:
             (物品名, 数量)
         """
-        # 兼容全角空格/数字与"x10"写法
-        normalized = args.strip().replace("　", " ")
-        normalized = normalized.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
+        args = args.strip()
         
-        # 尝试解析数量
-        # 支持格式：物品名 数量、物品名 x数量、物品名x数量
-        pattern = r"^(.*?)(?:\s+(\d+)|[xX＊*]\s*(\d+))$"
-        match = re.match(pattern, normalized)
+        # 使用 rsplit 从右边分割，只分割最后一个空格
+        # 这样可以正确处理带空格的物品名，如"一品凝气丹"
+        parts = args.rsplit(" ", 1)
         
-        if match:
-            item_name = match.group(1).strip()
-            qty_str = match.group(2) or match.group(3)
-            quantity = max(1, int(qty_str))
-            return item_name, quantity
+        # 解析物品名和数量
+        if len(parts) == 2:
+            item_name = parts[0].strip()
+            qty_str = parts[1].strip()
+            
+            # 检查是否是数字（支持全角数字）
+            qty_str_normalized = qty_str.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
+            
+            # 支持 "x10" 或 "*10" 格式
+            if qty_str_normalized.startswith(('x', 'X', '*', '＊')):
+                qty_str_normalized = qty_str_normalized[1:]
+            
+            if qty_str_normalized.isdigit():
+                quantity = max(1, int(qty_str_normalized))
+                print(f"[DEBUG] 解析购买参数: args='{args}' -> item_name='{item_name}', quantity={quantity}")
+                return item_name, quantity
         
-        # 没有数量，默认为1
-        return normalized.strip(), 1
+        # 没有数量或格式不对，默认为1
+        print(f"[DEBUG] 解析购买参数(无数量): args='{args}' -> item_name='{args}', quantity=1")
+        return args, 1
     
     def _find_item_in_pavilions(self, item_name: str) -> str:
         """
