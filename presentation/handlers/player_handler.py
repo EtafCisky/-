@@ -448,3 +448,312 @@ class PlayerHandler:
             
         except Exception as e:
             yield event.plain_result(f"❌ 增加灵石失败：{str(e)}")
+
+    async def handle_admin_change_spirit_root(
+        self,
+        event: AstrMessageEvent,
+        args: str = ""
+    ):
+        """
+        处理管理员修改灵根命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+            args: 参数字符串，格式："灵根类型 @用户" 或 "灵根类型 用户ID"
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager()
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        # 解析参数
+        if not args or args.strip() == "":
+            yield event.plain_result(
+                "❌ 参数错误！\n"
+                "💡 使用方法：修改灵根 灵根类型 @用户\n"
+                "示例：修改灵根 天灵根 @张三\n"
+                "可用灵根：天灵根、变异雷灵根、变异冰灵根、变异风灵根、\n"
+                "真灵根、伪灵根、单灵根、双灵根、三灵根、四灵根、五灵根"
+            )
+            return
+        
+        try:
+            # 解析参数：灵根类型
+            parts = args.strip().split()
+            if len(parts) < 1:
+                yield event.plain_result(
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：修改灵根 灵根类型 @用户"
+                )
+                return
+            
+            # 获取灵根类型
+            spirit_root = parts[0].strip()
+            
+            # 验证灵根类型（添加"灵根"后缀如果没有）
+            if not spirit_root.endswith("灵根"):
+                spirit_root = spirit_root + "灵根"
+            
+            # 验证灵根是否有效
+            valid_roots = [
+                "天灵根", "变异雷灵根", "变异冰灵根", "变异风灵根",
+                "真灵根", "伪灵根", "单灵根", "双灵根", "三灵根", "四灵根", "五灵根"
+            ]
+            
+            if spirit_root not in valid_roots:
+                yield event.plain_result(
+                    f"❌ 无效的灵根类型：{spirit_root}\n"
+                    f"可用灵根：{'、'.join(valid_roots)}"
+                )
+                return
+            
+            # 获取目标用户ID（使用与增加灵石相同的逻辑）
+            target_user_id = None
+            
+            # 优先从参数获取数字ID
+            if len(parts) >= 2:
+                cleaned = parts[1].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
+            
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "修改灵根" in text:
+                            found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            import re
+                            match = re.search(r'修改灵根\s+\S+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：修改灵根 灵根类型 @用户 或 修改灵根 灵根类型 用户ID"
+                )
+                return
+            
+            # 检查目标玩家是否存在
+            target_player = self.player_service.get_player(target_user_id)
+            if not target_player:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_user_id}）还未踏入修仙之路！"
+                )
+                return
+            
+            # 修改灵根
+            old_root = target_player.spiritual_root
+            target_player.spiritual_root = spirit_root
+            self.player_service.player_repo.save(target_player)
+            
+            # 格式化输出
+            yield event.plain_result(
+                "✅ 灵根修改成功！\n"
+                "━━━━━━━━━━━━━━━\n"
+                f"目标用户：{target_player.nickname}\n"
+                f"原有灵根：{old_root}\n"
+                f"当前灵根：{target_player.spiritual_root}"
+            )
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 修改灵根失败：{str(e)}")
+
+    async def handle_admin_add_spiritual_power(
+        self,
+        event: AstrMessageEvent,
+        args: str = ""
+    ):
+        """
+        处理管理员增加灵力命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+            args: 参数字符串，格式："数量 @用户" 或 "数量 用户ID"
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager()
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        # 解析参数
+        if not args or args.strip() == "":
+            yield event.plain_result(
+                "❌ 参数错误！\n"
+                "💡 使用方法：增加灵力 数量 @用户\n"
+                "示例：增加灵力 10000 @张三\n"
+                "说明：灵修增加灵气，体修增加气血"
+            )
+            return
+        
+        try:
+            # 解析参数：数量
+            parts = args.strip().split()
+            if len(parts) < 1:
+                yield event.plain_result(
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：增加灵力 数量 @用户"
+                )
+                return
+            
+            # 获取数量
+            try:
+                amount = int(parts[0])
+                if amount <= 0:
+                    yield event.plain_result("❌ 数量必须大于0！")
+                    return
+            except ValueError:
+                yield event.plain_result("❌ 数量必须是有效的数字！")
+                return
+            
+            # 获取目标用户ID（使用与增加灵石相同的逻辑）
+            target_user_id = None
+            
+            # 优先从参数获取数字ID
+            if len(parts) >= 2:
+                cleaned = parts[1].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
+            
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "增加灵力" in text:
+                            found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            import re
+                            match = re.search(r'增加灵力\s+\d+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：增加灵力 数量 @用户 或 增加灵力 数量 用户ID"
+                )
+                return
+            
+            # 检查目标玩家是否存在
+            target_player = self.player_service.get_player(target_user_id)
+            if not target_player:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_user_id}）还未踏入修仙之路！"
+                )
+                return
+            
+            # 根据修炼类型增加灵力
+            if target_player.cultivation_type == CultivationType.SPIRITUAL:
+                # 灵修：增加灵气
+                old_qi = target_player.spiritual_qi
+                target_player.spiritual_qi += amount
+                # 同时增加最大灵气
+                target_player.max_spiritual_qi += amount
+                self.player_service.player_repo.save(target_player)
+                
+                yield event.plain_result(
+                    "✅ 灵气增加成功！\n"
+                    "━━━━━━━━━━━━━━━\n"
+                    f"目标用户：{target_player.nickname}\n"
+                    f"修炼类型：灵修\n"
+                    f"增加数量：{amount:,} 灵气\n"
+                    f"原有灵气：{old_qi:,}\n"
+                    f"当前灵气：{target_player.spiritual_qi:,}\n"
+                    f"最大灵气：{target_player.max_spiritual_qi:,}"
+                )
+            else:
+                # 体修：增加气血
+                old_qi = target_player.blood_qi
+                target_player.blood_qi += amount
+                # 同时增加最大气血
+                target_player.max_blood_qi += amount
+                self.player_service.player_repo.save(target_player)
+                
+                yield event.plain_result(
+                    "✅ 气血增加成功！\n"
+                    "━━━━━━━━━━━━━━━\n"
+                    f"目标用户：{target_player.nickname}\n"
+                    f"修炼类型：体修\n"
+                    f"增加数量：{amount:,} 气血\n"
+                    f"原有气血：{old_qi:,}\n"
+                    f"当前气血：{target_player.blood_qi:,}\n"
+                    f"最大气血：{target_player.max_blood_qi:,}"
+                )
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 增加灵力失败：{str(e)}")
