@@ -117,15 +117,22 @@ class PillService:
         Returns:
             丹药配置字典，如果不存在则返回None
         """
-        # 从配置中查找丹药
+        # 先从 pills.json（突破丹药）中查找
         pills_config = self.config_manager.get_config("pills")
-        if not pills_config:
-            return None
+        if pills_config:
+            # 遍历所有突破丹药配置
+            for pill_id, pill_data in pills_config.items():
+                if pill_data.get("name") == pill_name:
+                    return pill_data
         
-        # 遍历所有丹药配置
-        for pill_id, pill_data in pills_config.items():
-            if pill_data.get("name") == pill_name:
-                return pill_data
+        # 再从 items.json（通用物品，包含各种丹药）中查找
+        items_config = self.config_manager.get_config("items")
+        if items_config:
+            # 遍历所有物品配置
+            for item_id, item_data in items_config.items():
+                # 只查找类型为"丹药"的物品
+                if item_data.get("type") == "丹药" and item_data.get("name") == pill_name:
+                    return item_data
         
         return None
     
@@ -200,12 +207,30 @@ class PillService:
         # 恢复气血
         if "add_hp" in effects:
             hp_gain = effects["add_hp"]
-            old_hp = player.hp
-            player.hp = min(player.hp + hp_gain, player.max_hp)
-            actual_gain = player.hp - old_hp
-            if actual_gain > 0:
-                message_parts.append(f"🌟 恢复气血：+{actual_gain}")
-                message_parts.append(f"💖 当前气血：{player.hp}/{player.max_hp}")
+            if hp_gain > 0:
+                old_hp = player.spiritual_qi if hasattr(player, 'spiritual_qi') else 0
+                # 根据修炼类型选择恢复的属性
+                if player.cultivation_type.value == "灵修":
+                    player.spiritual_qi = min(player.spiritual_qi + hp_gain, player.max_spiritual_qi)
+                    actual_gain = player.spiritual_qi - old_hp
+                    if actual_gain > 0:
+                        message_parts.append(f"🌟 恢复灵气：+{actual_gain}")
+                        message_parts.append(f"💖 当前灵气：{player.spiritual_qi}/{player.max_spiritual_qi}")
+                else:  # 体修
+                    old_hp = player.blood_qi
+                    player.blood_qi = min(player.blood_qi + hp_gain, player.max_blood_qi)
+                    actual_gain = player.blood_qi - old_hp
+                    if actual_gain > 0:
+                        message_parts.append(f"🌟 恢复气血：+{actual_gain}")
+                        message_parts.append(f"💖 当前气血：{player.blood_qi}/{player.max_blood_qi}")
+            elif hp_gain < 0:
+                # 负面效果
+                if player.cultivation_type.value == "灵修":
+                    player.spiritual_qi = max(0, player.spiritual_qi + hp_gain)
+                    message_parts.append(f"⚠️ 损失灵气：{hp_gain}")
+                else:
+                    player.blood_qi = max(0, player.blood_qi + hp_gain)
+                    message_parts.append(f"⚠️ 损失气血：{hp_gain}")
         
         # 增加修为
         if "add_experience" in effects:
@@ -217,32 +242,57 @@ class PillService:
         # 增加气血上限
         if "add_max_hp" in effects:
             max_hp_gain = effects["add_max_hp"]
-            player.max_hp += max_hp_gain
-            message_parts.append(f"💪 气血上限：+{max_hp_gain}")
+            if player.cultivation_type.value == "灵修":
+                player.max_spiritual_qi += max_hp_gain
+                message_parts.append(f"💪 灵气上限：+{max_hp_gain}")
+            else:
+                player.max_blood_qi += max_hp_gain
+                message_parts.append(f"💪 气血上限：+{max_hp_gain}")
         
-        # 增加灵力
+        # 增加灵力（灵修专属）
         if "add_spiritual_power" in effects:
             sp_gain = effects["add_spiritual_power"]
-            # 这里需要根据实际的灵力属性名称调整
-            message_parts.append(f"✨ 灵力：+{sp_gain}")
+            if player.cultivation_type.value == "灵修":
+                player.max_spiritual_qi += sp_gain
+                message_parts.append(f"✨ 灵气上限：+{sp_gain}")
         
         # 增加精神力
         if "add_mental_power" in effects:
             mp_gain = effects["add_mental_power"]
-            player.mental_power += mp_gain
-            message_parts.append(f"🧠 精神力：+{mp_gain}")
+            if mp_gain > 0:
+                player.mental_power += mp_gain
+                message_parts.append(f"🧠 精神力：+{mp_gain}")
+            elif mp_gain < 0:
+                player.mental_power = max(0, player.mental_power + mp_gain)
+                message_parts.append(f"⚠️ 精神力：{mp_gain}")
         
         # 增加攻击力
         if "add_attack" in effects:
             atk_gain = effects["add_attack"]
-            player.physical_damage += atk_gain
-            message_parts.append(f"⚔️ 攻击力：+{atk_gain}")
+            if atk_gain > 0:
+                if player.cultivation_type.value == "灵修":
+                    player.magic_damage += atk_gain
+                    message_parts.append(f"⚔️ 法术攻击：+{atk_gain}")
+                else:
+                    player.physical_damage += atk_gain
+                    message_parts.append(f"⚔️ 物理攻击：+{atk_gain}")
+            elif atk_gain < 0:
+                if player.cultivation_type.value == "灵修":
+                    player.magic_damage = max(0, player.magic_damage + atk_gain)
+                    message_parts.append(f"⚠️ 法术攻击：{atk_gain}")
+                else:
+                    player.physical_damage = max(0, player.physical_damage + atk_gain)
+                    message_parts.append(f"⚠️ 物理攻击：{atk_gain}")
         
         # 增加防御力
         if "add_defense" in effects:
             def_gain = effects["add_defense"]
-            player.physical_defense += def_gain
-            message_parts.append(f"🛡️ 防御力：+{def_gain}")
+            if def_gain > 0:
+                player.physical_defense += def_gain
+                message_parts.append(f"🛡️ 防御力：+{def_gain}")
+            elif def_gain < 0:
+                player.physical_defense = max(0, player.physical_defense + def_gain)
+                message_parts.append(f"⚠️ 防御力：{def_gain}")
         
         # 突破加成（临时效果，保存到玩家数据）
         if "add_breakthrough_bonus" in effects:
@@ -252,7 +302,7 @@ class PillService:
             message_parts.append(f"🎯 突破成功率：+{bonus * 100:.0f}%")
             message_parts.append(f"💡 当前突破加成：{player.level_up_rate}%")
         
-        # 负面效果
+        # 负面效果：消耗灵石
         if "add_gold" in effects and effects["add_gold"] < 0:
             gold_loss = abs(effects["add_gold"])
             player.gold = max(0, player.gold - gold_loss)
