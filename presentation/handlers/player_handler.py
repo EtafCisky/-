@@ -627,13 +627,13 @@ class PlayerHandler:
         except Exception as e:
             yield event.plain_result(f"❌ 修改灵根失败：{str(e)}")
 
-    async def handle_admin_add_spiritual_power(
+    async def handle_admin_add_experience(
         self,
         event: AstrMessageEvent,
         args: str = ""
     ):
         """
-        处理管理员增加灵力命令（需要管理员权限）
+        处理管理员增加修为命令（需要管理员权限）
         
         Args:
             event: 消息事件
@@ -662,9 +662,8 @@ class PlayerHandler:
         if not args or args.strip() == "":
             yield event.plain_result(
                 "❌ 参数错误！\n"
-                "💡 使用方法：增加灵力 数量 @用户\n"
-                "示例：增加灵力 10000 @张三\n"
-                "说明：灵修增加灵气，体修增加气血"
+                "💡 使用方法：增加修为 数量 @用户\n"
+                "示例：增加修为 100000 @张三"
             )
             return
         
@@ -674,7 +673,7 @@ class PlayerHandler:
             if len(parts) < 1:
                 yield event.plain_result(
                     "❌ 参数不足！\n"
-                    "💡 使用方法：增加灵力 数量 @用户"
+                    "💡 使用方法：增加修为 数量 @用户"
                 )
                 return
             
@@ -709,11 +708,11 @@ class PlayerHandler:
                     # 检查是否是文本组件且包含命令
                     if hasattr(component, "text"):
                         text = getattr(component, "text", "")
-                        if "增加灵力" in text:
+                        if "增加修为" in text:
                             found_command = True
                             # 检查文本中是否包含数字ID（在命令之后）
                             import re
-                            match = re.search(r'增加灵力\s+\d+\s+(\d+)', text)
+                            match = re.search(r'增加修为\s+\d+\s+(\d+)', text)
                             if match:
                                 target_user_id = match.group(1)
                                 break
@@ -735,7 +734,7 @@ class PlayerHandler:
             if not target_user_id:
                 yield event.plain_result(
                     "❌ 未找到目标用户！\n"
-                    "💡 使用方法：增加灵力 数量 @用户 或 增加灵力 数量 用户ID"
+                    "💡 使用方法：增加修为 数量 @用户 或 增加修为 数量 用户ID"
                 )
                 return
             
@@ -747,43 +746,20 @@ class PlayerHandler:
                 )
                 return
             
-            # 根据修炼类型增加灵力
-            if target_player.cultivation_type == CultivationType.SPIRITUAL:
-                # 灵修：增加灵气
-                old_qi = target_player.spiritual_qi
-                target_player.spiritual_qi += amount
-                # 同时增加最大灵气
-                target_player.max_spiritual_qi += amount
-                self.player_service.player_repo.save(target_player)
-                
-                yield event.plain_result(
-                    "✅ 灵气增加成功！\n"
-                    "━━━━━━━━━━━━━━━\n"
-                    f"目标用户：{target_player.nickname}\n"
-                    f"修炼类型：灵修\n"
-                    f"增加数量：{amount:,} 灵气\n"
-                    f"原有灵气：{old_qi:,}\n"
-                    f"当前灵气：{target_player.spiritual_qi:,}\n"
-                    f"最大灵气：{target_player.max_spiritual_qi:,}"
-                )
-            else:
-                # 体修：增加气血
-                old_qi = target_player.blood_qi
-                target_player.blood_qi += amount
-                # 同时增加最大气血
-                target_player.max_blood_qi += amount
-                self.player_service.player_repo.save(target_player)
-                
-                yield event.plain_result(
-                    "✅ 气血增加成功！\n"
-                    "━━━━━━━━━━━━━━━\n"
-                    f"目标用户：{target_player.nickname}\n"
-                    f"修炼类型：体修\n"
-                    f"增加数量：{amount:,} 气血\n"
-                    f"原有气血：{old_qi:,}\n"
-                    f"当前气血：{target_player.blood_qi:,}\n"
-                    f"最大气血：{target_player.max_blood_qi:,}"
-                )
+            # 增加修为
+            old_exp = target_player.experience
+            target_player.experience += amount
+            self.player_service.player_repo.save(target_player)
+            
+            # 格式化输出
+            yield event.plain_result(
+                "✅ 修为增加成功！\n"
+                "━━━━━━━━━━━━━━━\n"
+                f"目标用户：{target_player.nickname}\n"
+                f"增加数量：{amount:,} 修为\n"
+                f"原有修为：{old_exp:,}\n"
+                f"当前修为：{target_player.experience:,}"
+            )
             
         except Exception as e:
-            yield event.plain_result(f"❌ 增加灵力失败：{str(e)}")
+            yield event.plain_result(f"❌ 增加修为失败：{str(e)}")

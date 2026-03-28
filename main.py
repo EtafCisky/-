@@ -699,10 +699,10 @@ class XiuxianV3Plugin(Star):
         async for result in self.player_handler.handle_admin_change_spirit_root(event, args):
             yield result
     
-    @filter.command(Commands.ADMIN_ADD_SPIRITUAL_POWER)
-    async def cmd_admin_add_spiritual_power(self, event: AstrMessageEvent, args: str = ""):
-        """增加灵力（管理员）"""
-        async for result in self.player_handler.handle_admin_add_spiritual_power(event, args):
+    @filter.command(Commands.ADMIN_ADD_EXPERIENCE)
+    async def cmd_admin_add_experience(self, event: AstrMessageEvent, args: str = ""):
+        """增加修为（管理员）"""
+        async for result in self.player_handler.handle_admin_add_experience(event, args):
             yield result
     
     # ===== 悬赏系统命令 =====
