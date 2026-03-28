@@ -203,12 +203,12 @@
       "required_exp": 150000,
       "success_rate": 0.35,
       "breakthrough_lifespan_gain": 100,
-      "breakthrough_blood_qi_gain": 700,
-      "breakthrough_mental_power_gain": 300,
-      "breakthrough_physical_damage_gain": 280,
+      "breakthrough_blood_qi_gain": 665,
+      "breakthrough_mental_power_gain": 285,
+      "breakthrough_physical_damage_gain": 266,
       "breakthrough_magic_damage_gain": 0,
-      "breakthrough_physical_defense_gain": 220,
-      "breakthrough_magic_defense_gain": 49
+      "breakthrough_physical_defense_gain": 209,
+      "breakthrough_magic_defense_gain": 47
     },
     {
       "index": 14,
@@ -218,12 +218,12 @@
       "required_exp": 350000,
       "success_rate": 0.3,
       "breakthrough_lifespan_gain": 100,
-      "breakthrough_blood_qi_gain": 1100,
-      "breakthrough_mental_power_gain": 450,
-      "breakthrough_physical_damage_gain": 450,
+      "breakthrough_blood_qi_gain": 1045,
+      "breakthrough_mental_power_gain": 428,
+      "breakthrough_physical_damage_gain": 428,
       "breakthrough_magic_damage_gain": 0,
-      "breakthrough_physical_defense_gain": 350,
-      "breakthrough_magic_defense_gain": 75
+      "breakthrough_physical_defense_gain": 333,
+      "breakthrough_magic_defense_gain": 71
     },
     {
       "index": 15,
@@ -233,12 +233,12 @@
       "required_exp": 700000,
       "success_rate": 0.28,
       "breakthrough_lifespan_gain": 100,
-      "breakthrough_blood_qi_gain": 1600,
-      "breakthrough_mental_power_gain": 650,
-      "breakthrough_physical_damage_gain": 650,
+      "breakthrough_blood_qi_gain": 1520,
+      "breakthrough_mental_power_gain": 618,
+      "breakthrough_physical_damage_gain": 618,
       "breakthrough_magic_damage_gain": 0,
-      "breakthrough_physical_defense_gain": 500,
-      "breakthrough_magic_defense_gain": 113
+      "breakthrough_physical_defense_gain": 475,
+      "breakthrough_magic_defense_gain": 107
     },
     {
       "index": 16,

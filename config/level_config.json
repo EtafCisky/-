@@ -203,12 +203,12 @@
       "required_exp": 150000,
       "success_rate": 0.35,
       "breakthrough_lifespan_gain": 50,
-      "breakthrough_spiritual_qi_gain": 650,
-      "breakthrough_mental_power_gain": 650,
-      "breakthrough_physical_damage_gain": 130,
-      "breakthrough_magic_damage_gain": 130,
-      "breakthrough_physical_defense_gain": 65,
-      "breakthrough_magic_defense_gain": 65
+      "breakthrough_spiritual_qi_gain": 683,
+      "breakthrough_mental_power_gain": 683,
+      "breakthrough_physical_damage_gain": 137,
+      "breakthrough_magic_damage_gain": 137,
+      "breakthrough_physical_defense_gain": 68,
+      "breakthrough_magic_defense_gain": 68
     },
     {
       "index": 14,
@@ -218,12 +218,12 @@
       "required_exp": 350000,
       "success_rate": 0.3,
       "breakthrough_lifespan_gain": 50,
-      "breakthrough_spiritual_qi_gain": 1000,
-      "breakthrough_mental_power_gain": 1000,
-      "breakthrough_physical_damage_gain": 200,
-      "breakthrough_magic_damage_gain": 200,
-      "breakthrough_physical_defense_gain": 100,
-      "breakthrough_magic_defense_gain": 100
+      "breakthrough_spiritual_qi_gain": 1050,
+      "breakthrough_mental_power_gain": 1050,
+      "breakthrough_physical_damage_gain": 210,
+      "breakthrough_magic_damage_gain": 210,
+      "breakthrough_physical_defense_gain": 105,
+      "breakthrough_magic_defense_gain": 105
     },
     {
       "index": 15,
@@ -233,12 +233,12 @@
       "required_exp": 700000,
       "success_rate": 0.28,
       "breakthrough_lifespan_gain": 50,
-      "breakthrough_spiritual_qi_gain": 1500,
-      "breakthrough_mental_power_gain": 1500,
-      "breakthrough_physical_damage_gain": 300,
-      "breakthrough_magic_damage_gain": 300,
-      "breakthrough_physical_defense_gain": 150,
-      "breakthrough_magic_defense_gain": 150
+      "breakthrough_spiritual_qi_gain": 1575,
+      "breakthrough_mental_power_gain": 1575,
+      "breakthrough_physical_damage_gain": 315,
+      "breakthrough_magic_damage_gain": 315,
+      "breakthrough_physical_defense_gain": 158,
+      "breakthrough_magic_defense_gain": 158
     },
     {
       "index": 16,
