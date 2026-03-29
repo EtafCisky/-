@@ -307,13 +307,70 @@ class AlchemyService:
                 effects = pill_data.get("effect", {})
                 effect_parts = []
                 
-                if "add_hp" in effects:
-                    effect_parts.append(f"恢复{effects['add_hp']}气血")
+                # 修为加成（显示数值）
                 if "add_experience" in effects:
-                    effect_parts.append(f"增加{effects['add_experience']}修为")
+                    exp = effects["add_experience"]
+                    if exp > 0:
+                        effect_parts.append(f"增加{exp}修为")
+                    elif exp < 0:
+                        effect_parts.append(f"减少{abs(exp)}修为")
+                
+                # 突破率加成（显示数值）
                 if "add_breakthrough_bonus" in effects:
                     bonus = int(effects["add_breakthrough_bonus"] * 100)
                     effect_parts.append(f"提升{bonus}%突破率")
+                
+                # 气血效果（不显示数值）
+                if "add_hp" in effects:
+                    hp = effects["add_hp"]
+                    if hp > 0:
+                        effect_parts.append("恢复气血")
+                    elif hp < 0:
+                        effect_parts.append("损失气血")
+                
+                # 气血上限（不显示数值）
+                if "add_max_hp" in effects:
+                    max_hp = effects["add_max_hp"]
+                    if max_hp > 0:
+                        effect_parts.append("提升气血上限")
+                    elif max_hp < 0:
+                        effect_parts.append("降低气血上限")
+                
+                # 精神力（不显示数值）
+                if "add_mental_power" in effects:
+                    mp = effects["add_mental_power"]
+                    if mp > 0:
+                        effect_parts.append("提升精神力")
+                    elif mp < 0:
+                        effect_parts.append("损失精神力")
+                
+                # 攻击力（不显示数值）
+                if "add_attack" in effects:
+                    atk = effects["add_attack"]
+                    if atk > 0:
+                        effect_parts.append("提升攻击力")
+                    elif atk < 0:
+                        effect_parts.append("降低攻击力")
+                
+                # 防御力（不显示数值）
+                if "add_defense" in effects:
+                    def_val = effects["add_defense"]
+                    if def_val > 0:
+                        effect_parts.append("提升防御力")
+                    elif def_val < 0:
+                        effect_parts.append("降低防御力")
+                
+                # 灵力（不显示数值）
+                if "add_spiritual_power" in effects:
+                    sp = effects["add_spiritual_power"]
+                    if sp > 0:
+                        effect_parts.append("提升灵力")
+                    elif sp < 0:
+                        effect_parts.append("损失灵力")
+                
+                # 灵石消耗（不显示数值）
+                if "add_gold" in effects and effects["add_gold"] < 0:
+                    effect_parts.append("消耗灵石")
                 
                 if effect_parts:
                     rank = pill_data.get("rank", "")
