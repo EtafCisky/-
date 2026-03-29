@@ -1098,9 +1098,6 @@ class PlayerHandler:
             return
         
         # 尝试从消息文本中提取完整参数
-        from astrbot.api import logger
-        
-        # 获取完整消息文本
         full_message = ""
         if hasattr(event, "message_obj") and event.message_obj:
             message_chain = getattr(event.message_obj, "message", []) or []
@@ -1109,17 +1106,10 @@ class PlayerHandler:
                     text = getattr(component, "text", "")
                     full_message += text
         
-        logger.info(f"【增加道具】完整消息: '{full_message}'")
-        logger.info(f"【增加道具】args参数: '{args}'")
-        
         # 从完整消息中提取命令后的参数
         if "增加道具" in full_message:
-            # 提取"增加道具"之后的所有内容
             cmd_index = full_message.find("增加道具")
             params_text = full_message[cmd_index + len("增加道具"):].strip()
-            logger.info(f"【增加道具】提取的参数文本: '{params_text}'")
-            
-            # 如果提取到了参数，使用提取的参数而不是args
             if params_text:
                 args = params_text
         
@@ -1127,23 +1117,25 @@ class PlayerHandler:
         if not args or args.strip() == "":
             yield event.plain_result(
                 "❌ 参数错误！\n"
-                "💡 使用方法：增加道具 道具名称 数量 @用户\n"
-                "示例：增加道具 灵草 10 @张三"
+                "💡 使用方法：增加道具 道具名称 数量 用户ID\n"
+                "示例：增加道具 灵草 10 123456789"
             )
             return
         
         try:
             # 解析参数：道具名称 数量 用户ID
             parts = args.strip().split()
-            logger.info(f"【增加道具】分割后的参数: {parts}, 长度: {len(parts)}")
             
             # 至少需要3个参数：道具名 数量 用户ID
             if len(parts) < 3:
                 yield event.plain_result(
                     "❌ 参数不足！\n"
-                    "💡 使用方法：增加道具 道具名称 数量 @用户 或 增加道具 道具名称 数量 用户ID\n"
-                    f"示例：增加道具 灵草 10 @张三 或 增加道具 灵草 10 123456789\n"
-                    f"调试信息：接收到 {len(parts)} 个参数: {parts}"
+                    "💡 使用方法：增加道具 道具名称 数量 用户ID\n"
+                    "示例：增加道具 灵草 10 123456789\n"
+                    f"━━━━━━━━━━━━━━━\n"
+                    f"你输入的内容：{args}\n"
+                    f"解析出的参数：{parts}\n"
+                    f"参数个数：{len(parts)}"
                 )
                 return
             
@@ -1157,57 +1149,17 @@ class PlayerHandler:
                     yield event.plain_result("❌ 数量必须大于0！")
                     return
             except ValueError:
-                yield event.plain_result("❌ 数量必须是有效的数字！")
+                yield event.plain_result(f"❌ 数量必须是有效的数字！你输入的是：{parts[1]}")
                 return
             
             # 获取目标用户ID
-            target_user_id = None
+            target_user_id = parts[2].strip().lstrip("@")
             
-            # 从第3个参数获取用户ID（可能带@符号）
-            cleaned = parts[2].strip().lstrip("@")
-            if cleaned.isdigit():
-                target_user_id = cleaned
-            
-            # 如果参数中没有ID，从At组件获取
-            if not target_user_id:
-                message_chain = []
-                if hasattr(event, "message_obj") and event.message_obj:
-                    message_chain = getattr(event.message_obj, "message", []) or []
-                
-                # 遍历消息链，找到命令后面的At组件
-                found_command = False
-                for component in message_chain:
-                    # 检查是否是文本组件且包含命令
-                    if hasattr(component, "text"):
-                        text = getattr(component, "text", "")
-                        if "增加道具" in text:
-                            found_command = True
-                            # 检查文本中是否包含数字ID（在命令之后）
-                            # 例如："增加道具 灵草 10 123456789"
-                            import re
-                            match = re.search(r'增加道具\s+\S+\s+\d+\s+(\d+)', text)
-                            if match:
-                                target_user_id = match.group(1)
-                                break
-                            continue
-                    
-                    # 如果已经找到命令，且当前是At组件
-                    if found_command and isinstance(component, At):
-                        # 尝试多个可能的属性名
-                        candidate = None
-                        for attr in ("qq", "target", "uin", "user_id"):
-                            candidate = getattr(component, attr, None)
-                            if candidate:
-                                break
-                        
-                        if candidate:
-                            target_user_id = str(candidate).lstrip("@")
-                            break
-            
-            if not target_user_id:
+            if not target_user_id or not target_user_id.isdigit():
                 yield event.plain_result(
-                    "❌ 未找到目标用户！\n"
-                    "💡 使用方法：增加道具 道具名称 数量 @用户 或 增加道具 道具名称 数量 用户ID"
+                    f"❌ 用户ID格式错误！\n"
+                    f"你输入的用户ID：{parts[2]}\n"
+                    f"用户ID必须是纯数字"
                 )
                 return
             
@@ -1250,3 +1202,4 @@ class PlayerHandler:
             
         except Exception as e:
             yield event.plain_result(f"❌ 增加道具失败：{str(e)}")
+
