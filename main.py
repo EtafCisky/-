@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.5.27"
+    "3.5.28"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -819,37 +819,37 @@ class XiuxianV3Plugin(Star):
         async for result in self.blessed_land_handler.handle_collect(event):
             yield result
     
-    # ===== 灵田系统命令 =====
+    # ===== 灵田系统命令 ===== (暂时关闭)
     
-    @filter.command(Commands.FARM_INFO)
-    async def cmd_farm_info(self, event: AstrMessageEvent):
-        """灵田信息"""
-        async for result in self.spirit_farm_handler.handle_farm_info(event):
-            yield result
+    # @filter.command(Commands.FARM_INFO)
+    # async def cmd_farm_info(self, event: AstrMessageEvent):
+    #     """灵田信息"""
+    #     async for result in self.spirit_farm_handler.handle_farm_info(event):
+    #         yield result
     
-    @filter.command(Commands.CREATE_FARM)
-    async def cmd_create_farm(self, event: AstrMessageEvent):
-        """开垦灵田"""
-        async for result in self.spirit_farm_handler.handle_create_farm(event):
-            yield result
+    # @filter.command(Commands.CREATE_FARM)
+    # async def cmd_create_farm(self, event: AstrMessageEvent):
+    #     """开垦灵田"""
+    #     async for result in self.spirit_farm_handler.handle_create_farm(event):
+    #         yield result
     
-    @filter.command(Commands.PLANT_HERB)
-    async def cmd_plant_herb(self, event: AstrMessageEvent, herb_name: str = ""):
-        """种植"""
-        async for result in self.spirit_farm_handler.handle_plant(event, herb_name):
-            yield result
+    # @filter.command(Commands.PLANT_HERB)
+    # async def cmd_plant_herb(self, event: AstrMessageEvent, herb_name: str = ""):
+    #     """种植"""
+    #     async for result in self.spirit_farm_handler.handle_plant(event, herb_name):
+    #         yield result
     
-    @filter.command(Commands.HARVEST)
-    async def cmd_harvest(self, event: AstrMessageEvent):
-        """收获"""
-        async for result in self.spirit_farm_handler.handle_harvest(event):
-            yield result
+    # @filter.command(Commands.HARVEST)
+    # async def cmd_harvest(self, event: AstrMessageEvent):
+    #     """收获"""
+    #     async for result in self.spirit_farm_handler.handle_harvest(event):
+    #         yield result
     
-    @filter.command(Commands.UPGRADE_FARM)
-    async def cmd_upgrade_farm(self, event: AstrMessageEvent):
-        """升级灵田"""
-        async for result in self.spirit_farm_handler.handle_upgrade_farm(event):
-            yield result
+    # @filter.command(Commands.UPGRADE_FARM)
+    # async def cmd_upgrade_farm(self, event: AstrMessageEvent):
+    #     """升级灵田"""
+    #     async for result in self.spirit_farm_handler.handle_upgrade_farm(event):
+    #         yield result
     
     # ===== 天地灵眼系统命令 =====
     
