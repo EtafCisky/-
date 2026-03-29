@@ -769,12 +769,6 @@ class XiuxianV3Plugin(Star):
         async for result in self.bank_handler.handle_repay(event):
             yield result
     
-    @filter.command(Commands.BANK_TRANSACTIONS)
-    async def cmd_bank_transactions(self, event: AstrMessageEvent):
-        """银行流水"""
-        async for result in self.bank_handler.handle_transactions(event):
-            yield result
-    
     @filter.command(Commands.BREAKTHROUGH_LOAN)
     async def cmd_breakthrough_loan(self, event: AstrMessageEvent, amount: str = ""):
         """突破贷款"""

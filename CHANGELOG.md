@@ -1,5 +1,29 @@
 # 更新日志
 
+## [3.5.25] - 2026-03-30 (代码清理)
+
+### 🧹 代码清理
+
+**彻底删除银行流水系统**
+
+- 删除 `BankTransaction` 类定义和 `TransactionType` 枚举
+- 删除 `BANK_TRANSACTIONS` 命令常量
+- 删除 `handle_transactions()` 处理器方法
+- 删除 `cmd_bank_transactions()` 命令注册
+- 删除 `get_transactions()` 服务方法
+- 删除 `add_transaction()` 和 `get_transactions()` 仓储方法
+- 删除 `_transaction_to_domain()` 转换方法
+- 删除所有 6 处 `add_transaction()` 调用（存款、取款、领息、贷款、还款、追杀）
+- 从帮助文档中删除"银行流水"命令
+- 从银行信息显示中删除"银行流水"提示
+
+### 📝 说明
+
+- 银行流水功能已完全移除，不再存储交易记录
+- 银行系统现在只保留核心功能：存款、取款、领息、贷款、还款
+- 减少了数据存储开销，简化了系统复杂度
+- 修复了 `BankTransaction` 未定义导致的插件加载失败问题
+
 ## [3.5.24] - 2026-03-29 (Bug修复与功能改进)
 
 ### 🐛 Bug修复
