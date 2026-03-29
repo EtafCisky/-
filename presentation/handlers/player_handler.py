@@ -1107,15 +1107,41 @@ class PlayerHandler:
             return
         
         try:
+            # 调试：打印接收到的参数
+            from astrbot.api import logger
+            logger.info(f"【增加道具】接收到的args: '{args}'")
+            logger.info(f"【增加道具】args类型: {type(args)}")
+            
+            # 尝试从消息文本中提取完整参数
+            full_text = ""
+            if hasattr(event, "message_str"):
+                full_text = event.message_str
+                logger.info(f"【增加道具】message_str: '{full_text}'")
+            elif hasattr(event, "get_message_str"):
+                full_text = event.get_message_str()
+                logger.info(f"【增加道具】get_message_str(): '{full_text}'")
+            
+            # 如果能获取到完整消息，从中提取参数
+            if full_text and "增加道具" in full_text:
+                # 移除命令部分，只保留参数
+                import re
+                match = re.search(r'增加道具\s+(.+)', full_text)
+                if match:
+                    args = match.group(1).strip()
+                    logger.info(f"【增加道具】从完整消息提取的args: '{args}'")
+            
             # 解析参数：道具名称 数量 用户ID
             parts = args.strip().split()
+            logger.info(f"【增加道具】分割后的parts: {parts}")
+            logger.info(f"【增加道具】parts数量: {len(parts)}")
             
             # 至少需要3个参数：道具名 数量 用户ID
             if len(parts) < 3:
                 yield event.plain_result(
                     "❌ 参数不足！\n"
                     "💡 使用方法：增加道具 道具名称 数量 @用户 或 增加道具 道具名称 数量 用户ID\n"
-                    "示例：增加道具 灵草 10 @张三 或 增加道具 灵草 10 123456789"
+                    f"示例：增加道具 灵草 10 @张三 或 增加道具 灵草 10 123456789\n"
+                    f"调试信息：接收到 {len(parts)} 个参数"
                 )
                 return
             
