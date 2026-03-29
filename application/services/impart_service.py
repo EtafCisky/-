@@ -114,7 +114,7 @@ MP加成：{impart_info.impart_mp_per * 100:.1f}%
             # 失败惩罚：损失修为
             exp_loss = int(attacker.experience * 0.01)  # 1%
             attacker.experience = max(0, attacker.experience - exp_loss)
-            self.player_repo.update_player(attacker)
+            self.player_repo.save(attacker)
             
             result_msg = (
                 f"💀 传承挑战失败...\n"

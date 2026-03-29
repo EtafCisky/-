@@ -124,8 +124,8 @@ class DualCultivationService:
         # 应用收益
         initiator.experience += init_exp_gain
         acceptor.experience += accept_exp_gain
-        self.player_repo.update_player(initiator)
-        self.player_repo.update_player(acceptor)
+        self.player_repo.save(initiator)
+        self.player_repo.save(acceptor)
         
         # 记录冷却
         self.dual_repo.set_cooldown(initiator.user_id, now)
