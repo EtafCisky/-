@@ -492,21 +492,14 @@ class XiuxianV3Plugin(Star):
     @filter.command(Commands.ALCHEMY_RECIPES)
     async def cmd_alchemy_recipes(self, event: AstrMessageEvent):
         """丹药配方"""
-        async for result in self.alchemy_handler.handle_show_new_recipes(event):
+        async for result in self.alchemy_handler.handle_show_recipes(event):
             yield result
     
     @filter.command(Commands.CRAFT_PILL)
-    async def cmd_craft_pill(self, event: AstrMessageEvent, pill_input: str = ""):
+    async def cmd_craft_pill(self, event: AstrMessageEvent, pill_name: str = ""):
         """炼丹"""
-        # 支持两种格式：炼丹 <配方ID> 或 炼丹 <丹药名称>
-        if pill_input.isdigit():
-            # 旧格式：通过配方ID炼丹
-            async for result in self.alchemy_handler.handle_craft_pill(event, pill_input):
-                yield result
-        else:
-            # 新格式：通过丹药名称炼丹
-            async for result in self.alchemy_handler.handle_craft_pill_by_name(event, pill_input):
-                yield result
+        async for result in self.alchemy_handler.handle_craft_pill_by_name(event, pill_name):
+            yield result
     
     @filter.command(Commands.QUERY_RECIPE)
     async def cmd_query_recipe(self, event: AstrMessageEvent, query: str = ""):
