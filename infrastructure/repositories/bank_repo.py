@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Any
 
 from .base import BaseRepository
 from ..storage import JSONStorage, TimestampConverter
-from ...domain.models.bank import BankAccount, Loan, BankTransaction
+from ...domain.models.bank import BankAccount, Loan
 
 
 class BankRepository(BaseRepository[BankAccount]):
@@ -18,7 +18,6 @@ class BankRepository(BaseRepository[BankAccount]):
         """
         super().__init__(storage, "bank_accounts.json")
         self.loans_filename = "loans.json"
-        self.transactions_filename = "bank_transactions.json"
     
     def get_by_id(self, user_id: str) -> Optional[BankAccount]:
         """根据用户ID获取银行账户"""
