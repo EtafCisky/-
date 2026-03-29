@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.5.24"
+    "3.5.27"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -492,12 +492,6 @@ class XiuxianV3Plugin(Star):
             yield result
     
     # ===== 丹药系统命令 =====
-    
-    @filter.command(Commands.PILL_BACKPACK)
-    async def cmd_show_pills(self, event: AstrMessageEvent):
-        """丹药背包"""
-        async for result in self.pill_handler.handle_show_pills(event):
-            yield result
     
     @filter.command(Commands.USE_PILL)
     async def cmd_use_pill(self, event: AstrMessageEvent, pill_name: str = ""):
