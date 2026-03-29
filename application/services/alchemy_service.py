@@ -274,17 +274,32 @@ class AlchemyService:
         
         # 先从 pills.json 查找（突破丹药）
         if pills_config:
-            for pill in pills_config:
-                if pill.get("name") == pill_name:
-                    pill_data = pill
-                    break
+            # pills_config 可能是字典或列表
+            if isinstance(pills_config, dict):
+                # 如果是字典，直接通过名称查找
+                pill_data = pills_config.get(pill_name)
+            elif isinstance(pills_config, list):
+                # 如果是列表，遍历查找
+                for pill in pills_config:
+                    if pill.get("name") == pill_name:
+                        pill_data = pill
+                        break
         
         # 如果没找到，从 items.json 查找（通用丹药）
         if not pill_data and items_config:
-            for item in items_config:
-                if item.get("name") == pill_name and item.get("type") == "丹药":
-                    pill_data = item
-                    break
+            # items_config 可能是字典或列表
+            if isinstance(items_config, dict):
+                # 如果是字典，遍历所有值查找
+                for item in items_config.values():
+                    if isinstance(item, dict) and item.get("name") == pill_name and item.get("type") == "丹药":
+                        pill_data = item
+                        break
+            elif isinstance(items_config, list):
+                # 如果是列表，遍历查找
+                for item in items_config:
+                    if item.get("name") == pill_name and item.get("type") == "丹药":
+                        pill_data = item
+                        break
         
         if not pill_data:
             return ""
