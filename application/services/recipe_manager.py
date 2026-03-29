@@ -3,8 +3,8 @@ import json
 from typing import List, Optional, Dict
 from pathlib import Path
 
-from xiuxian_v3.domain.models.recipe import Recipe
-from xiuxian_v3.application.services.recipe_validator import RecipeValidator, ValidationResult
+from ...domain.models.recipe import Recipe
+from .recipe_validator import RecipeValidator, ValidationResult
 
 
 class RecipeManager:

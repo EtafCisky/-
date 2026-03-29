@@ -3,7 +3,7 @@ import json
 from typing import Dict, Optional
 from pathlib import Path
 
-from xiuxian_v3.core.alchemy_constants import COST_RATIO_MIN, COST_RATIO_MAX
+from ...core.alchemy_constants import COST_RATIO_MIN, COST_RATIO_MAX
 
 
 class CostCalculator:

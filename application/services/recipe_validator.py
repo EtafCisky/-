@@ -4,11 +4,11 @@ from typing import List, Dict, Set
 import json
 from pathlib import Path
 
-from xiuxian_v3.domain.models.recipe import Recipe
-from xiuxian_v3.core.alchemy_constants import (
+from ...domain.models.recipe import Recipe
+from ...core.alchemy_constants import (
     RANK_LEVELS, VALID_RANKS, COST_RATIO_MIN, COST_RATIO_MAX
 )
-from xiuxian_v3.application.services.cost_calculator import CostCalculator
+from .cost_calculator import CostCalculator
 
 
 @dataclass
