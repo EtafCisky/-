@@ -1112,12 +1112,15 @@ class PlayerHandler:
             item_name = None
             count = 1
             
+            # 获取bot自己的ID
+            bot_id = str(event.get_bot_id()) if hasattr(event, 'get_bot_id') else None
+            
             # 从消息链中提取 At 组件
             message_chain = []
             if hasattr(event, "message_obj") and event.message_obj:
                 message_chain = getattr(event.message_obj, "message", []) or []
             
-            # 先尝试从At组件获取用户ID
+            # 尝试从At组件获取用户ID（跳过bot自己）
             for component in message_chain:
                 if isinstance(component, At):
                     # 尝试多个可能的属性名
@@ -1128,7 +1131,11 @@ class PlayerHandler:
                             break
                     
                     if candidate:
-                        target_user_id = str(candidate).lstrip("@")
+                        candidate_str = str(candidate).lstrip("@")
+                        # 跳过bot自己的ID
+                        if bot_id and candidate_str == bot_id:
+                            continue
+                        target_user_id = candidate_str
                         break
             
             # 解析参数：物品名 数量 [用户ID]
