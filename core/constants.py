@@ -49,7 +49,6 @@ class Commands:
     # 炼丹系统
     ALCHEMY_RECIPES = "丹药配方"
     CRAFT_PILL = "炼丹"
-    RECIPE_LIST = "配方列表"
     QUERY_RECIPE = "查询配方"
     QUERY_RECIPE_BY_RANK = "查询品质配方"
     ALCHEMY_INFO = "炼丹信息"

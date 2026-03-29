@@ -492,7 +492,7 @@ class XiuxianV3Plugin(Star):
     @filter.command(Commands.ALCHEMY_RECIPES)
     async def cmd_alchemy_recipes(self, event: AstrMessageEvent):
         """丹药配方"""
-        async for result in self.alchemy_handler.handle_show_recipes(event):
+        async for result in self.alchemy_handler.handle_show_new_recipes(event):
             yield result
     
     @filter.command(Commands.CRAFT_PILL)
@@ -507,12 +507,6 @@ class XiuxianV3Plugin(Star):
             # 新格式：通过丹药名称炼丹
             async for result in self.alchemy_handler.handle_craft_pill_by_name(event, pill_input):
                 yield result
-    
-    @filter.command(Commands.RECIPE_LIST)
-    async def cmd_recipe_list(self, event: AstrMessageEvent):
-        """配方列表"""
-        async for result in self.alchemy_handler.handle_show_new_recipes(event):
-            yield result
     
     @filter.command(Commands.QUERY_RECIPE)
     async def cmd_query_recipe(self, event: AstrMessageEvent, query: str = ""):
