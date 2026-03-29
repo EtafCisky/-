@@ -1,37 +1,135 @@
 [
   {
-    "id": 1,
-    "name": "炼气丹",
+    "id": "recipe_1001",
+    "pill_id": "1001",
+    "name": "一品气血丹",
+    "rank": "凡品",
     "level_required": 0,
-    "materials": { "灵草": 2, "灵石": 50 },
-    "success_rate": 85
+    "materials": {
+      "灵石碎片": 1,
+      "精铁": 0
+    },
+    "success_rate": 90,
+    "cost": 55
   },
   {
-    "id": 2,
-    "name": "聚灵丹",
+    "id": "recipe_1002",
+    "pill_id": "1002",
+    "name": "一品培元丹",
+    "rank": "凡品",
     "level_required": 0,
-    "materials": { "灵草": 3, "灵石": 100 },
-    "success_rate": 80
+    "materials": {
+      "灵石碎片": 2,
+      "精铁": 0
+    },
+    "success_rate": 90,
+    "cost": 115
   },
   {
-    "id": 3,
-    "name": "凝气丹",
+    "id": "recipe_1003",
+    "pill_id": "1003",
+    "name": "一品凝气丹",
+    "rank": "凡品",
     "level_required": 1,
-    "materials": { "灵草": 4, "灵石": 150 },
-    "success_rate": 75
+    "materials": {
+      "灵石碎片": 2,
+      "精铁": 1
+    },
+    "success_rate": 88,
+    "cost": 200
   },
   {
-    "id": 4,
-    "name": "培元丹",
+    "id": "recipe_1008",
+    "pill_id": "1008",
+    "name": "三品聚灵丹",
+    "rank": "珍品",
     "level_required": 3,
-    "materials": { "灵草": 5, "灵石": 250 },
-    "success_rate": 70
+    "materials": {
+      "灵草": 3,
+      "灵兽毛皮": 1
+    },
+    "success_rate": 80,
+    "cost": 1200
   },
   {
-    "id": 5,
-    "name": "玄灵丹",
-    "level_required": 5,
-    "materials": { "灵草": 8, "灵石": 500 },
-    "success_rate": 60
+    "id": "recipe_1011",
+    "pill_id": "1011",
+    "name": "四品化灵丹",
+    "rank": "珍品",
+    "level_required": 4,
+    "materials": {
+      "灵兽内丹": 1,
+      "幽魂草": 0
+    },
+    "success_rate": 78,
+    "cost": 2400
+  },
+  {
+    "id": "recipe_1013",
+    "pill_id": "1013",
+    "name": "五品紫金丹",
+    "rank": "圣品",
+    "level_required": 6,
+    "materials": {
+      "千年人参": 1,
+      "紫金沙": 2
+    },
+    "success_rate": 70,
+    "cost": 6000
+  },
+  {
+    "id": "recipe_1017",
+    "pill_id": "1017",
+    "name": "六品天元丹",
+    "rank": "圣品",
+    "level_required": 7,
+    "materials": {
+      "灵兽内丹": 3,
+      "龙骨髓": 2,
+      "星辰石": 1
+    },
+    "success_rate": 68,
+    "cost": 31200
+  },
+  {
+    "id": "recipe_1020",
+    "pill_id": "1020",
+    "name": "七品金髓丹",
+    "rank": "帝品",
+    "level_required": 9,
+    "materials": {
+      "龙骨髓": 7,
+      "玄冰之核": 1,
+      "赤炎石": 2
+    },
+    "success_rate": 60,
+    "cost": 95600
+  },
+  {
+    "id": "recipe_1026",
+    "pill_id": "1026",
+    "name": "九品成圣丹",
+    "rank": "神品",
+    "level_required": 18,
+    "materials": {
+      "龙骨髓": 50,
+      "玄冰之核": 30,
+      "月光粉尘": 40
+    },
+    "success_rate": 30,
+    "cost": 1125000
+  },
+  {
+    "id": "recipe_pill_zhujidan",
+    "pill_id": "pill_zhujidan",
+    "name": "筑基丹",
+    "rank": "灵品",
+    "level_required": 3,
+    "materials": {
+      "千年人参": 1,
+      "灵兽内丹": 1
+    },
+    "success_rate": 75,
+    "cost": 5800
   }
 ]
