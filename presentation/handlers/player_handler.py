@@ -1107,12 +1107,15 @@ class PlayerHandler:
             return
         
         try:
-            # 解析参数：道具名称 数量
+            # 解析参数：道具名称 数量 用户ID
             parts = args.strip().split()
-            if len(parts) < 2:
+            
+            # 至少需要3个参数：道具名 数量 用户ID
+            if len(parts) < 3:
                 yield event.plain_result(
                     "❌ 参数不足！\n"
-                    "💡 使用方法：增加道具 道具名称 数量 @用户"
+                    "💡 使用方法：增加道具 道具名称 数量 @用户 或 增加道具 道具名称 数量 用户ID\n"
+                    "示例：增加道具 灵草 10 @张三 或 增加道具 灵草 10 123456789"
                 )
                 return
             
@@ -1129,14 +1132,13 @@ class PlayerHandler:
                 yield event.plain_result("❌ 数量必须是有效的数字！")
                 return
             
-            # 获取目标用户ID（参考其他管理员命令的逻辑）
+            # 获取目标用户ID
             target_user_id = None
             
-            # 优先从参数获取数字ID
-            if len(parts) >= 3:
-                cleaned = parts[2].strip().lstrip("@")
-                if cleaned.isdigit():
-                    target_user_id = cleaned
+            # 从第3个参数获取用户ID（可能带@符号）
+            cleaned = parts[2].strip().lstrip("@")
+            if cleaned.isdigit():
+                target_user_id = cleaned
             
             # 如果参数中没有ID，从At组件获取
             if not target_user_id:
