@@ -300,6 +300,14 @@ class PlayerRepository(BaseRepository[Player]):
             except:
                 pills_inventory = {}
         
+        # 解析储物戒物品
+        storage_ring_items = data.get('storage_ring_items', {})
+        if isinstance(storage_ring_items, str):
+            try:
+                storage_ring_items = json.loads(storage_ring_items)
+            except:
+                storage_ring_items = {}
+        
         return Player(
             user_id=data['user_id'],
             nickname=data['nickname'],
@@ -323,6 +331,8 @@ class PlayerRepository(BaseRepository[Player]):
             armor=data.get('armor'),
             main_technique=data.get('main_technique'),
             pills_inventory=pills_inventory,
+            storage_ring=data.get('storage_ring', '基础储物戒'),
+            storage_ring_items=storage_ring_items,
             sect_id=data.get('sect_id'),
             sect_position=data.get('sect_position'),
             level_up_rate=data.get('level_up_rate', 0),
@@ -366,6 +376,8 @@ class PlayerRepository(BaseRepository[Player]):
             'armor': player.armor,
             'main_technique': player.main_technique,
             'pills_inventory': player.pills_inventory,
+            'storage_ring': player.storage_ring,
+            'storage_ring_items': player.storage_ring_items,
             'sect_id': player.sect_id,
             'sect_position': player.sect_position,
             'level_up_rate': player.level_up_rate,
