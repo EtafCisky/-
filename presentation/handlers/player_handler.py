@@ -1279,28 +1279,25 @@ class PlayerHandler:
             return
         
         try:
-            # 获取仓储
-            from ...infrastructure.repositories.spirit_farm_repo import SpiritFarmRepository
-            from ...infrastructure.repositories.blessed_land_repo import BlessedLandRepository
-            
+            # 获取JSON存储
             json_storage = self.container.json_storage()
-            spirit_farm_repo = SpiritFarmRepository(json_storage)
-            blessed_land_repo = BlessedLandRepository(json_storage)
             
-            # 获取所有灵田和洞天的数量
-            all_farms = spirit_farm_repo.get_all()
-            all_lands = blessed_land_repo.get_all()
+            # 直接从JSON文件加载所有数据
+            all_farms = json_storage.load("spirit_farms.json")
+            all_lands = json_storage.load("blessed_lands.json")
             
-            farm_count = len(all_farms)
-            land_count = len(all_lands)
+            farm_count = len(all_farms) if all_farms else 0
+            land_count = len(all_lands) if all_lands else 0
             
-            # 删除所有灵田
-            for farm in all_farms:
-                spirit_farm_repo.delete(farm.user_id)
+            # 删除所有灵田（清空整个文件）
+            if all_farms:
+                for user_id_key in list(all_farms.keys()):
+                    json_storage.delete("spirit_farms.json", user_id_key)
             
-            # 删除所有洞天
-            for land in all_lands:
-                blessed_land_repo.delete(land.user_id)
+            # 删除所有洞天（清空整个文件）
+            if all_lands:
+                for user_id_key in list(all_lands.keys()):
+                    json_storage.delete("blessed_lands.json", user_id_key)
             
             # 格式化输出
             yield event.plain_result(
