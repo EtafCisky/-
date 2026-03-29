@@ -108,6 +108,11 @@ class StorageRingHandler:
         item_name = None
         count = 1
         
+        # 获取bot自己的ID（用于排除）
+        bot_id = None
+        if hasattr(event, "get_bot_id"):
+            bot_id = str(event.get_bot_id())
+        
         # 从消息链中提取 At 组件和 Plain 文本
         text_parts = []
         message_chain = event.message_obj.message if hasattr(event, 'message_obj') and event.message_obj else []
@@ -116,12 +121,17 @@ class StorageRingHandler:
             if isinstance(comp, At):
                 # 兼容多种At属性名
                 if target_id is None:
+                    candidate = None
                     if hasattr(comp, 'qq'):
-                        target_id = str(comp.qq)
+                        candidate = str(comp.qq)
                     elif hasattr(comp, 'target'):
-                        target_id = str(comp.target)
+                        candidate = str(comp.target)
                     elif hasattr(comp, 'uin'):
-                        target_id = str(comp.uin)
+                        candidate = str(comp.uin)
+                    
+                    # 排除bot自己
+                    if candidate and (not bot_id or candidate != bot_id):
+                        target_id = candidate
             elif isinstance(comp, Plain):
                 text_parts.append(comp.text)
         
