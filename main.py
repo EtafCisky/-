@@ -699,6 +699,12 @@ class XiuxianV3Plugin(Star):
         async for result in self.player_handler.handle_admin_add_item(event, args):
             yield result
     
+    @filter.command(Commands.ADMIN_CLEAR_FARMS_AND_LANDS)
+    async def cmd_admin_clear_farms_and_lands(self, event: AstrMessageEvent):
+        """清空灵田洞天（管理员）"""
+        async for result in self.player_handler.handle_admin_clear_farms_and_lands(event):
+            yield result
+    
     # ===== 悬赏系统命令 =====
     
     @filter.command(Commands.BOUNTY_LIST)

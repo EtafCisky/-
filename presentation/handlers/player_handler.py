@@ -1248,3 +1248,69 @@ class PlayerHandler:
             
         except Exception as e:
             yield event.plain_result(f"❌ 增加道具失败：{str(e)}")
+
+    async def handle_admin_clear_farms_and_lands(
+        self,
+        event: AstrMessageEvent,
+    ):
+        """
+        处理管理员清空所有灵田和洞天命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager()
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        try:
+            # 获取仓储
+            from ...infrastructure.repositories.spirit_farm_repo import SpiritFarmRepository
+            from ...infrastructure.repositories.blessed_land_repo import BlessedLandRepository
+            
+            json_storage = self.container.json_storage()
+            spirit_farm_repo = SpiritFarmRepository(json_storage)
+            blessed_land_repo = BlessedLandRepository(json_storage)
+            
+            # 获取所有灵田和洞天的数量
+            all_farms = spirit_farm_repo.get_all()
+            all_lands = blessed_land_repo.get_all()
+            
+            farm_count = len(all_farms)
+            land_count = len(all_lands)
+            
+            # 删除所有灵田
+            for farm in all_farms:
+                spirit_farm_repo.delete(farm.user_id)
+            
+            # 删除所有洞天
+            for land in all_lands:
+                blessed_land_repo.delete(land.user_id)
+            
+            # 格式化输出
+            yield event.plain_result(
+                "✅ 清空完成！\n"
+                "━━━━━━━━━━━━━━━\n"
+                f"🌾 已删除灵田：{farm_count} 个\n"
+                f"🏔️ 已删除洞天：{land_count} 个\n"
+                "━━━━━━━━━━━━━━━\n"
+                "所有玩家的灵田和洞天已被清空"
+            )
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 清空失败：{str(e)}")
