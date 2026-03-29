@@ -56,47 +56,46 @@ class StorageRingHandler:
             lines.append(f"\n{warning}\n")
         
         lines.append(f"\n{'=' * 28}\n")
-        lines.append(f"取出：取出 物品名 [数量]\n")
         lines.append(f"搜索：搜索物品 关键词\n")
         lines.append(f"升级：更换储物戒 储物戒名")
         
         yield event.plain_result("".join(lines))
     
-    @require_player
-    async def handle_retrieve_item(self, event: AstrMessageEvent, player, args: str = ""):
-        """从储物戒取出物品"""
-        user_id = event.get_sender_id()
-        
-        if not args or args.strip() == "":
-            yield event.plain_result(
-                f"请指定要取出的物品\n"
-                f"用法：取出 物品名 [数量]\n"
-                f"示例：取出 精铁 5"
-            )
-            return
-        
-        args = args.strip()
-        parts = args.rsplit(" ", 1)
-        
-        # 解析物品名和数量
-        if len(parts) == 2 and parts[1].isdigit():
-            item_name = parts[0]
-            count = int(parts[1])
-        else:
-            item_name = args
-            count = 1
-        
-        if count <= 0:
-            yield event.plain_result("数量必须大于0")
-            return
-        
-        # 取出物品
-        success, message = await self.storage_ring_service.retrieve_item(user_id, item_name, count)
-        
-        if success:
-            yield event.plain_result(f"✅ {message}")
-        else:
-            yield event.plain_result(f"❌ {message}")
+    # @require_player
+    # async def handle_retrieve_item(self, event: AstrMessageEvent, player, args: str = ""):
+    #     """从储物戒取出物品（已删除：该命令会导致物品消失）"""
+    #     user_id = event.get_sender_id()
+    #     
+    #     if not args or args.strip() == "":
+    #         yield event.plain_result(
+    #             f"请指定要取出的物品\n"
+    #             f"用法：取出 物品名 [数量]\n"
+    #             f"示例：取出 精铁 5"
+    #         )
+    #         return
+    #     
+    #     args = args.strip()
+    #     parts = args.rsplit(" ", 1)
+    #     
+    #     # 解析物品名和数量
+    #     if len(parts) == 2 and parts[1].isdigit():
+    #         item_name = parts[0]
+    #         count = int(parts[1])
+    #     else:
+    #         item_name = args
+    #         count = 1
+    #     
+    #     if count <= 0:
+    #         yield event.plain_result("数量必须大于0")
+    #         return
+    #     
+    #     # 取出物品
+    #     success, message = await self.storage_ring_service.retrieve_item(user_id, item_name, count)
+    #     
+    #     if success:
+    #         yield event.plain_result(f"✅ {message}")
+    #     else:
+    #         yield event.plain_result(f"❌ {message}")
     
     @require_player
     async def handle_discard_item(self, event: AstrMessageEvent, player, args: str = ""):

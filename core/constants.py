@@ -25,7 +25,7 @@ class Commands:
     
     # 储物戒系统
     STORAGE_RING = "储物戒"
-    RETRIEVE_ITEM = "取出"
+    # RETRIEVE_ITEM = "取出"  # 已删除：该命令会导致物品消失
     DISCARD_ITEM = "丢弃"
     GIFT_ITEM = "赠予"
     ACCEPT_GIFT = "接收"
@@ -148,6 +148,7 @@ class Commands:
     ADMIN_CHANGE_SPIRIT_ROOT = "修改灵根"
     ADMIN_ADD_EXPERIENCE = "增加修为"
     ADMIN_CHANGE_SECT_POSITION = "修改宗门岗位"
+    ADMIN_ADD_ITEM = "增加道具"
 
 
 class GameConstants:

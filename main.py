@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.5.28"
+    "3.5.30"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -429,11 +429,11 @@ class XiuxianV3Plugin(Star):
         async for result in self.storage_ring_handler.handle_storage_ring(event):
             yield result
     
-    @filter.command(Commands.RETRIEVE_ITEM)
-    async def cmd_retrieve_item(self, event: AstrMessageEvent, args: str = ""):
-        """取出"""
-        async for result in self.storage_ring_handler.handle_retrieve_item(event, args):
-            yield result
+    # @filter.command(Commands.RETRIEVE_ITEM)
+    # async def cmd_retrieve_item(self, event: AstrMessageEvent, args: str = ""):
+    #     """取出（已删除：该命令会导致物品消失）"""
+    #     async for result in self.storage_ring_handler.handle_retrieve_item(event, args):
+    #         yield result
     
     @filter.command(Commands.DISCARD_ITEM)
     async def cmd_discard_item(self, event: AstrMessageEvent, args: str = ""):
@@ -709,6 +709,12 @@ class XiuxianV3Plugin(Star):
     async def cmd_admin_change_sect_position(self, event: AstrMessageEvent, args: str = ""):
         """修改宗门岗位（管理员）"""
         async for result in self.player_handler.handle_admin_change_sect_position(event, args):
+            yield result
+    
+    @filter.command(Commands.ADMIN_ADD_ITEM)
+    async def cmd_admin_add_item(self, event: AstrMessageEvent, args: str = ""):
+        """增加道具（管理员）"""
+        async for result in self.player_handler.handle_admin_add_item(event, args):
             yield result
     
     # ===== 悬赏系统命令 =====
