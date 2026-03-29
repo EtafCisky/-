@@ -108,32 +108,28 @@ class StorageRingHandler:
         item_name = None
         count = 1
         
-        # 获取bot自己的ID（用于排除）
-        bot_id = None
-        if hasattr(event, "get_bot_id"):
-            bot_id = str(event.get_bot_id())
-        
-        # 从消息链中提取 At 组件和 Plain 文本
+        # 从消息链中提取 At 组件和 Plain 文本（只获取命令后面的At）
         text_parts = []
         message_chain = event.message_obj.message if hasattr(event, 'message_obj') and event.message_obj else []
         
+        # 标记是否已找到赠予命令
+        found_command = False
+        
         for comp in message_chain:
-            if isinstance(comp, At):
+            # 检查是否是文本组件且包含赠予命令
+            if isinstance(comp, Plain):
+                text = comp.text
+                if "赠予" in text:
+                    found_command = True
+                text_parts.append(text)
+            # 只获取命令后面的At组件
+            elif found_command and isinstance(comp, At) and target_id is None:
                 # 兼容多种At属性名
-                if target_id is None:
-                    candidate = None
-                    if hasattr(comp, 'qq'):
-                        candidate = str(comp.qq)
-                    elif hasattr(comp, 'target'):
-                        candidate = str(comp.target)
-                    elif hasattr(comp, 'uin'):
-                        candidate = str(comp.uin)
-                    
-                    # 排除bot自己
-                    if candidate and (not bot_id or candidate != bot_id):
-                        target_id = candidate
-            elif isinstance(comp, Plain):
-                text_parts.append(comp.text)
+                for attr in ("qq", "target", "uin", "user_id"):
+                    candidate = getattr(comp, attr, None)
+                    if candidate:
+                        target_id = str(candidate).lstrip("@")
+                        break
         
         # 合并文本内容并移除命令前缀
         text_content = "".join(text_parts).strip()
