@@ -335,7 +335,7 @@ class StorageRingService:
                 return False, f"储物戒中【{item_name}】数量不足（当前：{current}个）"
         
         # 检查接收者是否存在
-        receiver = await self.player_repo.get_by_id(receiver_id)
+        receiver = self.player_repo.get_by_id(receiver_id)
         if not receiver:
             return False, f"目标玩家（ID:{receiver_id}）尚未开始修仙"
         
