@@ -63,7 +63,6 @@ class BankHandler:
                 "  领取利息",
                 "  贷款 <数量>",
                 "  还款",
-                "  银行流水",
             ])
             
             yield event.plain_result("\n".join(msg_lines))
@@ -182,50 +181,6 @@ class BankHandler:
             yield event.plain_result(str(e))
         except Exception as e:
             yield event.plain_result(f"还款失败：{e}")
-    
-    async def handle_transactions(self, event: AstrMessageEvent) -> AsyncGenerator:
-        """处理查看银行流水命令"""
-        try:
-            user_id = event.get_sender_id()
-            transactions = self.bank_service.get_transactions(user_id, 15)
-            
-            if not transactions:
-                yield event.plain_result("📋 暂无交易记录")
-                return
-            
-            msg_lines = [
-                "📋 银行交易流水（最近15条）",
-                "━━━━━━━━━━━━━━━",
-            ]
-            
-            type_names = {
-                "deposit": "💰 存入",
-                "withdraw": "💸 取出",
-                "interest": "📈 利息",
-                "loan": "📥 贷款",
-                "repay": "📤 还款",
-                "bank_kill": "💀 追杀",
-            }
-            
-            for trans in transactions:
-                trans_time = time.strftime("%m-%d %H:%M", time.localtime(trans.created_at))
-                type_name = type_names.get(trans.trans_type, trans.trans_type)
-                amount = trans.amount
-                amount_str = f"+{amount:,}" if amount > 0 else f"{amount:,}"
-                
-                msg_lines.append(f"{trans_time} {type_name} {amount_str}")
-            
-            msg_lines.extend([
-                "━━━━━━━━━━━━━━━",
-                f"当前余额：{transactions[0].balance_after:,} 灵石" if transactions else ""
-            ])
-            
-            yield event.plain_result("\n".join(msg_lines))
-            
-        except GameException as e:
-            yield event.plain_result(str(e))
-        except Exception as e:
-            yield event.plain_result(f"查询流水失败：{e}")
     
     async def handle_breakthrough_loan(self, event: AstrMessageEvent, amount: str = "") -> AsyncGenerator:
         """处理突破贷款命令"""
