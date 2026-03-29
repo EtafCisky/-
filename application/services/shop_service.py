@@ -473,18 +473,11 @@ class ShopService:
         # 统一转换为英文类型
         normalized_type = type_mapping.get(item_type, item_type)
         
-        if normalized_type in ['weapon', 'armor', 'main_technique', 'technique', 'accessory', 'material']:
-            # 存入储物戒
+        if normalized_type in ['weapon', 'armor', 'main_technique', 'technique', 'accessory', 'material', 'pill', 'exp_pill', 'utility_pill']:
+            # 所有物品（包括丹药）都存入储物戒
             self.storage_ring_repo.add_item(user_id, item_name, quantity)
             type_name = self.TYPE_LABEL_MAP.get(normalized_type, '物品')
             result_lines.append(f"成功购买{type_name}【{target_item['name']}】x{quantity}，已存入储物戒。")
-        
-        elif normalized_type in ['pill', 'exp_pill', 'utility_pill']:
-            # 存入丹药背包
-            inventory = player.pills_inventory
-            inventory[item_name] = inventory.get(item_name, 0) + quantity
-            player.pills_inventory = inventory
-            result_lines.append(f"成功购买【{target_item['name']}】x{quantity}，已添加到丹药背包。")
         
         else:
             raise BusinessException(f"未知的物品类型：{item_type}（标准化后：{normalized_type}）")

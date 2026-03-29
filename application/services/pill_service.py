@@ -1,7 +1,7 @@
 """
 丹药服务层
 
-处理丹药相关的业务逻辑，包括丹药背包、使用丹药等。
+处理丹药相关的业务逻辑，包括从储物戒获取丹药、使用丹药等。
 """
 import time
 from typing import Optional, Tuple, Dict, List
@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ...domain.models.player import Player
 from ...infrastructure.repositories.player_repo import PlayerRepository
+from ...infrastructure.repositories.storage_ring_repo import StorageRingRepository
 from ...core.config import ConfigManager
 from ...core.exceptions import BusinessException
 
@@ -19,6 +20,7 @@ class PillService:
     def __init__(
         self,
         player_repo: PlayerRepository,
+        storage_ring_repo: StorageRingRepository,
         config_manager: ConfigManager,
     ):
         """
@@ -26,20 +28,22 @@ class PillService:
         
         Args:
             player_repo: 玩家仓储
+            storage_ring_repo: 储物戒仓储
             config_manager: 配置管理器
         """
         self.player_repo = player_repo
+        self.storage_ring_repo = storage_ring_repo
         self.config_manager = config_manager
     
     def get_pill_inventory(self, user_id: str) -> Dict[str, int]:
         """
-        获取玩家的丹药背包
+        获取玩家的丹药（从储物戒中筛选）
         
         Args:
             user_id: 用户ID
             
         Returns:
-            丹药背包字典 {丹药名称: 数量}
+            丹药字典 {丹药名称: 数量}
             
         Raises:
             BusinessException: 玩家不存在
@@ -48,11 +52,17 @@ class PillService:
         if not player:
             raise BusinessException("玩家不存在")
         
-        return player.pills_inventory
+        # 从储物戒获取所有物品
+        all_items = self.storage_ring_repo.get_storage_ring_items(user_id)
+        
+        # 筛选出丹药（包含"丹"字的物品）
+        pills = {name: count for name, count in all_items.items() if "丹" in name}
+        
+        return pills
     
     def add_pill(self, user_id: str, pill_name: str, count: int = 1) -> bool:
         """
-        添加丹药到背包
+        添加丹药到储物戒
         
         Args:
             user_id: 用户ID
@@ -69,16 +79,13 @@ class PillService:
         if not player:
             raise BusinessException("玩家不存在")
         
-        inventory = player.pills_inventory
-        inventory[pill_name] = inventory.get(pill_name, 0) + count
-        player.pills_inventory = inventory
-        
-        self.player_repo.save(player)
+        # 添加到储物戒
+        self.storage_ring_repo.add_item(user_id, pill_name, count)
         return True
     
     def remove_pill(self, user_id: str, pill_name: str, count: int = 1) -> bool:
         """
-        从背包移除丹药
+        从储物戒移除丹药
         
         Args:
             user_id: 用户ID
@@ -95,16 +102,12 @@ class PillService:
         if not player:
             raise BusinessException("玩家不存在")
         
-        inventory = player.pills_inventory
-        if pill_name not in inventory or inventory[pill_name] < count:
-            raise BusinessException(f"背包中没有足够的{pill_name}")
+        # 检查储物戒中是否有足够的丹药
+        if not self.storage_ring_repo.has_item(user_id, pill_name, count):
+            raise BusinessException(f"储物戒中没有足够的{pill_name}")
         
-        inventory[pill_name] -= count
-        if inventory[pill_name] <= 0:
-            del inventory[pill_name]
-        
-        player.pills_inventory = inventory
-        self.player_repo.save(player)
+        # 从储物戒移除
+        self.storage_ring_repo.remove_item(user_id, pill_name, count)
         return True
     
     def get_pill_config(self, pill_name: str) -> Optional[Dict]:
@@ -154,10 +157,9 @@ class PillService:
         if not player:
             raise BusinessException("玩家不存在")
         
-        # 检查背包是否有该丹药
-        inventory = player.pills_inventory
-        if pill_name not in inventory or inventory[pill_name] <= 0:
-            raise BusinessException(f"你的背包中没有【{pill_name}】！")
+        # 检查储物戒是否有该丹药
+        if not self.storage_ring_repo.has_item(user_id, pill_name, 1):
+            raise BusinessException(f"你的储物戒中没有【{pill_name}】！")
         
         # 获取丹药配置
         pill_config = self.get_pill_config(pill_name)
@@ -178,11 +180,8 @@ class PillService:
         # 应用丹药效果
         message = self._apply_pill_effects(player, pill_name, pill_config)
         
-        # 扣除丹药
-        inventory[pill_name] -= 1
-        if inventory[pill_name] <= 0:
-            del inventory[pill_name]
-        player.pills_inventory = inventory
+        # 从储物戒扣除丹药
+        self.storage_ring_repo.remove_item(user_id, pill_name, 1)
         
         # 保存玩家数据
         self.player_repo.save(player)
@@ -313,7 +312,7 @@ class PillService:
     
     def format_pill_inventory(self, user_id: str) -> str:
         """
-        格式化丹药背包显示
+        格式化丹药显示（从储物戒）
         
         Args:
             user_id: 用户ID
@@ -327,9 +326,9 @@ class PillService:
         inventory = self.get_pill_inventory(user_id)
         
         if not inventory:
-            return "你的丹药背包是空的！"
+            return "你的储物戒中没有丹药！"
         
-        lines = ["【丹药背包】"]
+        lines = ["【储物戒 - 丹药】"]
         
         # 按品阶分组
         pills_by_rank = {}

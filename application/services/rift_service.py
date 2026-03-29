@@ -330,17 +330,12 @@ class RiftService:
         # 发放物品
         synthesis_messages = []
         for item_name, count in items_gained:
-            # 检查是否为丹药
-            if self._is_pill_item(item_name):
-                # 存入丹药背包
-                self.player_repo.add_pill(user_id, item_name, count)
-            else:
-                # 存入储物戒，检查是否触发合成
-                synthesized, technique_name = self.storage_ring_repo.add_item(user_id, item_name, count)
-                if synthesized:
-                    # 获取功法品质
-                    tier = self.storage_ring_repo.TECHNIQUE_SYNTHESIS.get(technique_name, {}).get("tier", "未知")
-                    synthesis_messages.append(f"✨ 恭喜！你集齐了残篇，自动合成了【{tier}】功法《{technique_name}》！")
+            # 所有物品（包括丹药）都存入储物戒，检查是否触发合成
+            synthesized, technique_name = self.storage_ring_repo.add_item(user_id, item_name, count)
+            if synthesized:
+                # 获取功法品质
+                tier = self.storage_ring_repo.TECHNIQUE_SYNTHESIS.get(technique_name, {}).get("tier", "未知")
+                synthesis_messages.append(f"✨ 恭喜！你集齐了残篇，自动合成了【{tier}】功法《{technique_name}》！")
         
         # 重置状态
         self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)

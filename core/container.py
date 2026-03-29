@@ -222,6 +222,7 @@ class Container:
         from ..application.services.pill_service import PillService
         return PillService(
             self.player_repository(),
+            self.storage_ring_repository(),
             self.config_manager()
         )
     

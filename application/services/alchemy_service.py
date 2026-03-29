@@ -175,10 +175,8 @@ class AlchemyService:
         pill_name = recipe["name"]
         
         if is_success:
-            # 炼制成功 - 丹药存入丹药背包
-            inventory = player.pills_inventory
-            inventory[pill_name] = inventory.get(pill_name, 0) + 1
-            player.pills_inventory = inventory
+            # 炼制成功 - 丹药存入储物戒
+            synthesized, technique_name = self.storage_ring_repo.add_item(user_id, pill_name, 1)
             
             self.player_repo.save(player)
             
@@ -193,13 +191,13 @@ class AlchemyService:
 ━━━━━━━━━━━━━━━
 
 你成功炼制了【{pill_name}】！
-丹药已存入丹药背包
+丹药已存入储物戒
 
 消耗：{cost_str}
 成功率：{final_success_rate}%
 
 💡 使用 服用丹药 {pill_name} 可服用此丹药
-💡 使用 丹药背包 查看所有丹药"""
+💡 使用 储物戒 查看所有物品"""
             
             result_data = {
                 "success": True,

@@ -92,10 +92,6 @@ class StorageRingService:
     
     def can_store_item(self, item_name: str) -> Tuple[bool, str]:
         """检查物品是否可以存入储物戒"""
-        # 检查是否为丹药
-        if self._is_pill(item_name):
-            return False, f"【{item_name}】是丹药，不能存入储物戒（请使用丹药背包）"
-        
         # 检查是否为储物戒
         if item_name in self.storage_rings:
             return False, f"【{item_name}】是储物戒，不能存入另一个储物戒"
@@ -103,7 +99,7 @@ class StorageRingService:
         return True, ""
     
     def _is_pill(self, item_name: str) -> bool:
-        """检查是否为丹药"""
+        """检查是否为丹药（已废弃，现在丹药也可以存入储物戒）"""
         # 简单检查：包含"丹"字的物品
         return "丹" in item_name
     

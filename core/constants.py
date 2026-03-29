@@ -46,7 +46,6 @@ class Commands:
     USE_ITEM = "使用"
     
     # 丹药系统
-    PILL_BACKPACK = "丹药背包"
     USE_PILL = "服用丹药"
     SEARCH_PILL = "搜索丹药"
     
