@@ -1078,6 +1078,9 @@ class PlayerHandler:
             event: 消息事件
             args: 参数字符串，格式："道具名称 数量 @用户" 或 "道具名称 数量 用户ID"
         """
+        # 立即显示接收到的参数，用于调试
+        yield event.plain_result(f"🔍 调试信息：\nargs参数 = '{args}'\nargs长度 = {len(args) if args else 0}")
+        
         # 手动检查管理员权限
         user_id = str(event.get_sender_id())
         
