@@ -30,7 +30,7 @@
     "pill_id": "1003",
     "name": "一品凝气丹",
     "rank": "凡品",
-    "level_required": 1,
+    "level_required": 0,
     "materials": {
       "青木根": 2,
       "灵草": 1
@@ -43,7 +43,7 @@
     "pill_id": "1004",
     "name": "二品回春丹",
     "rank": "凡品",
-    "level_required": 1,
+    "level_required": 0,
     "materials": {
       "血莲子": 1,
       "青木根": 1,
@@ -57,7 +57,7 @@
     "pill_id": "1005",
     "name": "二品引气丹",
     "rank": "凡品",
-    "level_required": 2,
+    "level_required": 0,
     "materials": {
       "灵草": 2,
       "青木根": 1
@@ -70,7 +70,7 @@
     "pill_id": "1006",
     "name": "二品壮元丹",
     "rank": "凡品",
-    "level_required": 2,
+    "level_required": 0,
     "materials": {
       "灵草": 2,
       "血莲子": 1,
@@ -84,7 +84,7 @@
     "pill_id": "1007",
     "name": "三品回元丹",
     "rank": "珍品",
-    "level_required": 3,
+    "level_required": 20,
     "materials": {
       "血参": 1,
       "灵兽毛皮": 1
@@ -97,7 +97,7 @@
     "pill_id": "1008",
     "name": "三品聚灵丹",
     "rank": "珍品",
-    "level_required": 3,
+    "level_required": 20,
     "materials": {
       "紫芝": 1,
       "灵兽内丹": 0
@@ -110,7 +110,7 @@
     "pill_id": "1009",
     "name": "三品凝神增益丹",
     "rank": "珍品",
-    "level_required": 3,
+    "level_required": 20,
     "materials": {
       "天心草": 2,
       "幽魂草": 1
@@ -123,7 +123,7 @@
     "pill_id": "1010",
     "name": "四品玉髓丹",
     "rank": "珍品",
-    "level_required": 4,
+    "level_required": 20,
     "materials": {
       "血参": 1,
       "金刚果": 1
@@ -136,7 +136,7 @@
     "pill_id": "1011",
     "name": "四品化灵丹",
     "rank": "珍品",
-    "level_required": 4,
+    "level_required": 20,
     "materials": {
       "灵兽内丹": 1,
       "紫芝": 1
@@ -149,7 +149,7 @@
     "pill_id": "1012",
     "name": "四品破境增益丹",
     "rank": "珍品",
-    "level_required": 4,
+    "level_required": 20,
     "materials": {
       "天心草": 3,
       "灵兽内丹": 1,
@@ -163,7 +163,7 @@
     "pill_id": "1013",
     "name": "五品紫金丹",
     "rank": "圣品",
-    "level_required": 6,
+    "level_required": 30,
     "materials": {
       "千年人参": 1,
       "紫金沙": 1,
@@ -177,7 +177,7 @@
     "pill_id": "1014",
     "name": "五品凝神丹",
     "rank": "圣品",
-    "level_required": 6,
+    "level_required": 30,
     "materials": {
       "九叶灵芝": 0,
       "灵兽内丹": 2,
@@ -191,7 +191,7 @@
     "pill_id": "1015",
     "name": "五品渡劫增益丹",
     "rank": "圣品",
-    "level_required": 6,
+    "level_required": 30,
     "materials": {
       "天灵果": 1,
       "千年人参": 2,
@@ -205,7 +205,7 @@
     "pill_id": "1016",
     "name": "六品造化丹",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "凤凰草": 1,
       "千年人参": 2,
@@ -219,7 +219,7 @@
     "pill_id": "1017",
     "name": "六品天元丹",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "天灵果": 1,
       "灵兽内丹": 3,
@@ -233,7 +233,7 @@
     "pill_id": "1018",
     "name": "六品破境增益丹",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "九叶灵芝": 3,
       "天灵果": 2,
@@ -247,7 +247,7 @@
     "pill_id": "1019",
     "name": "七品太乙丹",
     "rank": "帝品",
-    "level_required": 9,
+    "level_required": 40,
     "materials": {
       "凤凰草": 3,
       "龙骨髓": 2,
@@ -261,7 +261,7 @@
     "pill_id": "1020",
     "name": "七品金髓丹",
     "rank": "帝品",
-    "level_required": 9,
+    "level_required": 40,
     "materials": {
       "龙骨髓": 7,
       "玄冰之核": 1,
@@ -275,7 +275,7 @@
     "pill_id": "1021",
     "name": "七品化神增益丹",
     "rank": "帝品",
-    "level_required": 9,
+    "level_required": 40,
     "materials": {
       "天灵果": 20,
       "九叶灵芝": 30,
@@ -289,7 +289,7 @@
     "pill_id": "1022",
     "name": "八品九转丹",
     "rank": "帝品",
-    "level_required": 10,
+    "level_required": 40,
     "materials": {
       "龙骨髓": 10,
       "玄冰之核": 2,
@@ -303,7 +303,7 @@
     "pill_id": "1023",
     "name": "八品道元丹",
     "rank": "帝品",
-    "level_required": 10,
+    "level_required": 40,
     "materials": {
       "天灵果": 10,
       "九叶灵芝": 5,
@@ -317,7 +317,7 @@
     "pill_id": "1024",
     "name": "八品破虚增益丹",
     "rank": "帝品",
-    "level_required": 10,
+    "level_required": 40,
     "materials": {
       "天灵果": 30,
       "龙骨髓": 15,
@@ -332,7 +332,7 @@
     "pill_id": "1025",
     "name": "九品还魂丹",
     "rank": "神品",
-    "level_required": 18,
+    "level_required": 70,
     "materials": {
       "凤凰草": 30,
       "龙骨髓": 20,
@@ -346,7 +346,7 @@
     "pill_id": "1026",
     "name": "九品成圣丹",
     "rank": "神品",
-    "level_required": 18,
+    "level_required": 70,
     "materials": {
       "龙骨髓": 50,
       "玄冰之核": 30,
@@ -360,7 +360,7 @@
     "pill_id": "1027",
     "name": "九品破劫增益丹",
     "rank": "神品",
-    "level_required": 18,
+    "level_required": 70,
     "materials": {
       "天灵果": 80,
       "龙骨髓": 60,
@@ -401,7 +401,7 @@
     "pill_id": "1030",
     "name": "解毒丹",
     "rank": "珍品",
-    "level_required": 3,
+    "level_required": 20,
     "materials": {
       "冰魄草": 1,
       "幽魂草": 1
@@ -414,7 +414,7 @@
     "pill_id": "1031",
     "name": "清心丹",
     "rank": "珍品",
-    "level_required": 3,
+    "level_required": 20,
     "materials": {
       "幽魂草": 2,
       "天心草": 1
@@ -427,7 +427,7 @@
     "pill_id": "1032",
     "name": "血煞丹",
     "rank": "珍品",
-    "level_required": 4,
+    "level_required": 20,
     "materials": {
       "魔核碎片": 2,
       "血参": 1
@@ -440,7 +440,7 @@
     "pill_id": "1033",
     "name": "焚天逆命增益丹",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "火灵芝": 30,
       "赤炎石": 20,
@@ -454,7 +454,7 @@
     "pill_id": "pill_zhujidan",
     "name": "筑基丹",
     "rank": "灵品",
-    "level_required": 3,
+    "level_required": 10,
     "materials": {
       "千年人参": 1,
       "灵兽内丹": 1,
@@ -468,7 +468,7 @@
     "pill_id": "pill_guji_zhongqi",
     "name": "固基丹·中",
     "rank": "灵品",
-    "level_required": 4,
+    "level_required": 10,
     "materials": {
       "千年人参": 2,
       "灵兽内丹": 1,
@@ -482,7 +482,7 @@
     "pill_id": "pill_guji_houqi",
     "name": "固基丹·后",
     "rank": "灵品",
-    "level_required": 4,
+    "level_required": 10,
     "materials": {
       "千年人参": 3,
       "灵兽内丹": 2,
@@ -496,7 +496,7 @@
     "pill_id": "pill_jiedandan",
     "name": "结丹丹",
     "rank": "珍品",
-    "level_required": 5,
+    "level_required": 20,
     "materials": {
       "千年人参": 3,
       "灵兽内丹": 2,
@@ -510,7 +510,7 @@
     "pill_id": "pill_wendan_zhongqi",
     "name": "温丹丹·中",
     "rank": "珍品",
-    "level_required": 5,
+    "level_required": 20,
     "materials": {
       "千年人参": 5,
       "灵兽内丹": 3,
@@ -524,7 +524,7 @@
     "pill_id": "pill_wendan_houqi",
     "name": "温丹丹·后",
     "rank": "珍品",
-    "level_required": 5,
+    "level_required": 20,
     "materials": {
       "千年人参": 8,
       "灵兽内丹": 5,
@@ -538,7 +538,7 @@
     "pill_id": "pill_ningyingdan",
     "name": "凝婴丹",
     "rank": "圣品",
-    "level_required": 6,
+    "level_required": 30,
     "materials": {
       "九叶灵芝": 2,
       "千年人参": 5,
@@ -552,7 +552,7 @@
     "pill_id": "pill_yangying_zhongqi",
     "name": "养婴丹·中",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "九叶灵芝": 3,
       "天灵果": 2,
@@ -566,7 +566,7 @@
     "pill_id": "pill_yangying_houqi",
     "name": "养婴丹·后",
     "rank": "圣品",
-    "level_required": 7,
+    "level_required": 30,
     "materials": {
       "九叶灵芝": 5,
       "天灵果": 4,
@@ -580,7 +580,7 @@
     "pill_id": "pill_huashendan",
     "name": "化神丹",
     "rank": "圣品",
-    "level_required": 8,
+    "level_required": 30,
     "materials": {
       "天灵果": 6,
       "九叶灵芝": 5,
@@ -595,7 +595,7 @@
     "pill_id": "pill_wenshen_zhongqi",
     "name": "温神丹·中",
     "rank": "圣品",
-    "level_required": 8,
+    "level_required": 30,
     "materials": {
       "天灵果": 10,
       "九叶灵芝": 8,
@@ -610,7 +610,7 @@
     "pill_id": "pill_wenshen_houqi",
     "name": "温神丹·后",
     "rank": "圣品",
-    "level_required": 8,
+    "level_required": 30,
     "materials": {
       "天灵果": 18,
       "九叶灵芝": 12,
@@ -625,7 +625,7 @@
     "pill_id": "pill_lianxudan",
     "name": "炼虚丹",
     "rank": "帝品",
-    "level_required": 9,
+    "level_required": 40,
     "materials": {
       "天灵果": 25,
       "龙骨髓": 15,
@@ -640,7 +640,7 @@
     "pill_id": "pill_poxu_zhongqi",
     "name": "破虚丹·中",
     "rank": "帝品",
-    "level_required": 10,
+    "level_required": 40,
     "materials": {
       "天灵果": 40,
       "龙骨髓": 25,
@@ -655,7 +655,7 @@
     "pill_id": "pill_poxu_houqi",
     "name": "破虚丹·后",
     "rank": "帝品",
-    "level_required": 10,
+    "level_required": 40,
     "materials": {
       "天灵果": 65,
       "龙骨髓": 40,
@@ -670,7 +670,7 @@
     "pill_id": "pill_hetidan",
     "name": "合体丹",
     "rank": "帝品",
-    "level_required": 11,
+    "level_required": 40,
     "materials": {
       "天灵果": 80,
       "龙骨髓": 50,
@@ -685,7 +685,7 @@
     "pill_id": "pill_ronghe_zhongqi",
     "name": "融合丹·中",
     "rank": "帝品",
-    "level_required": 11,
+    "level_required": 40,
     "materials": {
       "天灵果": 130,
       "龙骨髓": 80,
@@ -700,7 +700,7 @@
     "pill_id": "pill_ronghe_houqi",
     "name": "融合丹·后",
     "rank": "帝品",
-    "level_required": 12,
+    "level_required": 40,
     "materials": {
       "天灵果": 210,
       "龙骨髓": 130,
@@ -715,7 +715,7 @@
     "pill_id": "pill_dachengdan",
     "name": "大乘丹",
     "rank": "道品",
-    "level_required": 13,
+    "level_required": 50,
     "materials": {
       "天灵果": 260,
       "龙骨髓": 160,
@@ -731,7 +731,7 @@
     "pill_id": "pill_wudao_zhongqi",
     "name": "悟道丹·中",
     "rank": "道品",
-    "level_required": 14,
+    "level_required": 50,
     "materials": {
       "天灵果": 520,
       "龙骨髓": 320,
@@ -747,7 +747,7 @@
     "pill_id": "pill_wudao_houqi",
     "name": "悟道丹·后",
     "rank": "道品",
-    "level_required": 14,
+    "level_required": 50,
     "materials": {
       "天灵果": 910,
       "龙骨髓": 560,
@@ -763,7 +763,7 @@
     "pill_id": "pill_dujiedan",
     "name": "渡劫丹",
     "rank": "道品",
-    "level_required": 15,
+    "level_required": 50,
     "materials": {
       "天灵果": 1300,
       "龙骨髓": 800,
@@ -779,7 +779,7 @@
     "pill_id": "pill_dixiandan",
     "name": "地仙丹",
     "rank": "仙品",
-    "level_required": 16,
+    "level_required": 60,
     "materials": {
       "天灵果": 5200,
       "龙骨髓": 3200,
@@ -795,7 +795,7 @@
     "pill_id": "pill_tianxiandan",
     "name": "天仙丹",
     "rank": "仙品",
-    "level_required": 17,
+    "level_required": 60,
     "materials": {
       "天灵果": 20800,
       "龙骨髓": 12800,
@@ -811,7 +811,7 @@
     "pill_id": "pill_daluojinxiandan",
     "name": "大罗金仙丹",
     "rank": "神品",
-    "level_required": 19,
+    "level_required": 70,
     "materials": {
       "天灵果": 78000,
       "龙骨髓": 48000,
@@ -827,7 +827,7 @@
     "pill_id": "pill_hunyuandan",
     "name": "混元丹",
     "rank": "神品",
-    "level_required": 20,
+    "level_required": 70,
     "materials": {
       "天灵果": 260000,
       "龙骨髓": 160000,
