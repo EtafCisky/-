@@ -4,13 +4,14 @@ from typing import Tuple
 
 from ...infrastructure.repositories.dual_cultivation_repo import DualCultivationRepository
 from ...infrastructure.repositories.player_repo import PlayerRepository
+from ...core.config import ConfigManager
 from ...core.exceptions import GameException
 from ...domain.enums import PlayerState
+from ...utils.spirit_root_generator import SpiritRootGenerator
 
 
 # 双修配置
-DUAL_CULT_COOLDOWN = 3600  # 1小时冷却
-DUAL_CULT_EXP_BONUS = 0.1  # 10%修为互增
+DUAL_CULT_COOLDOWN = 86400  # 24小时冷却（一天一次）
 DUAL_CULT_REQUEST_EXPIRE = 300  # 请求过期时间（5分钟）
 DUAL_CULT_MAX_EXP_RATIO = 3.0  # 双修双方修为差距最大3倍
 
@@ -21,10 +22,29 @@ class DualCultivationService:
     def __init__(
         self,
         dual_repo: DualCultivationRepository,
-        player_repo: PlayerRepository
+        player_repo: PlayerRepository,
+        config_manager: ConfigManager,
+        spirit_root_generator: SpiritRootGenerator
     ):
         self.dual_repo = dual_repo
         self.player_repo = player_repo
+        self.config_manager = config_manager
+        self.spirit_root_generator = spirit_root_generator
+    
+    def _calculate_hourly_exp(self, player) -> int:
+        """计算玩家闭关1小时的修为增长"""
+        # 获取基础修为配置
+        settings = self.config_manager.settings.values
+        base_exp = settings.base_exp_per_minute
+        
+        # 获取灵根速度倍率
+        root_name = player.spiritual_root.replace("灵根", "")
+        root_speed = self.spirit_root_generator.get_root_speed_by_name(root_name)
+        
+        # 计算1小时（60分钟）的修为：基础修为 * 60 * 灵根倍率
+        hourly_exp = int(base_exp * 60 * root_speed)
+        
+        return hourly_exp
     
     def send_request(self, initiator_id: str, target_id: str) -> Tuple[bool, str]:
         """发起双修请求"""
@@ -59,13 +79,17 @@ class DualCultivationService:
         initiator_cooldown = self.dual_repo.get_cooldown(initiator_id)
         if initiator_cooldown and (now - initiator_cooldown.last_dual_time) < DUAL_CULT_COOLDOWN:
             remaining = DUAL_CULT_COOLDOWN - (now - initiator_cooldown.last_dual_time)
-            return False, f"❌ 双修冷却中，还需 {remaining // 60} 分钟。"
+            hours = remaining // 3600
+            minutes = (remaining % 3600) // 60
+            return False, f"❌ 双修冷却中，还需 {hours}小时{minutes}分钟。"
         
         # 检查目标冷却
         target_cooldown = self.dual_repo.get_cooldown(target_id)
         if target_cooldown and (now - target_cooldown.last_dual_time) < DUAL_CULT_COOLDOWN:
             remaining = DUAL_CULT_COOLDOWN - (now - target_cooldown.last_dual_time)
-            return False, f"❌ 对方正在双修冷却，还需 {remaining // 60} 分钟。"
+            hours = remaining // 3600
+            minutes = (remaining % 3600) // 60
+            return False, f"❌ 对方正在双修冷却，还需 {hours}小时{minutes}分钟。"
         
         # 创建请求
         expires_at = now + DUAL_CULT_REQUEST_EXPIRE
@@ -109,21 +133,29 @@ class DualCultivationService:
         if acceptor_cooldown and (now - acceptor_cooldown.last_dual_time) < DUAL_CULT_COOLDOWN:
             self.dual_repo.delete_request(request.id)
             remaining = DUAL_CULT_COOLDOWN - (now - acceptor_cooldown.last_dual_time)
-            return False, f"❌ 你的双修冷却中，还需 {remaining // 60} 分钟。"
+            hours = remaining // 3600
+            minutes = (remaining % 3600) // 60
+            return False, f"❌ 你的双修冷却中，还需 {hours}小时{minutes}分钟。"
         
         initiator_cooldown = self.dual_repo.get_cooldown(request.from_id)
         if initiator_cooldown and (now - initiator_cooldown.last_dual_time) < DUAL_CULT_COOLDOWN:
             self.dual_repo.delete_request(request.id)
             remaining = DUAL_CULT_COOLDOWN - (now - initiator_cooldown.last_dual_time)
-            return False, f"❌ 对方仍在双修冷却，还需 {remaining // 60} 分钟。"
+            hours = remaining // 3600
+            minutes = (remaining % 3600) // 60
+            return False, f"❌ 对方仍在双修冷却，还需 {hours}小时{minutes}分钟。"
         
-        # 计算双修收益
-        init_exp_gain = int(acceptor.experience * DUAL_CULT_EXP_BONUS)
-        accept_exp_gain = int(initiator.experience * DUAL_CULT_EXP_BONUS)
+        # 计算双修收益：双方闭关1小时修为总和
+        init_hourly_exp = self._calculate_hourly_exp(initiator)
+        accept_hourly_exp = self._calculate_hourly_exp(acceptor)
+        total_exp = init_hourly_exp + accept_hourly_exp
+        
+        # 双方平分总修为
+        exp_gain = total_exp // 2
         
         # 应用收益
-        initiator.experience += init_exp_gain
-        acceptor.experience += accept_exp_gain
+        initiator.experience += exp_gain
+        acceptor.experience += exp_gain
         self.player_repo.save(initiator)
         self.player_repo.save(acceptor)
         
@@ -138,10 +170,10 @@ class DualCultivationService:
             f"💕 双修成功！\n"
             f"━━━━━━━━━━━━━━━\n"
             f"与【{request.from_name}】双修\n"
-            f"{request.from_name} 获得修为：+{init_exp_gain:,}\n"
-            f"你 获得修为：+{accept_exp_gain:,}\n"
+            f"双方各获得修为：+{exp_gain:,}\n"
+            f"（基于双方闭关1小时修为总和）\n"
             f"━━━━━━━━━━━━━━━\n"
-            f"下次双修：1小时后"
+            f"下次双修：24小时后"
         )
     
     def reject_request(self, rejecter_id: str) -> Tuple[bool, str]:

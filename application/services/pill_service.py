@@ -80,7 +80,12 @@ class PillService:
             raise BusinessException("玩家不存在")
         
         # 添加到储物戒
-        self.storage_ring_repo.add_item(user_id, pill_name, count)
+        if pill_name in player.storage_ring_items:
+            player.storage_ring_items[pill_name] += count
+        else:
+            player.storage_ring_items[pill_name] = count
+        
+        self.player_repo.save(player)
         return True
     
     def remove_pill(self, user_id: str, pill_name: str, count: int = 1) -> bool:

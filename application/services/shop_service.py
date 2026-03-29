@@ -475,14 +475,19 @@ class ShopService:
         
         if normalized_type in ['weapon', 'armor', 'main_technique', 'technique', 'accessory', 'material', 'pill', 'exp_pill', 'utility_pill']:
             # 所有物品（包括丹药）都存入储物戒
-            self.storage_ring_repo.add_item(user_id, item_name, quantity)
+            # 直接更新player对象的storage_ring_items，避免数据覆盖问题
+            if item_name in player.storage_ring_items:
+                player.storage_ring_items[item_name] += quantity
+            else:
+                player.storage_ring_items[item_name] = quantity
+            
             type_name = self.TYPE_LABEL_MAP.get(normalized_type, '物品')
             result_lines.append(f"成功购买{type_name}【{target_item['name']}】x{quantity}，已存入储物戒。")
         
         else:
             raise BusinessException(f"未知的物品类型：{item_type}（标准化后：{normalized_type}）")
         
-        # 更新玩家
+        # 更新玩家（包含储物戒数据）
         self.player_repo.save(player)
         
         result_lines.append(f"花费灵石: {total_price}，剩余: {player.gold}")

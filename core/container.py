@@ -337,7 +337,9 @@ class Container:
         from ..application.services.dual_cultivation_service import DualCultivationService
         return DualCultivationService(
             self.dual_cultivation_repository(),
-            self.player_repository()
+            self.player_repository(),
+            self.config_manager(),
+            self.spirit_root_generator()
         )
     
     def impart_service(self):

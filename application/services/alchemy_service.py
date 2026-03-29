@@ -176,7 +176,10 @@ class AlchemyService:
         
         if is_success:
             # 炼制成功 - 丹药存入储物戒
-            synthesized, technique_name = self.storage_ring_repo.add_item(user_id, pill_name, 1)
+            if pill_name in player.storage_ring_items:
+                player.storage_ring_items[pill_name] += 1
+            else:
+                player.storage_ring_items[pill_name] = 1
             
             self.player_repo.save(player)
             

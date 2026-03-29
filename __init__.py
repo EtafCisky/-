@@ -1,4 +1,4 @@
 """修仙插件 V3 - 清晰架构版本"""
 
-__version__ = "3.5.30"
+__version__ = "3.5.33"
 __author__ = "EtafCisky"

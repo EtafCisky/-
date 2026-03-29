@@ -323,19 +323,48 @@ class RiftService:
         # 物品掉落
         items_gained = self._roll_rift_drops(player, rift_level, event["item_chance"])
         
+        # 重新加载玩家以获取最新数据
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            raise BusinessException("玩家不存在")
+        
         # 发放奖励
-        self.player_repo.add_gold(user_id, gold_reward)
-        self.player_repo.add_experience(user_id, exp_reward)
+        player.add_gold(gold_reward)
+        player.add_experience(exp_reward)
         
         # 发放物品
         synthesis_messages = []
         for item_name, count in items_gained:
-            # 所有物品（包括丹药）都存入储物戒，检查是否触发合成
-            synthesized, technique_name = self.storage_ring_repo.add_item(user_id, item_name, count)
-            if synthesized:
-                # 获取功法品质
-                tier = self.storage_ring_repo.TECHNIQUE_SYNTHESIS.get(technique_name, {}).get("tier", "未知")
-                synthesis_messages.append(f"✨ 恭喜！你集齐了残篇，自动合成了【{tier}】功法《{technique_name}》！")
+            # 所有物品（包括丹药）都存入储物戒
+            if item_name in player.storage_ring_items:
+                player.storage_ring_items[item_name] += count
+            else:
+                player.storage_ring_items[item_name] = count
+            
+            # 检查是否触发功法残篇合成
+            for technique_name, config in self.storage_ring_repo.TECHNIQUE_SYNTHESIS.items():
+                fragment_name = config["fragment"]
+                required_count = config["required"]
+                
+                if item_name == fragment_name:
+                    current_count = player.storage_ring_items.get(fragment_name, 0)
+                    
+                    if current_count >= required_count:
+                        # 消耗残篇
+                        player.storage_ring_items[fragment_name] = current_count - required_count
+                        if player.storage_ring_items[fragment_name] == 0:
+                            del player.storage_ring_items[fragment_name]
+                        
+                        # 添加完整功法
+                        player.storage_ring_items[technique_name] = player.storage_ring_items.get(technique_name, 0) + 1
+                        
+                        # 获取功法品质
+                        tier = config.get("tier", "未知")
+                        synthesis_messages.append(f"✨ 恭喜！你集齐了残篇，自动合成了【{tier}】功法《{technique_name}》！")
+                        break
+        
+        # 保存玩家（包含所有更新）
+        self.player_repo.save(player)
         
         # 重置状态
         self.player_repo.update_player_state(user_id, state=PlayerState.IDLE.value, extra_data=None)

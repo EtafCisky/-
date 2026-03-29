@@ -116,26 +116,33 @@ class StorageRingService:
         if not can_store:
             return False, reason
         
-        # 获取当前物品
-        items = self.storage_ring_repo.get_storage_ring_items(user_id)
+        # 获取玩家
+        player = self.player_repo.get_by_id(user_id)
+        if not player:
+            return False, "玩家不存在"
         
         # 检查是否需要新格子
-        if item_name not in items:
+        if item_name not in player.storage_ring_items:
             available = self.get_available_slots(user_id)
             if available <= 0:
-                ring_name = self.storage_ring_repo.get_storage_ring_name(user_id)
+                ring_name = player.storage_ring
                 capacity = self.get_ring_capacity(ring_name)
                 return False, f"储物戒已满！({capacity}/{capacity}格)"
         
-        # 添加物品
-        items[item_name] = items.get(item_name, 0) + count
-        self.storage_ring_repo.set_storage_ring_items(user_id, items)
+        # 添加物品到player对象
+        if item_name in player.storage_ring_items:
+            player.storage_ring_items[item_name] += count
+        else:
+            player.storage_ring_items[item_name] = count
+        
+        # 保存玩家
+        self.player_repo.save(player)
         
         if silent:
             return True, ""
         
         # 生成消息
-        ring_name = self.storage_ring_repo.get_storage_ring_name(user_id)
+        ring_name = player.storage_ring
         capacity = self.get_ring_capacity(ring_name)
         used = self.get_used_slots(user_id)
         
