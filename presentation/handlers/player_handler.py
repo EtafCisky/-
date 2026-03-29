@@ -1193,32 +1193,6 @@ class PlayerHandler:
                     "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
                 )
                 return
-                        # 前面的都是物品名
-                        item_name = " ".join(parts[:-2])
-                    else:
-                        yield event.plain_result(
-                            "❌ 用户ID格式错误！\n"
-                            "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
-                        )
-                        return
-                    
-                    if count <= 0:
-                        yield event.plain_result("❌ 数量必须大于0！")
-                        return
-                        
-                except (ValueError, IndexError):
-                    yield event.plain_result(
-                        "❌ 参数格式错误！\n"
-                        "💡 使用方法：增加道具 物品名 数量 @用户"
-                    )
-                    return
-            
-            if not target_user_id:
-                yield event.plain_result(
-                    "❌ 未找到目标用户！\n"
-                    "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
-                )
-                return
             
             if not item_name:
                 yield event.plain_result("❌ 未指定物品名称！")
