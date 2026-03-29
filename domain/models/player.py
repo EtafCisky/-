@@ -50,8 +50,12 @@ class Player:
     armor: Optional[str] = None
     main_technique: Optional[str] = None
     
-    # 丹药背包
+    # 丹药背包（已废弃，保留用于兼容性）
     pills_inventory: dict = field(default_factory=dict)  # {丹药名称: 数量}
+    
+    # 储物戒系统
+    storage_ring: str = "基础储物戒"  # 当前装备的储物戒名称
+    storage_ring_items: dict = field(default_factory=dict)  # {物品名称: 数量}
     
     # 宗门
     sect_id: Optional[int] = None
