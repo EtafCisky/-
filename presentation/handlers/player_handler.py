@@ -1076,7 +1076,7 @@ class PlayerHandler:
         
         Args:
             event: 消息事件
-            args: 参数字符串，格式："物品名 数量 @用户" 或 "物品名 数量 用户ID"
+            args: 参数字符串，格式："道具名称 数量 @用户" 或 "道具名称 数量 用户ID"
         """
         # 手动检查管理员权限
         user_id = str(event.get_sender_id())
@@ -1101,101 +1101,84 @@ class PlayerHandler:
         if not args or args.strip() == "":
             yield event.plain_result(
                 "❌ 参数错误！\n"
-                "💡 使用方法：增加道具 物品名 数量 @用户\n"
-                "示例：增加道具 一品凝气丹 10 @张三"
+                "💡 使用方法：增加道具 道具名称 数量 @用户\n"
+                "示例：增加道具 灵草 10 @张三"
             )
             return
         
         try:
-            # 获取目标用户ID（从At组件或参数）
-            target_user_id = None
-            item_name = None
-            count = 1
-            
-            # 从消息链中提取 At 组件（只取命令之后的At组件）
-            message_chain = []
-            if hasattr(event, "message_obj") and event.message_obj:
-                message_chain = getattr(event.message_obj, "message", []) or []
-            
-            # 遍历消息链，找到命令后面的At组件
-            found_command = False
-            for component in message_chain:
-                # 检查是否是文本组件且包含命令
-                if hasattr(component, "text"):
-                    text = getattr(component, "text", "")
-                    if "增加道具" in text:
-                        found_command = True
-                        continue
-                
-                # 如果已经找到命令，且当前是At组件
-                if found_command and isinstance(component, At):
-                    # 尝试多个可能的属性名
-                    candidate = None
-                    for attr in ("qq", "target", "uin", "user_id"):
-                        candidate = getattr(component, attr, None)
-                        if candidate:
-                            break
-                    
-                    if candidate:
-                        target_user_id = str(candidate).lstrip("@")
-                        break
-            
-            # 解析参数：物品名 数量 [用户ID]
+            # 解析参数：道具名称 数量
             parts = args.strip().split()
-            
-            # 如果参数中没有ID，但有足够的参数，尝试从参数获取
-            if not target_user_id and len(parts) >= 3:
-                last_part = parts[-1].lstrip("@")
-                if last_part.isdigit() and len(last_part) >= 5:
-                    target_user_id = last_part
-            
-            # 如果有At组件或从参数获取到ID，args可能只包含"物品名 数量"或"物品名 数量 用户ID"
-            if target_user_id:
-                # 有目标用户ID的情况
-                if len(parts) < 2:
-                    yield event.plain_result(
-                        "❌ 参数不足！\n"
-                        "💡 使用方法：增加道具 物品名 数量 @用户"
-                    )
-                    return
-                
-                try:
-                    # 判断最后一个参数是数量还是用户ID
-                    last_is_userid = False
-                    if len(parts) >= 3:
-                        last_part = parts[-1].lstrip("@")
-                        if last_part.isdigit() and len(last_part) >= 5:
-                            last_is_userid = True
-                    
-                    if last_is_userid:
-                        # 格式：物品名 数量 用户ID
-                        count = int(parts[-2])
-                        item_name = " ".join(parts[:-2])
-                    else:
-                        # 格式：物品名 数量（用户ID在At组件中）
-                        count = int(parts[-1])
-                        item_name = " ".join(parts[:-1])
-                    
-                    if count <= 0:
-                        yield event.plain_result("❌ 数量必须大于0！")
-                        return
-                        
-                except (ValueError, IndexError):
-                    yield event.plain_result(
-                        "❌ 参数格式错误！\n"
-                        "💡 使用方法：增加道具 物品名 数量 @用户"
-                    )
-                    return
-            else:
-                # 没有找到目标用户ID
+            if len(parts) < 2:
                 yield event.plain_result(
-                    "❌ 未找到目标用户！\n"
-                    "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：增加道具 道具名称 数量 @用户"
                 )
                 return
             
-            if not item_name:
-                yield event.plain_result("❌ 未指定物品名称！")
+            # 获取道具名称
+            item_name = parts[0]
+            
+            # 获取数量
+            try:
+                count = int(parts[1])
+                if count <= 0:
+                    yield event.plain_result("❌ 数量必须大于0！")
+                    return
+            except ValueError:
+                yield event.plain_result("❌ 数量必须是有效的数字！")
+                return
+            
+            # 获取目标用户ID（参考其他管理员命令的逻辑）
+            target_user_id = None
+            
+            # 优先从参数获取数字ID
+            if len(parts) >= 3:
+                cleaned = parts[2].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
+            
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "增加道具" in text:
+                            found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            # 例如："增加道具 灵草 10 123456789"
+                            import re
+                            match = re.search(r'增加道具\s+\S+\s+\d+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：增加道具 道具名称 数量 @用户 或 增加道具 道具名称 数量 用户ID"
+                )
                 return
             
             # 检查目标玩家是否存在
@@ -1209,27 +1192,31 @@ class PlayerHandler:
             # 获取储物戒服务
             storage_ring_service = self.container.storage_ring_service()
             
-            # 添加物品到储物戒
+            # 添加道具到储物戒
             success, message = await storage_ring_service.store_item(
                 target_user_id,
                 item_name,
                 count,
-                silent=False
+                silent=True
             )
             
             if success:
+                # 获取当前储物戒信息
+                ring_info = storage_ring_service.get_storage_ring_info(target_user_id)
+                item_count = storage_ring_service.get_item_count(target_user_id, item_name)
+                
+                # 格式化输出
                 yield event.plain_result(
-                    f"✅ 道具增加成功！\n"
-                    f"━━━━━━━━━━━━━━━\n"
+                    "✅ 道具增加成功！\n"
+                    "━━━━━━━━━━━━━━━\n"
                     f"目标用户：{target_player.nickname}\n"
-                    f"物品名称：{item_name}\n"
+                    f"道具名称：{item_name}\n"
                     f"增加数量：{count}\n"
-                    f"━━━━━━━━━━━━━━━\n"
-                    f"{message}"
+                    f"当前拥有：{item_count}\n"
+                    f"储物戒：{ring_info['name']}（{ring_info['used']}/{ring_info['capacity']}格）"
                 )
             else:
                 yield event.plain_result(f"❌ 增加道具失败：{message}")
             
         except Exception as e:
             yield event.plain_result(f"❌ 增加道具失败：{str(e)}")
-
