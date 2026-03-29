@@ -260,8 +260,7 @@ class Container:
             self.player_repository(),
             self.storage_ring_repository(),
             self.config_manager(),
-            self.bounty_repository(),  # 添加悬赏仓储
-            self.json_storage()  # 添加JSON存储
+            self.bounty_repository()  # 添加悬赏仓储
         )
     
     def rift_service(self):
