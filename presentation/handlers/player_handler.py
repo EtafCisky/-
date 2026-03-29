@@ -1112,17 +1112,23 @@ class PlayerHandler:
             item_name = None
             count = 1
             
-            # 获取bot自己的ID
-            bot_id = str(event.get_bot_id()) if hasattr(event, 'get_bot_id') else None
-            
-            # 从消息链中提取 At 组件
+            # 从消息链中提取 At 组件（只取命令之后的At组件）
             message_chain = []
             if hasattr(event, "message_obj") and event.message_obj:
                 message_chain = getattr(event.message_obj, "message", []) or []
             
-            # 尝试从At组件获取用户ID（跳过bot自己）
+            # 遍历消息链，找到命令后面的At组件
+            found_command = False
             for component in message_chain:
-                if isinstance(component, At):
+                # 检查是否是文本组件且包含命令
+                if hasattr(component, "text"):
+                    text = getattr(component, "text", "")
+                    if "增加道具" in text:
+                        found_command = True
+                        continue
+                
+                # 如果已经找到命令，且当前是At组件
+                if found_command and isinstance(component, At):
                     # 尝试多个可能的属性名
                     candidate = None
                     for attr in ("qq", "target", "uin", "user_id"):
@@ -1131,21 +1137,21 @@ class PlayerHandler:
                             break
                     
                     if candidate:
-                        candidate_str = str(candidate).lstrip("@")
-                        # 跳过bot自己的ID
-                        if bot_id and candidate_str == bot_id:
-                            continue
-                        target_user_id = candidate_str
+                        target_user_id = str(candidate).lstrip("@")
                         break
             
             # 解析参数：物品名 数量 [用户ID]
             parts = args.strip().split()
             
-            # 如果有At组件，args只包含"物品名 数量"
-            # 如果没有At组件，args包含"物品名 数量 用户ID"
+            # 如果参数中没有ID，但有足够的参数，尝试从参数获取
+            if not target_user_id and len(parts) >= 3:
+                last_part = parts[-1].lstrip("@")
+                if last_part.isdigit() and len(last_part) >= 5:
+                    target_user_id = last_part
             
+            # 如果有At组件或从参数获取到ID，args可能只包含"物品名 数量"或"物品名 数量 用户ID"
             if target_user_id:
-                # 有At组件的情况：args = "物品名 数量"
+                # 有目标用户ID的情况
                 if len(parts) < 2:
                     yield event.plain_result(
                         "❌ 参数不足！\n"
@@ -1154,10 +1160,21 @@ class PlayerHandler:
                     return
                 
                 try:
-                    # 最后一个参数是数量
-                    count = int(parts[-1])
-                    # 前面的都是物品名
-                    item_name = " ".join(parts[:-1])
+                    # 判断最后一个参数是数量还是用户ID
+                    last_is_userid = False
+                    if len(parts) >= 3:
+                        last_part = parts[-1].lstrip("@")
+                        if last_part.isdigit() and len(last_part) >= 5:
+                            last_is_userid = True
+                    
+                    if last_is_userid:
+                        # 格式：物品名 数量 用户ID
+                        count = int(parts[-2])
+                        item_name = " ".join(parts[:-2])
+                    else:
+                        # 格式：物品名 数量（用户ID在At组件中）
+                        count = int(parts[-1])
+                        item_name = " ".join(parts[:-1])
                     
                     if count <= 0:
                         yield event.plain_result("❌ 数量必须大于0！")
@@ -1170,21 +1187,12 @@ class PlayerHandler:
                     )
                     return
             else:
-                # 没有At组件的情况：args = "物品名 数量 用户ID"
-                if len(parts) < 3:
-                    yield event.plain_result(
-                        "❌ 参数不足！\n"
-                        "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
-                    )
-                    return
-                
-                try:
-                    # 尝试将最后一个参数作为用户ID
-                    last_part = parts[-1].lstrip("@")
-                    if last_part.isdigit() and len(last_part) >= 5:
-                        target_user_id = last_part
-                        # 倒数第二个是数量
-                        count = int(parts[-2])
+                # 没有找到目标用户ID
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
+                )
+                return
                         # 前面的都是物品名
                         item_name = " ".join(parts[:-2])
                     else:
