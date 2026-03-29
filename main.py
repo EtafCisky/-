@@ -496,9 +496,45 @@ class XiuxianV3Plugin(Star):
             yield result
     
     @filter.command(Commands.CRAFT_PILL)
-    async def cmd_craft_pill(self, event: AstrMessageEvent, recipe_id: str = ""):
+    async def cmd_craft_pill(self, event: AstrMessageEvent, pill_input: str = ""):
         """炼丹"""
-        async for result in self.alchemy_handler.handle_craft_pill(event, recipe_id):
+        # 支持两种格式：炼丹 <配方ID> 或 炼丹 <丹药名称>
+        if pill_input.isdigit():
+            # 旧格式：通过配方ID炼丹
+            async for result in self.alchemy_handler.handle_craft_pill(event, pill_input):
+                yield result
+        else:
+            # 新格式：通过丹药名称炼丹
+            async for result in self.alchemy_handler.handle_craft_pill_by_name(event, pill_input):
+                yield result
+    
+    @filter.command(Commands.RECIPE_LIST)
+    async def cmd_recipe_list(self, event: AstrMessageEvent):
+        """配方列表"""
+        async for result in self.alchemy_handler.handle_show_new_recipes(event):
+            yield result
+    
+    @filter.command(Commands.QUERY_RECIPE)
+    async def cmd_query_recipe(self, event: AstrMessageEvent, query: str = ""):
+        """查询配方"""
+        # 尝试将query解析为ID或名称
+        if query.isdigit():
+            async for result in self.alchemy_handler.handle_query_recipe_by_id(event, query):
+                yield result
+        else:
+            async for result in self.alchemy_handler.handle_query_recipe_by_name(event, query):
+                yield result
+    
+    @filter.command(Commands.QUERY_RECIPE_BY_RANK)
+    async def cmd_query_recipe_by_rank(self, event: AstrMessageEvent, rank: str = ""):
+        """查询品质配方"""
+        async for result in self.alchemy_handler.handle_query_recipes_by_rank(event, rank):
+            yield result
+    
+    @filter.command(Commands.ALCHEMY_INFO)
+    async def cmd_alchemy_info(self, event: AstrMessageEvent):
+        """炼丹信息"""
+        async for result in self.alchemy_handler.handle_alchemy_info(event):
             yield result
     
     # ===== 商店系统命令 =====

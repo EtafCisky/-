@@ -588,6 +588,94 @@
     "price": 3600,
     "shop_weight": 100
   },
+  "2020": {
+    "name": "血莲子",
+    "type": "材料",
+    "rank": "凡品",
+    "description": "生长在血池中的莲子，蕴含生命精华，常用于炼制疗伤丹药。",
+    "price": 150,
+    "shop_weight": 1000
+  },
+  "2021": {
+    "name": "青木根",
+    "type": "材料",
+    "rank": "凡品",
+    "description": "百年青木的根须，药性温和，是炼制基础丹药的常用材料。",
+    "price": 120,
+    "shop_weight": 1000
+  },
+  "2022": {
+    "name": "紫芝",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "珍贵的紫色灵芝，能增强修为，是炼制修炼丹药的上佳材料。",
+    "price": 800,
+    "shop_weight": 100
+  },
+  "2023": {
+    "name": "天心草",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "生长在高山之巅的灵草，能凝神静气，常用于炼制增益丹药。",
+    "price": 1500,
+    "shop_weight": 100
+  },
+  "2024": {
+    "name": "火灵芝",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "生长在火山口的赤色灵芝，蕴含炽热火灵力。",
+    "price": 2000,
+    "shop_weight": 100
+  },
+  "2025": {
+    "name": "冰魄草",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "极寒之地的奇草，药性极寒，能清热解毒。",
+    "price": 1800,
+    "shop_weight": 100
+  },
+  "2026": {
+    "name": "金刚果",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "坚硬如铁的灵果，能强化体魄，增强防御。",
+    "price": 2500,
+    "shop_weight": 100
+  },
+  "2027": {
+    "name": "血参",
+    "type": "材料",
+    "rank": "珍品",
+    "description": "通体血红的人参，大补气血，是炼制疗伤丹药的珍贵材料。",
+    "price": 3500,
+    "shop_weight": 100
+  },
+  "2028": {
+    "name": "凤凰草",
+    "type": "材料",
+    "rank": "圣品",
+    "description": "传说中凤凰涅槃之地生长的神草，蕴含重生之力。",
+    "price": 10000,
+    "shop_weight": 100
+  },
+  "2029": {
+    "name": "九叶灵芝",
+    "type": "材料",
+    "rank": "圣品",
+    "description": "千年才能长出九片叶子的灵芝，药效惊人。",
+    "price": 15000,
+    "shop_weight": 100
+  },
+  "2030": {
+    "name": "天灵果",
+    "type": "材料",
+    "rank": "圣品",
+    "description": "天地灵气凝聚而成的灵果，能大幅提升修为。",
+    "price": 20000,
+    "shop_weight": 100
+  },
   "3001": {
     "name": "青锋剑",
     "type": "法器",
