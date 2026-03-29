@@ -108,31 +108,48 @@ class StorageRingHandler:
         item_name = None
         count = 1
         
-        # 从消息链中提取 At 组件和 Plain 文本（只获取命令后面的At）
+        # 从消息链中提取 At 组件和 Plain 文本
         text_parts = []
+        at_components = []
         message_chain = event.message_obj.message if hasattr(event, 'message_obj') and event.message_obj else []
         
-        # 标记是否已找到赠予命令
-        found_command = False
-        
         for comp in message_chain:
-            # 检查是否是文本组件且包含赠予命令
             if isinstance(comp, Plain):
-                text = comp.text
-                if "赠予" in text:
-                    found_command = True
-                text_parts.append(text)
+                text_parts.append(comp.text)
+            elif isinstance(comp, At):
+                at_components.append(comp)
+        
+        # 合并文本内容
+        full_text = "".join(text_parts).strip()
+        
+        # 查找"赠予"命令的位置
+        command_index = full_text.find("赠予")
+        
+        if command_index == -1:
+            # 没找到命令，可能是通过命令触发的
+            command_index = 0
+        
+        # 只处理命令之后的At组件
+        # 通过检查At组件在消息链中的位置来判断
+        found_command = False
+        for comp in message_chain:
+            if isinstance(comp, Plain) and "赠予" in comp.text:
+                found_command = True
+                continue
+            
             # 只获取命令后面的At组件
-            elif found_command and isinstance(comp, At) and target_id is None:
+            if found_command and isinstance(comp, At) and target_id is None:
                 # 兼容多种At属性名
                 for attr in ("qq", "target", "uin", "user_id"):
                     candidate = getattr(comp, attr, None)
                     if candidate:
                         target_id = str(candidate).lstrip("@")
                         break
+                if target_id:
+                    break
         
-        # 合并文本内容并移除命令前缀
-        text_content = "".join(text_parts).strip()
+        # 移除命令前缀
+        text_content = full_text
         for prefix in ["#赠予", "/赠予", "赠予"]:
             if text_content.startswith(prefix):
                 text_content = text_content[len(prefix):].strip()
