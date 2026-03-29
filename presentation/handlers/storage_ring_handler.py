@@ -61,42 +61,6 @@ class StorageRingHandler:
         
         yield event.plain_result("".join(lines))
     
-    # @require_player
-    # async def handle_retrieve_item(self, event: AstrMessageEvent, player, args: str = ""):
-    #     """从储物戒取出物品（已删除：该命令会导致物品消失）"""
-    #     user_id = event.get_sender_id()
-    #     
-    #     if not args or args.strip() == "":
-    #         yield event.plain_result(
-    #             f"请指定要取出的物品\n"
-    #             f"用法：取出 物品名 [数量]\n"
-    #             f"示例：取出 精铁 5"
-    #         )
-    #         return
-    #     
-    #     args = args.strip()
-    #     parts = args.rsplit(" ", 1)
-    #     
-    #     # 解析物品名和数量
-    #     if len(parts) == 2 and parts[1].isdigit():
-    #         item_name = parts[0]
-    #         count = int(parts[1])
-    #     else:
-    #         item_name = args
-    #         count = 1
-    #     
-    #     if count <= 0:
-    #         yield event.plain_result("数量必须大于0")
-    #         return
-    #     
-    #     # 取出物品
-    #     success, message = await self.storage_ring_service.retrieve_item(user_id, item_name, count)
-    #     
-    #     if success:
-    #         yield event.plain_result(f"✅ {message}")
-    #     else:
-    #         yield event.plain_result(f"❌ {message}")
-    
     @require_player
     async def handle_discard_item(self, event: AstrMessageEvent, player, args: str = ""):
         """丢弃储物戒中的物品"""
@@ -212,30 +176,6 @@ class StorageRingHandler:
             item_name=item_name,
             count=count
         )
-        
-        if success:
-            yield event.plain_result(message)
-        else:
-            yield event.plain_result(f"❌ {message}")
-    
-    @require_player
-    async def handle_accept_gift(self, event: AstrMessageEvent, player):
-        """接收赠予的物品"""
-        user_id = event.get_sender_id()
-        
-        success, message = await self.storage_ring_service.accept_gift(user_id)
-        
-        if success:
-            yield event.plain_result(message)
-        else:
-            yield event.plain_result(f"❌ {message}")
-    
-    @require_player
-    async def handle_reject_gift(self, event: AstrMessageEvent, player):
-        """拒绝赠予的物品"""
-        user_id = event.get_sender_id()
-        
-        success, message = await self.storage_ring_service.reject_gift(user_id)
         
         if success:
             yield event.plain_result(message)

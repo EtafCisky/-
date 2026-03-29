@@ -12,7 +12,7 @@ from .core.config import ConfigManager
     "astrbot_plugin_monixiuxianv3",
     "EtafCisky",
     "基于清晰架构重构的修仙模拟游戏插件",
-    "3.5.34"
+    "3.5.23"
 )
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
@@ -429,12 +429,6 @@ class XiuxianV3Plugin(Star):
         async for result in self.storage_ring_handler.handle_storage_ring(event):
             yield result
     
-    # @filter.command(Commands.RETRIEVE_ITEM)
-    # async def cmd_retrieve_item(self, event: AstrMessageEvent, args: str = ""):
-    #     """取出（已删除：该命令会导致物品消失）"""
-    #     async for result in self.storage_ring_handler.handle_retrieve_item(event, args):
-    #         yield result
-    
     @filter.command(Commands.DISCARD_ITEM)
     async def cmd_discard_item(self, event: AstrMessageEvent, args: str = ""):
         """丢弃"""
@@ -445,18 +439,6 @@ class XiuxianV3Plugin(Star):
     async def cmd_gift_item(self, event: AstrMessageEvent, args: str = ""):
         """赠予"""
         async for result in self.storage_ring_handler.handle_gift_item(event, args):
-            yield result
-    
-    @filter.command(Commands.ACCEPT_GIFT)
-    async def cmd_accept_gift(self, event: AstrMessageEvent):
-        """接收"""
-        async for result in self.storage_ring_handler.handle_accept_gift(event):
-            yield result
-    
-    @filter.command(Commands.REJECT_GIFT)
-    async def cmd_reject_gift(self, event: AstrMessageEvent):
-        """拒绝"""
-        async for result in self.storage_ring_handler.handle_reject_gift(event):
             yield result
     
     @filter.command(Commands.UPGRADE_RING)

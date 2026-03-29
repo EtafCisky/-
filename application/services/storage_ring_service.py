@@ -154,40 +154,6 @@ class StorageRingService:
         
         return True, msg
     
-    async def retrieve_item(
-        self,
-        user_id: str,
-        item_name: str,
-        count: int = 1
-    ) -> Tuple[bool, str]:
-        """从储物戒取出物品（内部方法，仅供赠予系统使用）
-        
-        警告：此方法会直接删除物品而不放到任何地方！
-        不要在用户命令中直接调用此方法。
-        """
-        items = self.storage_ring_repo.get_storage_ring_items(user_id)
-        
-        if item_name not in items:
-            return False, f"储物戒中没有【{item_name}】"
-        
-        current_count = items[item_name]
-        if count > current_count:
-            return False, f"储物戒中【{item_name}】数量不足（当前：{current_count}个）"
-        
-        # 减少数量
-        if count >= current_count:
-            del items[item_name]
-        else:
-            items[item_name] = current_count - count
-        
-        self.storage_ring_repo.set_storage_ring_items(user_id, items)
-        
-        ring_name = self.storage_ring_repo.get_storage_ring_name(user_id)
-        capacity = self.get_ring_capacity(ring_name)
-        used = self.get_used_slots(user_id)
-        
-        return True, f"已从储物戒取出【{item_name}】x{count}（{used}/{capacity}格）"
-    
     async def discard_item(
         self,
         user_id: str,
@@ -359,7 +325,7 @@ class StorageRingService:
         item_name: str,
         count: int
     ) -> Tuple[bool, str]:
-        """赠予物品"""
+        """赠予物品（直接转移，无需接收确认）"""
         # 检查物品是否存在
         if not self.has_item(sender_id, item_name, count):
             current = self.get_item_count(sender_id, item_name)
@@ -376,78 +342,35 @@ class StorageRingService:
         if sender_id == receiver_id:
             return False, "不能赠予物品给自己"
         
-        # 从储物戒中取出物品
-        success, _ = await self.retrieve_item(sender_id, item_name, count)
-        if not success:
-            return False, "赠予失败：无法取出物品"
+        # 检查接收者储物戒是否有空间（如果是新物品）
+        if item_name not in receiver.storage_ring_items:
+            available = self.get_available_slots(receiver_id)
+            if available <= 0:
+                ring_name = receiver.storage_ring
+                capacity = self.get_ring_capacity(ring_name)
+                return False, f"对方储物戒已满！({capacity}/{capacity}格)"
         
-        # 创建待处理赠予
-        self.storage_ring_repo.create_pending_gift(
-            receiver_id=receiver_id,
-            sender_id=sender_id,
-            sender_name=sender_name,
-            item_name=item_name,
-            count=count,
-            expires_hours=24
-        )
+        # 从发送者储物戒中移除物品
+        sender_items = self.storage_ring_repo.get_storage_ring_items(sender_id)
+        current_count = sender_items[item_name]
         
-        return True, (
-            f"📦 赠予请求已发送！\n"
-            f"【{item_name}】x{count} → @{receiver_id}\n"
-            f"等待对方确认...（24小时内有效）\n"
-            f"对方可使用 接收 或 拒绝 命令"
-        )
-    
-    async def accept_gift(self, receiver_id: str) -> Tuple[bool, str]:
-        """接收赠予"""
-        gift = self.storage_ring_repo.get_pending_gift(receiver_id)
-        if not gift:
-            return False, "你没有待接收的赠予物品"
+        if count >= current_count:
+            del sender_items[item_name]
+        else:
+            sender_items[item_name] = current_count - count
         
-        item_name = gift["item_name"]
-        count = gift["count"]
-        sender_name = gift["sender_name"]
-        sender_id = gift["sender_id"]
-        gift_id = gift["id"]
+        self.storage_ring_repo.set_storage_ring_items(sender_id, sender_items)
         
-        # 尝试存入接收者的储物戒
-        success, message = await self.store_item(receiver_id, item_name, count)
+        # 直接存入接收者的储物戒
+        success, message = await self.store_item(receiver_id, item_name, count, silent=True)
         
         if success:
-            # 删除赠予记录
-            self.storage_ring_repo.delete_pending_gift(gift_id)
             return True, (
-                f"✅ 已接收来自【{sender_name}】的赠予！\n"
-                f"获得：【{item_name}】x{count}"
+                f"✅ 赠予成功！\n"
+                f"【{item_name}】x{count} → {receiver.nickname}\n"
+                f"物品已直接送达对方储物戒"
             )
         else:
             # 存入失败，物品返还给发送者
             await self.store_item(sender_id, item_name, count, silent=True)
-            self.storage_ring_repo.delete_pending_gift(gift_id)
-            return False, (
-                f"❌ 接收失败：{message}\n"
-                f"物品已返还给【{sender_name}】"
-            )
-    
-    async def reject_gift(self, receiver_id: str) -> Tuple[bool, str]:
-        """拒绝赠予"""
-        gift = self.storage_ring_repo.get_pending_gift(receiver_id)
-        if not gift:
-            return False, "你没有待处理的赠予请求"
-        
-        item_name = gift["item_name"]
-        count = gift["count"]
-        sender_id = gift["sender_id"]
-        sender_name = gift["sender_name"]
-        gift_id = gift["id"]
-        
-        # 物品返还给发送者
-        await self.store_item(sender_id, item_name, count, silent=True)
-        
-        # 删除赠予记录
-        self.storage_ring_repo.delete_pending_gift(gift_id)
-        
-        return True, (
-            f"已拒绝来自【{sender_name}】的赠予\n"
-            f"【{item_name}】x{count} 已返还"
-        )
+            return False, f"赠予失败：{message}\n物品已返还"

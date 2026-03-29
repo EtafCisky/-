@@ -25,11 +25,8 @@ class Commands:
     
     # 储物戒系统
     STORAGE_RING = "储物戒"
-    # RETRIEVE_ITEM = "取出"  # 已删除：该命令会导致物品消失
     DISCARD_ITEM = "丢弃"
     GIFT_ITEM = "赠予"
-    ACCEPT_GIFT = "接收"
-    REJECT_GIFT = "拒绝"
     UPGRADE_RING = "更换储物戒"
     SEARCH_ITEM = "搜索物品"
     
