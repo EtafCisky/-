@@ -17,16 +17,6 @@ class LoanType(Enum):
     BREAKTHROUGH = "breakthrough"  # 突破贷款
 
 
-class TransactionType(Enum):
-    """交易类型枚举"""
-    DEPOSIT = "deposit"  # 存款
-    WITHDRAW = "withdraw"  # 取款
-    INTEREST = "interest"  # 利息
-    LOAN = "loan"  # 贷款
-    REPAY = "repay"  # 还款
-    BANK_KILL = "bank_kill"  # 银行追杀
-
-
 @dataclass
 class BankAccount:
     """银行账户"""
@@ -72,18 +62,6 @@ class Loan:
         """计算应还总额"""
         interest = self.calculate_interest(current_time)
         return self.principal + interest
-
-
-@dataclass
-class BankTransaction:
-    """银行交易记录"""
-    id: int  # 交易ID
-    user_id: str  # 用户ID
-    trans_type: str  # 交易类型
-    amount: int  # 金额（正数为收入，负数为支出）
-    balance_after: int  # 交易后余额
-    description: str  # 描述
-    created_at: int  # 创建时间
 
 
 @dataclass

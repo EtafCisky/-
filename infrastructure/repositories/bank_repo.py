@@ -128,43 +128,6 @@ class BankRepository(BaseRepository[BankAccount]):
         
         return [self._loan_to_domain(data) for data in results]
     
-    # ===== 交易记录相关 =====
-    
-    def add_transaction(self, user_id: str, trans_type: str, amount: int,
-                       balance_after: int, description: str, created_at: int):
-        """添加交易记录"""
-        # 生成新的交易ID
-        all_transactions = self.storage.load(self.transactions_filename)
-        if all_transactions:
-            max_id = max(int(tid) for tid in all_transactions.keys())
-            new_id = max_id + 1
-        else:
-            new_id = 1
-        
-        transaction_data = {
-            "id": new_id,
-            "user_id": user_id,
-            "trans_type": trans_type,
-            "amount": amount,
-            "balance_after": balance_after,
-            "description": description,
-            "created_at": TimestampConverter.to_iso8601(created_at)
-        }
-        
-        self.storage.set(self.transactions_filename, str(new_id), transaction_data)
-    
-    def get_transactions(self, user_id: str, limit: int = 20) -> List[BankTransaction]:
-        """获取交易记录"""
-        results = self.storage.query(
-            self.transactions_filename,
-            filter_fn=lambda data: data.get("user_id") == user_id,
-            sort_key=lambda data: data.get("created_at", ""),
-            reverse=True,
-            limit=limit
-        )
-        
-        return [self._transaction_to_domain(data) for data in results]
-    
     # ===== 排行榜相关 =====
     
     def get_deposit_ranking(self, limit: int = 10) -> List[dict]:
@@ -213,16 +176,4 @@ class BankRepository(BaseRepository[BankAccount]):
             due_at=TimestampConverter.from_iso8601(data["due_at"]),
             loan_type=data["loan_type"],
             status=data["status"]
-        )
-    
-    def _transaction_to_domain(self, data: Dict[str, Any]) -> BankTransaction:
-        """转换为领域模型"""
-        return BankTransaction(
-            id=data["id"],
-            user_id=data["user_id"],
-            trans_type=data["trans_type"],
-            amount=data["amount"],
-            balance_after=data["balance_after"],
-            description=data["description"],
-            created_at=TimestampConverter.from_iso8601(data["created_at"])
         )

@@ -7,7 +7,7 @@ from astrbot.api import logger
 
 from ...core.config import ConfigManager
 from ...core.exceptions import GameException
-from ...domain.models.bank import BankAccount, Loan, BankInfo, LoanInfo, BankTransaction
+from ...domain.models.bank import BankAccount, Loan, BankInfo, LoanInfo
 from ...infrastructure.repositories.player_repo import PlayerRepository
 from ...infrastructure.repositories.bank_repo import BankRepository
 
@@ -125,9 +125,6 @@ class BankService:
         last_interest_time = now if current_balance == 0 else (account.last_interest_time if account else now)
         self.bank_repo.create_or_update_bank_account(user_id, new_balance, last_interest_time)
         
-        # 记录流水
-        self.bank_repo.add_transaction(user_id, "deposit", amount, new_balance, "存入灵石", now)
-        
         return f"成功存入 {amount:,} 灵石！\n当前余额：{new_balance:,} 灵石"
     
     def withdraw(self, user_id: str, amount: int) -> str:
@@ -152,10 +149,6 @@ class BankService:
         
         # 增加灵石
         self.player_repo.add_gold(user_id, amount)
-        
-        # 记录流水
-        now = int(time.time())
-        self.bank_repo.add_transaction(user_id, "withdraw", -amount, new_balance, "取出灵石", now)
         
         # 重新获取玩家信息
         player = self.player_repo.get_player(user_id)
@@ -184,9 +177,6 @@ class BankService:
         new_balance = account.balance + interest
         now = int(time.time())
         self.bank_repo.create_or_update_bank_account(user_id, new_balance, now)
-        
-        # 记录流水
-        self.bank_repo.add_transaction(user_id, "interest", interest, new_balance, "领取利息", now)
         
         return f"成功领取利息 {interest:,} 灵石！\n当前余额：{new_balance:,} 灵石"
     
@@ -259,14 +249,6 @@ class BankService:
         # 增加灵石
         self.player_repo.add_gold(user_id, amount)
         
-        # 记录流水
-        account = self.bank_repo.get_bank_account(user_id)
-        balance = account.balance if account else 0
-        self.bank_repo.add_transaction(
-            user_id, "loan", amount, balance, 
-            f"{type_name}：借入{amount:,}灵石", now
-        )
-        
         # 计算到期应还
         total_interest = int(amount * interest_rate * duration_days)
         total_due = amount + total_interest
@@ -315,15 +297,6 @@ class BankService:
         # 关闭贷款
         self.bank_repo.close_loan(loan_info.id)
         
-        # 记录流水
-        account = self.bank_repo.get_bank_account(user_id)
-        balance = account.balance if account else 0
-        now = int(time.time())
-        self.bank_repo.add_transaction(
-            user_id, "repay", -total_due, balance,
-            f"还款：本金{loan_info.principal:,}+利息{loan_info.current_interest:,}", now
-        )
-        
         loan_type_name = "突破贷款" if loan_info.loan_type == "breakthrough" else "普通贷款"
         
         # 重新获取玩家信息
@@ -339,17 +312,6 @@ class BankService:
             f"━━━━━━━━━━━━━━━\n"
             f"当前持有：{player.gold:,} 灵石"
         )
-    
-    # ===== 流水记录 =====
-    
-    def get_transactions(self, user_id: str, limit: int = 15) -> List[BankTransaction]:
-        """获取交易流水"""
-        # 获取玩家
-        player = self.player_repo.get_player(user_id)
-        if not player:
-            raise GameException("你还未踏入修仙之路")
-        
-        return self.bank_repo.get_transactions(user_id, limit)
     
     # ===== 逾期处理 =====
     
@@ -371,12 +333,6 @@ class BankService:
             # 删除玩家数据（银行追杀致死）
             # 注意：这里需要实现级联删除，暂时只标记贷款逾期
             self.bank_repo.mark_loan_overdue(loan.id)
-            
-            # 记录流水
-            self.bank_repo.add_transaction(
-                loan.user_id, "bank_kill", 0, 0,
-                "逾期未还款，被银行追杀致死", now
-            )
             
             processed.append({
                 "user_id": loan.user_id,

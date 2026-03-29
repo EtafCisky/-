@@ -99,7 +99,6 @@ class Commands:
     CLAIM_INTEREST = "领取利息"
     LOAN = "贷款"
     REPAY = "还款"
-    BANK_TRANSACTIONS = "银行流水"
     BREAKTHROUGH_LOAN = "突破贷款"
     
     # 洞天福地系统
