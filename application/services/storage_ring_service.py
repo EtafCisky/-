@@ -153,7 +153,11 @@ class StorageRingService:
         item_name: str,
         count: int = 1
     ) -> Tuple[bool, str]:
-        """从储物戒取出物品"""
+        """从储物戒取出物品（内部方法，仅供赠予系统使用）
+        
+        警告：此方法会直接删除物品而不放到任何地方！
+        不要在用户命令中直接调用此方法。
+        """
         items = self.storage_ring_repo.get_storage_ring_items(user_id)
         
         if item_name not in items:

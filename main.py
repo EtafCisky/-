@@ -20,6 +20,9 @@ class XiuxianV3Plugin(Star):
     def __init__(self, context: Context, config=None):
         super().__init__(context)
         
+        # v3.5.30临时修复：清理Python缓存
+        self._clear_python_cache()
+        
         # 获取插件数据目录
         self.data_dir = StarTools.get_data_dir("astrbot_plugin_monixiuxianv3")
         self.data_dir.mkdir(parents=True, exist_ok=True)
