@@ -1134,22 +1134,45 @@ class PlayerHandler:
             # 解析参数：物品名 数量 [用户ID]
             parts = args.strip().split()
             
-            if len(parts) < 2:
-                yield event.plain_result(
-                    "❌ 参数不足！\n"
-                    "💡 使用方法：增加道具 物品名 数量 @用户"
-                )
-                return
+            # 如果有At组件，args只包含"物品名 数量"
+            # 如果没有At组件，args包含"物品名 数量 用户ID"
             
-            # 尝试解析：最后一个参数可能是数量，倒数第二个可能是用户ID
-            # 格式1: 物品名 数量 @用户 (At组件)
-            # 格式2: 物品名 数量 用户ID
-            # 格式3: 多字物品名 数量 @用户
-            
-            # 从后往前解析
-            try:
-                # 尝试将最后一个参数作为用户ID（如果没有At组件）
-                if not target_user_id and len(parts) >= 3:
+            if target_user_id:
+                # 有At组件的情况：args = "物品名 数量"
+                if len(parts) < 2:
+                    yield event.plain_result(
+                        "❌ 参数不足！\n"
+                        "💡 使用方法：增加道具 物品名 数量 @用户"
+                    )
+                    return
+                
+                try:
+                    # 最后一个参数是数量
+                    count = int(parts[-1])
+                    # 前面的都是物品名
+                    item_name = " ".join(parts[:-1])
+                    
+                    if count <= 0:
+                        yield event.plain_result("❌ 数量必须大于0！")
+                        return
+                        
+                except (ValueError, IndexError):
+                    yield event.plain_result(
+                        "❌ 参数格式错误！\n"
+                        "💡 使用方法：增加道具 物品名 数量 @用户"
+                    )
+                    return
+            else:
+                # 没有At组件的情况：args = "物品名 数量 用户ID"
+                if len(parts) < 3:
+                    yield event.plain_result(
+                        "❌ 参数不足！\n"
+                        "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
+                    )
+                    return
+                
+                try:
+                    # 尝试将最后一个参数作为用户ID
                     last_part = parts[-1].lstrip("@")
                     if last_part.isdigit() and len(last_part) >= 5:
                         target_user_id = last_part
@@ -1158,26 +1181,22 @@ class PlayerHandler:
                         # 前面的都是物品名
                         item_name = " ".join(parts[:-2])
                     else:
-                        # 最后一个不是用户ID，那么倒数第一个是数量
-                        count = int(parts[-1])
-                        # 前面的都是物品名
-                        item_name = " ".join(parts[:-1])
-                else:
-                    # 有At组件，最后一个参数是数量
-                    count = int(parts[-1])
-                    # 前面的都是物品名
-                    item_name = " ".join(parts[:-1])
-                
-                if count <= 0:
-                    yield event.plain_result("❌ 数量必须大于0！")
-                    return
+                        yield event.plain_result(
+                            "❌ 用户ID格式错误！\n"
+                            "💡 使用方法：增加道具 物品名 数量 @用户 或 增加道具 物品名 数量 用户ID"
+                        )
+                        return
                     
-            except (ValueError, IndexError):
-                yield event.plain_result(
-                    "❌ 参数格式错误！\n"
-                    "💡 使用方法：增加道具 物品名 数量 @用户"
-                )
-                return
+                    if count <= 0:
+                        yield event.plain_result("❌ 数量必须大于0！")
+                        return
+                        
+                except (ValueError, IndexError):
+                    yield event.plain_result(
+                        "❌ 参数格式错误！\n"
+                        "💡 使用方法：增加道具 物品名 数量 @用户"
+                    )
+                    return
             
             if not target_user_id:
                 yield event.plain_result(
