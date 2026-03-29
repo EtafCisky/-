@@ -449,6 +449,147 @@ class PlayerHandler:
         except Exception as e:
             yield event.plain_result(f"❌ 增加灵石失败：{str(e)}")
 
+    async def handle_admin_reduce_gold(
+        self,
+        event: AstrMessageEvent,
+        args: str = ""
+    ):
+        """
+        处理管理员减少灵石命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+            args: 参数字符串，格式："数量 @用户" 或 "数量 用户ID"
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager()
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        # 解析参数
+        if not args or args.strip() == "":
+            yield event.plain_result(
+                "❌ 参数错误！\n"
+                "💡 使用方法：减少灵石 数量 @用户\n"
+                "示例：减少灵石 10000 @张三"
+            )
+            return
+        
+        try:
+            # 解析参数：数量
+            parts = args.strip().split()
+            if len(parts) < 1:
+                yield event.plain_result(
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：减少灵石 数量 @用户"
+                )
+                return
+            
+            # 获取数量
+            try:
+                amount = int(parts[0])
+                if amount <= 0:
+                    yield event.plain_result("❌ 数量必须大于0！")
+                    return
+            except ValueError:
+                yield event.plain_result("❌ 数量必须是有效的数字！")
+                return
+            
+            # 获取目标用户ID（参考combat_handler的_get_target_id方法）
+            target_user_id = None
+            
+            # 优先从参数获取数字ID
+            if len(parts) >= 2:
+                cleaned = parts[1].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
+            
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "减少灵石" in text:
+                            found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            # 例如："减少灵石 10000 123456789"
+                            import re
+                            match = re.search(r'减少灵石\s+\d+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：减少灵石 数量 @用户 或 减少灵石 数量 用户ID"
+                )
+                return
+            
+            # 检查目标玩家是否存在
+            target_player = self.player_service.get_player(target_user_id)
+            if not target_player:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_user_id}）还未踏入修仙之路！"
+                )
+                return
+            
+            # 减少灵石
+            old_gold = target_player.gold
+            target_player.gold = max(0, target_player.gold - amount)  # 确保不会变成负数
+            actual_reduced = old_gold - target_player.gold
+            self.player_service.player_repo.save(target_player)
+            
+            # 格式化输出
+            result_msg = "✅ 灵石减少成功！\n" + "━━━━━━━━━━━━━━━\n"
+            result_msg += f"目标用户：{target_player.nickname}\n"
+            result_msg += f"减少数量：{actual_reduced:,} 灵石\n"
+            result_msg += f"原有灵石：{old_gold:,}\n"
+            result_msg += f"当前灵石：{target_player.gold:,}"
+            
+            if actual_reduced < amount:
+                result_msg += f"\n\n⚠️ 注意：目标用户灵石不足，实际减少 {actual_reduced:,} 灵石"
+            
+            yield event.plain_result(result_msg)
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 减少灵石失败：{str(e)}")
+
     async def handle_admin_change_spirit_root(
         self,
         event: AstrMessageEvent,
@@ -763,3 +904,164 @@ class PlayerHandler:
             
         except Exception as e:
             yield event.plain_result(f"❌ 增加修为失败：{str(e)}")
+
+    async def handle_admin_change_sect_position(
+        self,
+        event: AstrMessageEvent,
+        args: str = ""
+    ):
+        """
+        处理管理员修改宗门岗位命令（需要管理员权限）
+        
+        Args:
+            event: 消息事件
+            args: 参数字符串，格式："岗位ID @用户" 或 "岗位ID 用户ID"
+        """
+        # 手动检查管理员权限
+        user_id = str(event.get_sender_id())
+        
+        # 从容器获取配置管理器
+        if not self.container:
+            yield event.plain_result("❌ 系统错误：容器未初始化")
+            return
+        
+        config_manager = self.container.config_manager()
+        admin_list = config_manager.settings.access_control.admins
+        
+        # 检查是否为管理员
+        if not admin_list or user_id not in admin_list:
+            yield event.plain_result(
+                "❌ 权限不足！\n"
+                "💡 此命令仅限管理员使用"
+            )
+            return
+        
+        # 解析参数
+        if not args or args.strip() == "":
+            yield event.plain_result(
+                "❌ 参数错误！\n"
+                "💡 使用方法：修改宗门岗位 岗位ID @用户\n"
+                "示例：修改宗门岗位 0 @张三\n"
+                "━━━━━━━━━━━━━━━\n"
+                "岗位ID说明：\n"
+                "• 0 - 宗主\n"
+                "• 1 - 长老\n"
+                "• 2 - 亲传弟子\n"
+                "• 3 - 内门弟子\n"
+                "• 4 - 外门弟子"
+            )
+            return
+        
+        try:
+            # 解析参数：岗位ID
+            parts = args.strip().split()
+            if len(parts) < 1:
+                yield event.plain_result(
+                    "❌ 参数不足！\n"
+                    "💡 使用方法：修改宗门岗位 岗位ID @用户"
+                )
+                return
+            
+            # 获取岗位ID
+            try:
+                position_id = int(parts[0])
+                if position_id < 0 or position_id > 4:
+                    yield event.plain_result("❌ 岗位ID必须在0-4之间！")
+                    return
+            except ValueError:
+                yield event.plain_result("❌ 岗位ID必须是有效的数字（0-4）！")
+                return
+            
+            # 岗位名称映射
+            position_names = {
+                0: "宗主",
+                1: "长老",
+                2: "亲传弟子",
+                3: "内门弟子",
+                4: "外门弟子"
+            }
+            
+            # 获取目标用户ID（使用与增加灵石相同的逻辑）
+            target_user_id = None
+            
+            # 优先从参数获取数字ID
+            if len(parts) >= 2:
+                cleaned = parts[1].strip().lstrip("@")
+                if cleaned.isdigit():
+                    target_user_id = cleaned
+            
+            # 如果参数中没有ID，从At组件获取
+            if not target_user_id:
+                message_chain = []
+                if hasattr(event, "message_obj") and event.message_obj:
+                    message_chain = getattr(event.message_obj, "message", []) or []
+                
+                # 遍历消息链，找到命令后面的At组件
+                found_command = False
+                for component in message_chain:
+                    # 检查是否是文本组件且包含命令
+                    if hasattr(component, "text"):
+                        text = getattr(component, "text", "")
+                        if "修改宗门岗位" in text:
+                            found_command = True
+                            # 检查文本中是否包含数字ID（在命令之后）
+                            import re
+                            match = re.search(r'修改宗门岗位\s+\d+\s+(\d+)', text)
+                            if match:
+                                target_user_id = match.group(1)
+                                break
+                            continue
+                    
+                    # 如果已经找到命令，且当前是At组件
+                    if found_command and isinstance(component, At):
+                        # 尝试多个可能的属性名
+                        candidate = None
+                        for attr in ("qq", "target", "uin", "user_id"):
+                            candidate = getattr(component, attr, None)
+                            if candidate:
+                                break
+                        
+                        if candidate:
+                            target_user_id = str(candidate).lstrip("@")
+                            break
+            
+            if not target_user_id:
+                yield event.plain_result(
+                    "❌ 未找到目标用户！\n"
+                    "💡 使用方法：修改宗门岗位 岗位ID @用户 或 修改宗门岗位 岗位ID 用户ID"
+                )
+                return
+            
+            # 检查目标玩家是否存在
+            target_player = self.player_service.get_player(target_user_id)
+            if not target_player:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_user_id}）还未踏入修仙之路！"
+                )
+                return
+            
+            # 检查玩家是否加入宗门
+            if not target_player.sect_id or target_player.sect_id == 0:
+                yield event.plain_result(
+                    f"❌ 目标用户（{target_player.nickname}）还未加入任何宗门！"
+                )
+                return
+            
+            # 修改宗门岗位
+            old_position = target_player.sect_position if target_player.sect_position is not None else 4
+            old_position_name = position_names.get(old_position, "未知")
+            
+            target_player.sect_position = position_id
+            self.player_service.player_repo.save(target_player)
+            
+            # 格式化输出
+            yield event.plain_result(
+                "✅ 宗门岗位修改成功！\n"
+                "━━━━━━━━━━━━━━━\n"
+                f"目标用户：{target_player.nickname}\n"
+                f"原有岗位：{old_position_name}\n"
+                f"当前岗位：{position_names[position_id]}"
+            )
+            
+        except Exception as e:
+            yield event.plain_result(f"❌ 修改宗门岗位失败：{str(e)}")

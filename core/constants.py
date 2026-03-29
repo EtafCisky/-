@@ -145,8 +145,10 @@ class Commands:
     
     # 管理员命令
     ADMIN_ADD_GOLD = "增加灵石"
+    ADMIN_REDUCE_GOLD = "减少灵石"
     ADMIN_CHANGE_SPIRIT_ROOT = "修改灵根"
     ADMIN_ADD_EXPERIENCE = "增加修为"
+    ADMIN_CHANGE_SECT_POSITION = "修改宗门岗位"
 
 
 class GameConstants:

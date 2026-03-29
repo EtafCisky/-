@@ -693,6 +693,12 @@ class XiuxianV3Plugin(Star):
         async for result in self.player_handler.handle_admin_add_gold(event, args):
             yield result
     
+    @filter.command(Commands.ADMIN_REDUCE_GOLD)
+    async def cmd_admin_reduce_gold(self, event: AstrMessageEvent, args: str = ""):
+        """减少灵石（管理员）"""
+        async for result in self.player_handler.handle_admin_reduce_gold(event, args):
+            yield result
+    
     @filter.command(Commands.ADMIN_CHANGE_SPIRIT_ROOT)
     async def cmd_admin_change_spirit_root(self, event: AstrMessageEvent, args: str = ""):
         """修改灵根（管理员）"""
@@ -703,6 +709,12 @@ class XiuxianV3Plugin(Star):
     async def cmd_admin_add_experience(self, event: AstrMessageEvent, args: str = ""):
         """增加修为（管理员）"""
         async for result in self.player_handler.handle_admin_add_experience(event, args):
+            yield result
+    
+    @filter.command(Commands.ADMIN_CHANGE_SECT_POSITION)
+    async def cmd_admin_change_sect_position(self, event: AstrMessageEvent, args: str = ""):
+        """修改宗门岗位（管理员）"""
+        async for result in self.player_handler.handle_admin_change_sect_position(event, args):
             yield result
     
     # ===== 悬赏系统命令 =====
