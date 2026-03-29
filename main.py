@@ -17,6 +17,34 @@ from .core.config import ConfigManager
 class XiuxianV3Plugin(Star):
     """修仙插件 V3 - 清晰架构版本"""
     
+    def _clear_python_cache(self):
+        """清理Python缓存（v3.5.30临时修复）"""
+        try:
+            from pathlib import Path
+            import shutil
+            
+            plugin_dir = Path(__file__).parent
+            
+            # 删除所有__pycache__目录
+            for pycache_dir in plugin_dir.rglob("__pycache__"):
+                try:
+                    shutil.rmtree(pycache_dir)
+                    logger.info(f"【修仙V3】已清理缓存目录: {pycache_dir}")
+                except Exception as e:
+                    logger.warning(f"【修仙V3】清理缓存目录失败 {pycache_dir}: {e}")
+            
+            # 删除所有.pyc文件
+            for pyc_file in plugin_dir.rglob("*.pyc"):
+                try:
+                    pyc_file.unlink()
+                    logger.info(f"【修仙V3】已清理缓存文件: {pyc_file}")
+                except Exception as e:
+                    logger.warning(f"【修仙V3】清理缓存文件失败 {pyc_file}: {e}")
+                    
+            logger.info("【修仙V3】Python缓存清理完成")
+        except Exception as e:
+            logger.error(f"【修仙V3】清理Python缓存失败: {e}")
+    
     def __init__(self, context: Context, config=None):
         super().__init__(context)
         
