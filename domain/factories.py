@@ -79,7 +79,11 @@ class PlayerFactory:
                 magic_damage=random.randint(5, 100),
                 physical_damage=5,
                 magic_defense=0,
-                physical_defense=5
+                physical_defense=5,
+                
+                # 炼丹职业
+                alchemy_level=0,
+                alchemy_exp=0
             )
         else:  # 体修
             # 体修初始数据
@@ -116,5 +120,9 @@ class PlayerFactory:
                 magic_damage=0,
                 physical_damage=random.randint(100, 500),
                 magic_defense=random.randint(38, 150),  # 削弱25%：原50-200
-                physical_defense=random.randint(100, 500)
+                physical_defense=random.randint(100, 500),
+                
+                # 炼丹职业
+                alchemy_level=0,
+                alchemy_exp=0
             )
