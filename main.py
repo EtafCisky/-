@@ -116,9 +116,6 @@ class FavourProPlugin(Star):
         log_level = self.config.get("debug_log_level", "INFO")
         logger.setLevel(getattr(logging, log_level.upper(), logging.INFO) if isinstance(log_level, str) else log_level)
 
-        # 读取优先级配置
-        self.plugin_priority = self.config.get("plugin_priority", 100000)
-
         self.block_pattern = re.compile(
             r"\s*\[(?=[^\]]*(?:Favour|Attitude|Relationship|F\s*:|A\s*:|R\s*:))[^\]]*\]\s*",
             re.IGNORECASE | re.DOTALL
@@ -228,11 +225,6 @@ class FavourProPlugin(Star):
         # 保存包装函数供后续使用（如动态添加的 Provider）
         self._wrap_provider_text_chat = wrap_provider_text_chat
         self._original_send_message = original_send_message
-
-    @property
-    def plugin_priority(self) -> int:
-        """动态读取plugin_priority配置"""
-        return int(self.config.get("plugin_priority", 100000))
 
     @filter.on_llm_request(priority=100000)
     async def add_context_prompt(self, event: AstrMessageEvent, req: ProviderRequest):
